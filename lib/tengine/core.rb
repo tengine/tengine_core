@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require 'tengine'
+require 'tengine_core'
 require 'logger'
 
 module Tengine::Core
