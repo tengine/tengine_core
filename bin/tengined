@@ -1,0 +1,284 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+require 'rubygems'
+require 'optparse'
+require 'daemons'
+
+$LOAD_PATH << File.expand_path('../app/models', File.dirname(__FILE__))
+require 'tengine'
+
+@hash = Tengine::Core::Config.default_hash
+Signal.trap(:INT) {puts ":INT"; @bootstrap.stop_kernel}
+
+ARGV.options do |o|
+
+  o.banner = <<EOS
+Usage: tengined [-k action] [-f path_to_config] [-T path/to/file_or_dir]
+         [-H db_host] [-P db_port] [-U db_user] [-S db_pass] [-B db_database]
+         [-h mq_conn_host] [-p mq_conn_port] [-u mq_conn_user] [-s mq_conn_pass]
+         [-v mq_conn_vhost] [-e mq_exchange_name] [-q mq_queue_name]
+EOS
+
+  tengine_opt = lambda do |prefixes, base_name, args|
+    prefixes = Array(prefixes)
+    args = Array(args)
+    options = args.last.is_a?(Hash) ? args.pop : {}
+    description = args.pop
+    short_arg = args.first
+    long_arg = "--#{prefixes.join('-')}-#{base_name}".gsub(/_/, '-')
+    datasource = prefixes.inject(@hash){|d, prefix| d[prefix]}
+    if options[:hide_value]
+      block = lambda{|v| datasource[base_name] = true}
+    elsif options[:hide_default]
+      long_arg << "=VAL"
+      block = lambda{|v| datasource[base_name] = v}
+    else
+      long_arg << "=VAL"
+      default_value = datasource[base_name]
+      description << " default: #{default_value.inspect}"
+      block = lambda{|v| datasource[base_name] = v}
+    end
+    on_args = [short_arg, long_arg, description].compact
+    o.on(*on_args, &block)
+  end
+
+  o.separator ""
+  o.separator "Basic:"
+  o.on("-k", "--action=test|load|start|enable|stop|force-stop|status|activate", "default: start"){|v| @hash[:action] = v}
+  o.on("-f", "--config=filepath"                , "Specify configuration file path."){|v| @hash[:config] = v}
+
+  o.separator ""
+  o.separator "Process:"
+  {
+    :load_path => ["-T", "[REQUIRED] path/to/file_or_dir. ignored with \"-k test\".", :hide_default => true],
+    :daemon => ["-D", "ignored with \"-k test, -k load, -k enable\".", :hide_value => true],
+    :skip_load => ["doesn't load event handler when start. usually use with --daemon option. [only for command]", :hide_value => true],
+    :skip_enablement => ["doesn't enable event handler when start. usually use with --daemon option. [only for command]", :hide_value => true],
+    :wait_activation => ["wait activation when start. usually use with --daemon option [only for command]", :hide_value => true],
+    :activation_timeout => "period to wait for making activation file.",
+    :pid_dir  => "path/to/dir.",
+    :status_dir => "path/to/dir.",
+    :activation_dir => "path/to/dir.",
+    :heartbeat_period => ["-G", "the second of period which heartbeat event be fired. disable heartbeat if 0."],
+    :confirmation_threshold => ["-C", "the event which is this level or less will be made confirmed automatically. debug/info/warn/error/fatal. "]
+  }.each{|key, args| tengine_opt.call(:tengined, key, args)}
+
+  o.separator ""
+  o.separator "DB Connection:"
+  {
+    :host     => ["-O", "hostname to connect db."],
+    :port     => ["-P", "port to connect db."],
+    :username => ["-U", "username to connect db."],
+    :password => ["-S", "password to connect db."],
+    :database => ["-B", "database name to connect db."],
+  }.each{|key, args| tengine_opt.call(:db, key, args)}
+
+  o.separator ""
+  o.separator "MQ subscription:"
+  {
+    :host  => ["-o", "hostname to connect queue server."],
+    :port  => ["-p", "port to connect queue server."],
+    :vhost => [      "vhost to connect queue server."],
+    :user  => ["-u", "username to connect queue server."],
+    :pass  => ["-s", "password to connect queue server."],
+  }.each{|key, args| tengine_opt.call([:event_queue, :connection], key, args)}
+
+
+  {
+    :name    => ["-e", "exchange name to access to queue."],
+    :type    => [     "exchange type to access to queue."],
+    :durable => [     "exchange durable to access to queue"],
+  }.each{|key, args| tengine_opt.call([:event_queue, :exchange], key, args)}
+
+  {
+    :name    => ["-q", "queue name to subscribe."],
+    :durable => [     "queue durable to subscribe."],
+  }.each{|key, args| tengine_opt.call([:event_queue, :queue], key, args)}
+
+  o.separator ""
+  o.separator "Log common options:"
+  {
+    :output        => ['file path or "STDOUT" / "STDERR"', :hide_value => true],
+    :rotation      => ['rotation file count or daily,weekly,monthly.'],
+    :rotation_size => ['number of max log file size.'],
+    :level         => ['debug/info/warn/error/fatal.'],
+  }.each{|key, args| tengine_opt.call(:log_common, key, args)}
+
+  o.separator ""
+  o.separator "Application log options:"
+  {
+    :output        => ['file path or "STDOUT" / "STDERR". default: if daemon process then “./log/application.log" else "STDOUT"', :hide_default => true],
+    :rotation      => ['rotation file count or daily,weekly,monthly. default: value of --log-common-rotation', :hide_default => true],
+    :rotation_size => ['number of max log file size. default: value of --log-common-rotation-size', :hide_default => true],
+    :level         => ['debug/info/warn/error/fatal. default: value of --log-common-level', :hide_default => true],
+  }.each{|key, args| tengine_opt.call(:application_log, key, args)}
+
+  o.separator ""
+  o.separator "Process STDOUT log options:"
+  {
+    :output        => ['file path or "STDOUT" / "STDERR". default: if daemon process then “./log/#{$PROGRAM_NAME}_#{Process.pid}_stdout.log" else "STDOUT"', :hide_default => true],
+    :rotation      => ['rotation file count or daily,weekly,monthly. default: value of --log-common-rotation', :hide_default => true],
+    :rotation_size => ['number of max log file size. default: value of --log-common-rotation-size', :hide_default => true],
+    :level         => ['debug/info/warn/error/fatal. default: value of --log-common-level', :hide_default => true],
+  }.each{|key, args| tengine_opt.call(:process_stdout_log, key, args)}
+
+  o.separator ""
+  o.separator "Process STDERR log options:"
+  {
+    :output        => ['file path or "STDOUT" / "STDERR". default: if daemon process then “./log/#{$PROGRAM_NAME}_#{Process.pid}_stderr.log" else "STDERR"', :hide_default => true],
+    :rotation      => ['rotation file count or daily,weekly,monthly. default: value of --log-common-rotation', :hide_default => true],
+    :rotation_size => ['number of max log file size. default: value of --log-common-rotation-size', :hide_default => true],
+    :level         => ['debug/info/warn/error/fatal. default: value of --log-common-level', :hide_default => true],
+  }.each{|key, args| tengine_opt.call(:process_stderr_log, key, args)}
+
+  o.separator ""
+  o.separator "General options:"
+  o.on("-V", '--verbose', "Show detail to this command"){ @hash[:verbose] = true}
+  o.on("-v", '--version', "Show version."){ puts "comming soon"; exit}
+  o.on("-h", '--help', "Show this help message."){ puts o; exit}
+  o.parse!
+end
+
+@verbose = @hash[:verbose]
+def verbose(msg, output = STDOUT)
+  if @verbose
+    if block_given?
+      output.puts("#{msg} begin")
+      begin
+        yield
+        output.puts("#{msg} end")
+      rescue Exception => e
+        STDERR.puts("Exception occurred in #{msg}\n[#{e.class.name}] #{e.message}\n  " << e.backtrace.join("\n  "))
+      end
+    else
+      output.puts(msg)
+    end
+  else
+    yield if block_given?
+  end
+end
+
+verbose "define stop_process" do
+  def stop_process(signal)
+    verbose("stop_process") do
+      pids = Dir.glob(File.expand_path(@hash[:tengined][:pid_dir] + "/*")).map do |pid_path|
+        File.open(pid_path, "r"){|f| f.gets.chomp.to_i}
+      end
+      results = pids.map{|pid| Process.kill(signal, pid)}
+    end
+  end
+end
+
+verbose "define show_status" do
+  def show_status
+    verbose("show_status") do
+      pid_to_status = {}
+      Dir.glob(File.expand_path(@hash[:tengined][:status_dir] + "/*.status")).map do |status_filepath|
+        pid_to_status[status_filepath.scan(/\d+/).first.to_i] = File.read(status_filepath).chomp
+      end
+      pid_lines = `ps -opid -p #{pid_to_status.keys.join(',')}`.split(/\n/)
+      living_pids = pid_lines.select{|line| line =~ /^\s*\d+\s*$/}.map(&:to_i)
+      pid_to_status.each do |pid, status|
+        puts "%6d %s" % [pid, living_pids.include?(pid) ? status : "terminated"]
+      end
+    end
+  end
+end
+
+verbose "define run_daemons" do
+  def run_daemons(&block)
+    verbose("run_daemons") do
+      daemonize_options = {
+        :ARGV => ['start'],
+        :ontop => !@hash[:tengined][:daemon],
+        :dir_mode => :normal,
+        :dir => File.expand_path("../#{@hash[:tengined][:pid_dir]}", File.dirname(@hash[:daemon_proc_path])),
+        # :log_dir => File.expand_path("../#{@hash[:tengined][:log_dir]}", File.dirname(__FILE__)),
+        # :log_output => false
+      }
+      daemonize_options.update(:ARGV => ['start'])
+      current_dir = Dir.pwd
+      begin
+        if @hash[:action].to_sym == :start
+          # pidファイルは、"tengined.0.pid"の数字の部分を連番でふります
+          pids = Dir.glob("#{daemonize_options[:dir]}/tengined.*.pid")
+          if pids.count == 0
+            max_pid_num = 0
+          else
+            max_pid_num = pids.map{|pid_path| File.basename(pid_path).scan(/\d+/).first.to_i}.max.succ
+          end
+          pid_file_name = "#{File.basename(@hash[:daemon_proc_path])}.#{max_pid_num}"
+        else
+          pid_file_name = "#{File.basename(@hash[:daemon_proc_path])}_#{@hash[:action]}"
+        end
+
+        Daemons.run_proc(pid_file_name, daemonize_options) do
+          Dir.chdir(current_dir, &block)
+        end
+      rescue SystemExit => e
+        verbose("Daemons.run_proc exit successfully") if e.status == 0
+      end
+    end
+  end
+end
+
+verbose "define make_activations" do
+  def make_activations
+    verbose("make_activations") do
+      Dir.glob(File.expand_path(@hash[:tengined][:pid_dir] + "/tengined.*.pid")).each do |pid_path|
+        pid = File.open(pid_path, "r"){|f| f.gets.chomp}
+        File.new(File.expand_path(@hash[:tengined][:activation_dir] + "/tengined_#{pid}.activation"), "w").close
+      end
+    end
+  end
+end
+
+verbose "define run" do
+  def run(&block)
+    verbose("run") do
+      case @hash[:action].to_sym
+      when :stop       then stop_process("HUP")
+      when :force_stop then stop_process("KILL")
+      when :status     then show_status
+      when :test, :load, :start, :enable then
+        run_daemons(&block)
+      when :activate   then make_activations
+      else
+        verbose("Unknown action: #{@hash[:action]}", STDERR)
+      end
+    end
+  rescue SystemExit
+    verbose("Exception occurred in run\n[#{$!.class.name}] #{$!.message}\n  " << $!.backtrace.join("\n  "), STDERR)
+    raise
+  rescue Exception
+    verbose("Exception occurred in run\n[#{$!.class.name}] #{$!.message}\n  " << $!.backtrace.join("\n  "), STDERR)
+    raise
+  end
+end
+
+@hash.update(:daemon_proc_path => File.expand_path(__FILE__))
+tengined_root = File.expand_path("..", File.expand_path(File.dirname(__FILE__)))
+
+if @verbose
+  verbose "configurations:"
+  require 'pp'; pp @hash
+  verbose "tengined_root: #{tengined_root}"
+end
+
+run do
+  config = nil
+  begin
+    config = Tengine::Core::Config.new(@hash)
+    config.setup_loggers
+  rescue Exception
+    puts "[#{$!.class.name}] #{$!.message}\n  " << $!.backrace.join("\n  ")
+    raise
+  end
+
+  #  Daemons.daemonize(daemonize_options)
+  require File.expand_path('./config/environment', tengined_root)
+  require File.expand_path('./app/models/tengine', tengined_root)
+  Tengine::Core::MethodTraceable.disabled = !@hash[:verbose] # Tengine::Core::Bootstrapが動く前に設定しないと余計なログが出ます
+  @bootstrap = Tengine::Core::Bootstrap.new(config)
+  @bootstrap.boot
+end
