@@ -20,6 +20,16 @@ end
 # in ./support/ and its subdirectories.
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
+Tengine::Core::MethodTraceable.disabled = true
+require 'logger'
+log_path = File.expand_path("../tmp/log/test.log", File.dirname(__FILE__))
+Tengine.logger = Logger.new(log_path)
+Tengine.logger.level = Logger::DEBUG
+Tengine::Core.stdout_logger = Logger.new(log_path)
+Tengine::Core.stdout_logger.level = Logger::DEBUG
+Tengine::Core.stderr_logger = Logger.new(log_path)
+Tengine::Core.stderr_logger.level = Logger::DEBUG
+
 RSpec.configure do |config|
   
 end

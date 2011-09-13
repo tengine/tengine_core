@@ -14,7 +14,7 @@ describe Tengine::Core::Kernel do
       before do
         config = Tengine::Core::Config.new({
             :tengined => {
-              :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
           })
         @kernel = Tengine::Core::Kernel.new(config)
@@ -33,7 +33,7 @@ describe Tengine::Core::Kernel do
       before do
         config = Tengine::Core::Config.new({
             :tengined => {
-              :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,
               :activation_timeout => 3,
               :activation_dir => File.expand_path('.', File.dirname(__FILE__)),
@@ -90,7 +90,7 @@ describe Tengine::Core::Kernel do
 
         config = Tengine::Core::Config.new({
             :tengined => {
-              :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => false,
               :confirmation_threashold => 'info'
             },
@@ -192,7 +192,7 @@ describe Tengine::Core::Kernel do
       before do
         config = Tengine::Core::Config.new({
             :tengined => {
-              :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
           })
         @kernel = Tengine::Core::Kernel.new(config)
@@ -221,7 +221,7 @@ describe Tengine::Core::Kernel do
       before do
         config = Tengine::Core::Config.new({
             :tengined => {
-              :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,
               :activation_timeout => 3,
               :activation_dir => File.expand_path('.', File.dirname(__FILE__)),
@@ -243,7 +243,7 @@ describe Tengine::Core::Kernel do
       before do
         config = Tengine::Core::Config.new({
             :tengined => {
-              :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
           })
         @kernel = Tengine::Core::Kernel.new(config)
@@ -273,7 +273,7 @@ describe Tengine::Core::Kernel do
       it "停止要求を受け取った直後では「停止中」および「停止済」の状態を返す(稼働中)" do
         config = Tengine::Core::Config.new({
             :tengined => {
-              :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
           })
         kernel = Tengine::Core::Kernel.new(config)
@@ -297,7 +297,7 @@ describe Tengine::Core::Kernel do
       it "停止要求を受け取った直後では「停止中」および「停止済」の状態を返す(稼働要求待ち)" do
         config = Tengine::Core::Config.new({
             :tengined => {
-              :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,
               :activation_timeout => 3,
               :activation_dir => File.expand_path('.', File.dirname(__FILE__)),

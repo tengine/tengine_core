@@ -7,7 +7,7 @@ describe "uc62_session_in_driver" do
     Tengine::Core::Session.delete_all
     config = Tengine::Core::Config.new({
         :tengined => {
-          :load_path => File.expand_path('../../../../../examples/uc60_event_in_handler.rb', File.dirname(__FILE__)),
+          :load_path => File.expand_path('../../../../examples/uc60_event_in_handler.rb', File.dirname(__FILE__)),
         },
       })
     @bootstrap = Tengine::Core::Bootstrap.new(config)

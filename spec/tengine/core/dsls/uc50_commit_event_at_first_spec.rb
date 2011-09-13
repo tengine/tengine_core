@@ -5,7 +5,7 @@ describe "uc50_commit_event_at_first" do
   before do
     config = Tengine::Core::Config.new({
         :tengined => {
-          :load_path => File.expand_path('../../../../../examples/uc50_commit_event_at_first.rb', File.dirname(__FILE__)),
+          :load_path => File.expand_path('../../../../examples/uc50_commit_event_at_first.rb', File.dirname(__FILE__)),
         },
       })
     @bootstrap = Tengine::Core::Bootstrap.new(config)
