@@ -7,8 +7,9 @@ SimpleCov.start if ENV["COVERAGE"]
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rspec'
-require 'tengine_core'
+require 'factory_girl'
 
+require 'tengine_core'
 require 'mongoid'
 Mongoid.load!(File.expand_path('mongoid.yml', File.dirname(__FILE__)))
 
@@ -31,5 +32,7 @@ Tengine::Core.stderr_logger = Logger.new(log_path)
 Tengine::Core.stderr_logger.level = Logger::DEBUG
 
 RSpec.configure do |config|
-  
+  config.include Factory::Syntax::Methods
 end
+
+Dir["#{File.expand_path('factories', File.dirname(__FILE__))}/**/*.rb"].each {|f| require f}

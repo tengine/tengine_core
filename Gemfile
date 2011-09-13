@@ -20,6 +20,7 @@ gem "daemons", "~> 1.1"
 # Include everything needed to run rake, tests, features, etc.
 group :development do
   gem "rspec-rails", "~> 2.6"
+  gem "factory_girl", "~> 2.1"
   gem "yard", "~> 0.7"
   gem "ZenTest", "~> 4.4"
   gem "bundler", "~> 1.0"
