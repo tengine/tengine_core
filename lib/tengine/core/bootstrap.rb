@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
+
 require 'tengine/event'
 require 'tengine/mq'
+
 require 'eventmachine'
 
 class Tengine::Core::Bootstrap

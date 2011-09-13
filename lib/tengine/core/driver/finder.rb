@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core/driver'
+
 class Tengine::Core::Driver::Finder
 
   attr_accessor :name

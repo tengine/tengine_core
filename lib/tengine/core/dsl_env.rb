@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
+
 class Tengine::Core::DslEnv
   include Tengine::Core::DslBinder
 

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
+
 class Tengine::Core::Session
   include Mongoid::Document
   field :lock_version, :type => Integer, :default => 1

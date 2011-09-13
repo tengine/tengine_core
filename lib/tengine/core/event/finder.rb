@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core/event'
+
 class Tengine::Core::Event::Finder
 
   include ::SelectableAttr::Base

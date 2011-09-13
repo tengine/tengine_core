@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
 require 'logger'
 
 require 'active_support/core_ext/hash'

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-require 'eventmachine'
+require 'tengine/core'
+
 require 'tengine/event'
 
 module Tengine::Core::DslBinder

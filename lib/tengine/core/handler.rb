@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
 require 'tengine/event'
 
 class Tengine::Core::Handler

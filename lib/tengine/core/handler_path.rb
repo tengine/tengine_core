@@ -1,3 +1,5 @@
+require 'tengine/core'
+
 class Tengine::Core::HandlerPath
   include Mongoid::Document
   field :event_type_name, :type => String

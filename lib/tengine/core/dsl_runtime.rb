@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
+
 module Tengine::Core::DslRuntime # Kernelにincludeされます
 
   def safety_processing_headers(headers, event, ack_policy)

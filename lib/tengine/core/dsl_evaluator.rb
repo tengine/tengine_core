@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
+
 module Tengine::Core::DslEvaluator
   attr_accessor :config
 
