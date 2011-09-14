@@ -7,7 +7,7 @@ describe "uc61_event_outside_of_handler" do
     Tengine::Core::Session.delete_all
     @config = Tengine::Core::Config.new({
         :tengined => {
-          :load_path => File.expand_path('../../../../../failure_examples/uc61_event_outside_of_handler.rb', File.dirname(__FILE__)),
+          :load_path => File.expand_path('../../../../failure_examples/uc61_event_outside_of_handler.rb', File.dirname(__FILE__)),
         },
       })
   end

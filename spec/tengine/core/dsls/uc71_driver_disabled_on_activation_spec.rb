@@ -7,7 +7,7 @@ describe "uc71_driver_disabled_on_activation" do
     Tengine::Core::Session.delete_all
     @config = Tengine::Core::Config.new({
         :tengined => {
-          :load_path => File.expand_path('../../../../../examples/uc71_driver_disabled_on_activation.rb', File.dirname(__FILE__)),
+          :load_path => File.expand_path('../../../../examples/uc71_driver_disabled_on_activation.rb', File.dirname(__FILE__)),
           :skip_enablement => true,
         },
       })

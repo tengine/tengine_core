@@ -7,7 +7,7 @@ describe "uc63_session_outside_of_driver" do
     Tengine::Core::Session.delete_all
     @config = Tengine::Core::Config.new({
         :tengined => {
-          :load_path => File.expand_path('../../../../../failure_examples/uc63_session_outside_of_driver.rb', File.dirname(__FILE__)),
+          :load_path => File.expand_path('../../../../failure_examples/uc63_session_outside_of_driver.rb', File.dirname(__FILE__)),
         },
       })
   end

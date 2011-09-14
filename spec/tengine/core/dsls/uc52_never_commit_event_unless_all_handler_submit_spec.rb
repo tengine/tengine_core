@@ -5,7 +5,7 @@ describe "uc52_commit_event_after_all_handler_submit" do
   before do
     config = Tengine::Core::Config.new({
         :tengined => {
-          :load_path => File.expand_path('../../../../../examples/uc52_never_commit_event_unless_all_handler_submit.rb', File.dirname(__FILE__)),
+          :load_path => File.expand_path('../../../../examples/uc52_never_commit_event_unless_all_handler_submit.rb', File.dirname(__FILE__)),
         },
       })
     @bootstrap = Tengine::Core::Bootstrap.new(config)

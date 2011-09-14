@@ -5,7 +5,7 @@ describe "uc81_raise_runtime_error" do
   before do
     Tengine::Core::Driver.delete_all
     Tengine::Core::Session.delete_all
-    @dsl_path = File.expand_path('../../../../../examples/uc81_raise_runtime_error.rb', File.dirname(__FILE__))
+    @dsl_path = File.expand_path('../../../../examples/uc81_raise_runtime_error.rb', File.dirname(__FILE__))
     @config = Tengine::Core::Config.new({
         :tengined => {
           :load_path => @dsl_path,

@@ -13,7 +13,7 @@ describe Tengine::Core::DslBinder do
       before do
         config = Tengine::Core::Config.new({
             :tengined => {
-              :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__))
+              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__))
             }
         })
         @binder = Tengine::Core::DslContext.new(mock(:kernel))
@@ -45,7 +45,7 @@ describe Tengine::Core::DslBinder do
       before do
         config = Tengine::Core::Config.new({
             :tengined => {
-              :load_path => File.expand_path('../../../../examples', File.dirname(__FILE__))
+              :load_path => File.expand_path('../../../examples', File.dirname(__FILE__))
             }
         })
         @binder = Tengine::Core::DslContext.new(mock(:kernel))

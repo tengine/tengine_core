@@ -7,7 +7,7 @@ describe "uc08_if_both_a_and_b_occurs" do
     Tengine::Core::Session.delete_all
     config = Tengine::Core::Config.new({
         :tengined => {
-          :load_path => File.expand_path('../../../../../examples/uc08_if_both_a_and_b_occurs.rb', File.dirname(__FILE__)),
+          :load_path => File.expand_path('../../../../examples/uc08_if_both_a_and_b_occurs.rb', File.dirname(__FILE__)),
         },
       })
     @bootstrap = Tengine::Core::Bootstrap.new(config)
