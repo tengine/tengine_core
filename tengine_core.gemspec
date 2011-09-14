@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tengine_core}
-  s.version = "0.0.1"
+  s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = [%q{t-akima}]
-  s.date = %q{2011-09-13}
+  s.date = %q{2011-09-14}
   s.description = %q{tengine_core is a framework/engine to support distributed processing}
   s.email = %q{akima@nautilus-technologies.com}
   s.executables = [%q{tengined}]
@@ -38,8 +38,15 @@ Gem::Specification.new do |s|
     "examples/uc52_never_commit_event_unless_all_handler_submit.rb",
     "examples/uc60_event_in_handler.rb",
     "examples/uc62_session_in_driver.rb",
+    "examples/uc64_safety_countup.rb",
+    "examples/uc70_driver_enabled_on_activation.rb",
+    "examples/uc71_driver_disabled_on_activation.rb",
+    "examples/uc80_raise_io_error.rb",
+    "examples/uc81_raise_runtime_error.rb",
     "failure_examples/VERSION",
     "failure_examples/uc53_submit_outside_of_handler.rb",
+    "failure_examples/uc61_event_outside_of_handler.rb",
+    "failure_examples/uc63_session_outside_of_driver.rb",
     "lib/tengine/core.rb",
     "lib/tengine/core/bootstrap.rb",
     "lib/tengine/core/collection_accessible.rb",
@@ -49,12 +56,11 @@ Gem::Specification.new do |s|
     "lib/tengine/core/driver.rb",
     "lib/tengine/core/driver/finder.rb",
     "lib/tengine/core/dsl_binder.rb",
-    "lib/tengine/core/dsl_dummy_env.rb",
-    "lib/tengine/core/dsl_env.rb",
+    "lib/tengine/core/dsl_context.rb",
+    "lib/tengine/core/dsl_dummy_context.rb",
     "lib/tengine/core/dsl_evaluator.rb",
     "lib/tengine/core/dsl_filter_def.rb",
     "lib/tengine/core/dsl_loader.rb",
-    "lib/tengine/core/dsl_runtime.rb",
     "lib/tengine/core/event.rb",
     "lib/tengine/core/event/finder.rb",
     "lib/tengine/core/event_wrapper.rb",
@@ -62,6 +68,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/handler_path.rb",
     "lib/tengine/core/io_to_logger.rb",
     "lib/tengine/core/kernel.rb",
+    "lib/tengine/core/kernel_runtime.rb",
     "lib/tengine/core/method_traceable.rb",
     "lib/tengine/core/session.rb",
     "lib/tengine/core/session_wrapper.rb",
@@ -80,13 +87,22 @@ Gem::Specification.new do |s|
     "spec/tengine/core/config_spec/log_config_spec.rb",
     "spec/tengine/core/driver_spec.rb",
     "spec/tengine/core/dsl_binder_spec.rb",
-    "spec/tengine/core/dsl_env_spec.rb",
+    "spec/tengine/core/dsl_context_spec.rb",
     "spec/tengine/core/dsl_loader_spec.rb",
+    "spec/tengine/core/dsls/uc08_if_both_a_and_b_occurs_spec.rb",
     "spec/tengine/core/dsls/uc50_commit_event_at_first_spec.rb",
     "spec/tengine/core/dsls/uc52_commit_event_after_all_handler_submit_spec.rb",
     "spec/tengine/core/dsls/uc52_never_commit_event_unless_all_handler_submit_spec.rb",
+    "spec/tengine/core/dsls/uc53_submit_outside_of_handler_spec.rb",
     "spec/tengine/core/dsls/uc60_event_in_handler_spec.rb",
+    "spec/tengine/core/dsls/uc61_event_outside_of_handler_spec.rb",
     "spec/tengine/core/dsls/uc62_session_in_driver_spec.rb",
+    "spec/tengine/core/dsls/uc63_session_outside_of_driver_spec.rb",
+    "spec/tengine/core/dsls/uc64_safety_countup_spec.rb",
+    "spec/tengine/core/dsls/uc70_driver_enabled_on_activation_spec.rb",
+    "spec/tengine/core/dsls/uc71_driver_disabled_on_activation_spec.rb",
+    "spec/tengine/core/dsls/uc80_raise_io_error_spec.rb",
+    "spec/tengine/core/dsls/uc81_raise_runtime_error_spec.rb",
     "spec/tengine/core/event_spec.rb",
     "spec/tengine/core/handler_path_spec.rb",
     "spec/tengine/core/handler_spec.rb",
