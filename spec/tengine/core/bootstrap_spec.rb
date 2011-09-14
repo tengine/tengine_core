@@ -139,21 +139,23 @@ describe "Tengine::Core::Bootstrap" do
       Tengine::Core::Driver.delete_all
       t = Time.local(2011,9,5,17,28,30)
       Time.stub!(:now).and_return(t)
-
-      @d1 = Tengine::Core::Driver.create!(:name=>"driver1", :version=>"20110905172830", :enabled=>false, :enabled_on_activation=>true)
-      @d2 = Tengine::Core::Driver.create!(:name=>"driver2", :version=>"20110905172830", :enabled=>false, :enabled_on_activation=>true)
-      @d3 = Tengine::Core::Driver.create!(:name=>"driver3", :version=>"20110905172830", :enabled=>false, :enabled_on_activation=>true)
+      @time_str = "20110905172830"
+      @d1 = Tengine::Core::Driver.create!(:name=>"driver1", :version=>@time_str, :enabled=>false, :enabled_on_activation=>true)
+      @d2 = Tengine::Core::Driver.create!(:name=>"driver2", :version=>@time_str, :enabled=>false, :enabled_on_activation=>true)
+      @d3 = Tengine::Core::Driver.create!(:name=>"driver3", :version=>@time_str, :enabled=>false, :enabled_on_activation=>true)
     end
 
     it "enabled=true に更新される" do
+      File.stub!(:exist?).with(File.expand_path("examples/VERSION")).and_return(false)
       options = {
         :action => "enable",
-        :tengined => { :load_path => "./" }
+        :tengined => { :load_path => "examples" }
       }
       bootstrap = Tengine::Core::Bootstrap.new(options)
+      bootstrap.config.dsl_version.should == @time_str
       bootstrap.boot
 
-      Tengine::Core::Driver.where(:version => "20110905172830").each do |d|
+      Tengine::Core::Driver.where(:version => @time_str).each do |d|
         d.enabled.should be_true
       end
     end
