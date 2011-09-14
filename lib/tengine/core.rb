@@ -33,7 +33,7 @@ module Tengine::Core
   # developmentで動かすと
   #   ActionController::RoutingError (uninitialized constant Tengine::DslError)
   # が発生してしまうため StandardError から継承するように変更しました
-  class DslError < StandardError # ::Tengine::DslError
+  class DslError < ::Tengine::DslError
   end
 
   class << self
