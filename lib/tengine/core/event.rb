@@ -4,6 +4,8 @@ require 'tengine/core'
 require 'selectable_attr'
 
 class Tengine::Core::Event
+  autoload :Finder, 'tengine/core/event/finder'
+
   include Mongoid::Document
   include ::SelectableAttr::Base
   field :event_type_name, :type => String
