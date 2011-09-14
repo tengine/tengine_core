@@ -4,8 +4,8 @@ require 'rubygems'
 require 'optparse'
 require 'daemons'
 
-$LOAD_PATH << File.expand_path('../app/models', File.dirname(__FILE__))
-require 'tengine'
+$LOAD_PATH << File.expand_path('../lib', File.dirname(__FILE__))
+require 'tengine_core'
 
 @hash = Tengine::Core::Config.default_hash
 Signal.trap(:INT) {puts ":INT"; @bootstrap.stop_kernel}
@@ -275,9 +275,12 @@ run do
     raise
   end
 
-  #  Daemons.daemonize(daemonize_options)
-  require File.expand_path('./config/environment', tengined_root)
-  require File.expand_path('./app/models/tengine', tengined_root)
+  require 'mongoid'
+  require File.expand_path('./lib/tengine_core', tengined_root)
+  Mongoid::Document.module_eval do
+    include Tengine::Core::CollectionAccessible
+  end
+  Mongoid.config.from_hash(config[:db])
   Tengine::Core::MethodTraceable.disabled = !@hash[:verbose] # Tengine::Core::Bootstrapが動く前に設定しないと余計なログが出ます
   @bootstrap = Tengine::Core::Bootstrap.new(config)
   @bootstrap.boot
