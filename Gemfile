@@ -7,7 +7,6 @@ gem "activesupport", "~> 3.1"
 gem "activemodel"  , "~> 3.1"
 
 gem "selectable_attr", "~> 0.3"
-gem "selectable_attr_rails", "~> 0.3"
 
 gem "mongoid", "~> 2.2"
 gem "bson_ext", "~> 1.3"
