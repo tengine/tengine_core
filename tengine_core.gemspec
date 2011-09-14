@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tengine_core}
-  s.version = "0.0.3"
+  s.version = "0.0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = [%q{t-akima}]
@@ -41,6 +41,7 @@ Gem::Specification.new do |s|
     "examples/uc64_safety_countup.rb",
     "examples/uc70_driver_enabled_on_activation.rb",
     "examples/uc71_driver_disabled_on_activation.rb",
+    "examples/uc72_setup_eventmachine.rb",
     "examples/uc80_raise_io_error.rb",
     "examples/uc81_raise_runtime_error.rb",
     "failure_examples/VERSION",
@@ -101,6 +102,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/dsls/uc64_safety_countup_spec.rb",
     "spec/tengine/core/dsls/uc70_driver_enabled_on_activation_spec.rb",
     "spec/tengine/core/dsls/uc71_driver_disabled_on_activation_spec.rb",
+    "spec/tengine/core/dsls/uc72_setup_eventmachine_spec.rb",
     "spec/tengine/core/dsls/uc80_raise_io_error_spec.rb",
     "spec/tengine/core/dsls/uc81_raise_runtime_error_spec.rb",
     "spec/tengine/core/event_spec.rb",
