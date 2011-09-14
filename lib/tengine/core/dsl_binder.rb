@@ -64,7 +64,7 @@ module Tengine::Core::DslBinder
 
   def event
     raise Tengine::Core::DslError, "event is not available outside of event handler block." unless @__kernel__.processing_event?
-    @__session_in_processing_event__ ||= Tengine::Core::EventWrapper.new(@__event__)
+    @__event_wrapper__ ||= Tengine::Core::EventWrapper.new(@__event__)
   end
 
   def ack?
