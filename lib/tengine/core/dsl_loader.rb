@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
+
 require 'pathname'
 
 module Tengine::Core::DslLoader

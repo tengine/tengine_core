@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
+
 class Tengine::Core::Driver
   include Mongoid::Document
   field :name, :type => String

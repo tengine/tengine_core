@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
+
 module Tengine::Core::KernelRuntime # Kernelにincludeされます
 
   def safety_processing_headers(headers, event, ack_policy)

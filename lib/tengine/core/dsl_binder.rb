@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
+
 require 'eventmachine'
 require 'tengine/event'
 

@@ -1,3 +1,5 @@
+require 'tengine/core'
+
 # see http://www.ruzee.com/blog/2006/11/redirecting-stdout-to-logger-with-ruby-on-rails
 class Tengine::Core::IoToLogger
   def initialize(logger, method_to_write = :info)

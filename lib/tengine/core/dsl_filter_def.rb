@@ -1,3 +1,5 @@
+require 'tengine/core'
+
 class Tengine::Core::DslFilterDef
   attr_reader :filter
   attr_reader :event_type_names

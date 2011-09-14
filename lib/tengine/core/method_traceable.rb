@@ -1,3 +1,5 @@
+require 'tengine/core'
+
 module Tengine::Core::MethodTraceable
 
   class << self

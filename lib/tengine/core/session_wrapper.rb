@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/core'
+
 require 'active_support/hash_with_indifferent_access'
 
 class Tengine::Core::SessionWrapper
