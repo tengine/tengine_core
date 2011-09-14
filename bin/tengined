@@ -134,7 +134,10 @@ EOS
   o.separator ""
   o.separator "General options:"
   o.on("-V", '--verbose', "Show detail to this command"){ @hash[:verbose] = true}
-  o.on("-v", '--version', "Show version."){ puts "comming soon"; exit}
+  o.on("-v", '--version', "Show version."){
+    puts File.read(File.expand_path("../VERSION", File.dirname(__FILE__)));
+    exit;
+  }
   o.on("-h", '--help', "Show this help message."){ puts o; exit}
   o.parse!
 end
