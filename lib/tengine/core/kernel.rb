@@ -90,6 +90,7 @@ class Tengine::Core::Kernel
       subscribe_queue
       enable_heartbeat if config.heartbeat_enabled?
       yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
+      em_setup_blocks.each{|block| block.call }
     end
   end
 

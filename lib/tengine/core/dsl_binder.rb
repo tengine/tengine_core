@@ -11,6 +11,11 @@ module Tengine::Core::DslBinder
     args.each{|arg| @__kernel__.add_ack_policy(arg, policy)}
   end
 
+  def setup_eventmachine(&block)
+    return unless block
+    @__kernel__.em_setup_blocks << block
+  end
+
   def driver(name, options = {}, &block)
     drivers = Tengine::Core::Driver.where(:name => name, :version => config.dsl_version)
     # 指定した version の driver が見つからなかった場合にはデプロイされていないのでエラー

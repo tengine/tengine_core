@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-require 'tengine/core'
-
 require 'pathname'
 
 module Tengine::Core::DslLoader
@@ -8,6 +6,9 @@ module Tengine::Core::DslLoader
 
   def ack_policy(*args)
     # DBにack_policyを登録する訳ではないのでここでは何もしません
+  end
+
+  def setup_eventmachine(&block)
   end
 
   def driver(name, options = {}, &block)

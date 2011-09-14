@@ -52,6 +52,11 @@ module Tengine::Core::KernelRuntime # Kernelにincludeされます
 
   def processing_event?; @processing_event; end
 
+
+  def em_setup_blocks
+    @em_setup_blocks ||= []
+  end
+
   private
 
   def safety_processing_event(headers)
