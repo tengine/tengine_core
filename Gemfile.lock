@@ -1,4 +1,5 @@
 GEM
+  remote: http://dev.tenginefw.com/gemserver/
   remote: http://rubygems.org/
   specs:
     ZenTest (4.6.2)
