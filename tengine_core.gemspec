@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tengine_core}
-  s.version = "0.0.10"
+  s.version = "0.0.11"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = [%q{t-akima}]
@@ -114,6 +114,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/io_to_logger_spec.rb",
     "spec/tengine/core/kernel_spec.rb",
     "spec/tengine/core/session_spec.rb",
+    "spec/tengine/core_spec.rb",
     "tengine_core.gemspec",
     "tmp/log/.gitignore",
     "tmp/tengined_status/.gitignore"
