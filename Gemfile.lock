@@ -55,7 +55,7 @@ GEM
       simplecov-html (~> 0.5.3)
     simplecov-html (0.5.3)
     systemu (2.2.0)
-    tengine_event (0.2.2)
+    tengine_event (0.2.3)
       activesupport (>= 3.0.0)
       amqp (~> 0.8)
       uuid (~> 2.3)
