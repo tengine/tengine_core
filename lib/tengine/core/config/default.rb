@@ -8,21 +8,38 @@ require 'tengine/core/config'
 class Tengine::Core::Config
   class << self
     def default_hash
-      copy_deeply(DEFAULT, {})
+      copy_deeply(DEFAULT, {}, true)
     end
 
-    def copy_deeply(source, dest)
+    def copy_deeply(source, dest, copy_if_nil = false)
       source.each do |key, value|
         case value
-        when NilClass, TrueClass, FalseClass, Numeric, Symbol then
+        when NilClass then
+          dest[key] = nil if copy_if_nil
+        when TrueClass, FalseClass, Numeric, Symbol then
           dest[key] = value
         when Hash then
-          dest[key] = copy_deeply(value, dest[key] || {})
+          dest[key] = copy_deeply(value, dest[key] || {}, copy_if_nil)
         else
           dest[key] = value.dup
         end
       end
       dest
+    end
+
+    def skelton_hash
+      clear_values_deeply(default_hash)
+    end
+
+    def clear_values_deeply(hash)
+      hash.each do |key, value|
+        case value
+        when Hash then
+          clear_values_deeply(hash[key])
+        else
+          hash[key] = nil
+        end
+      end
     end
   end
 

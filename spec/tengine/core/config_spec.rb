@@ -292,21 +292,44 @@ describe Tengine::Core::Config do
       it_should_behave_like "正しく読み込む"
     end
 
-    context "起動コマンドの引数を解釈" do
+    context "起動コマンドの引数を解釈したConfig" do
       before do
         @config = Tengine::Core::Config.parse(["-f", @config_path]) # bin/tenginedではARGVが渡されます
       end
       it_should_behave_like "正しく読み込む"
     end
 
-    context "起動コマンドの引数を解釈" do
+    context "起動コマンドの引数を解釈したHash" do
       before do
         @hash = Tengine::Core::Config.parse_to_hash(["-f", @config_path]) # bin/tenginedではARGVが渡されます
       end
-      it "-fを除いてデフォルトとほとんど同じ" do
+      it ":configを除いてスケルトンとほとんど同じ" do
         @hash[:config].should == @config_path
         @hash[:config] = nil
-        @hash.should == Tengine::Core::Config.default_hash
+        @hash.should == Tengine::Core::Config.skelton_hash
+      end
+    end
+
+    describe 'Tengine::Core::Config.copy_deeply' do
+      context "Tengine::Core::Config#initialize内部での使用#1" do
+        before do
+          @hash = ActiveSupport::HashWithIndifferentAccess.new(Tengine::Core::Config.default_hash)
+          original_hash = Tengine::Core::Config.parse_to_hash(["-f", @config_path]) # bin/tenginedではARGVが渡されます
+          config_hash = YAML.load_file(@config_path)
+          Tengine::Core::Config.copy_deeply(config_hash, @hash)
+        end
+        it_should_behave_like "正しく読み込む"
+      end
+
+      context "Tengine::Core::Config#initialize内部での使用#2" do
+        before do
+          @hash = ActiveSupport::HashWithIndifferentAccess.new(Tengine::Core::Config.default_hash)
+          original_hash = Tengine::Core::Config.parse_to_hash(["-f", @config_path]) # bin/tenginedではARGVが渡されます
+          config_hash = YAML.load_file(@config_path)
+          Tengine::Core::Config.copy_deeply(config_hash, @hash)
+          Tengine::Core::Config.copy_deeply(original_hash, @hash)
+        end
+        it_should_behave_like "正しく読み込む"
       end
     end
 

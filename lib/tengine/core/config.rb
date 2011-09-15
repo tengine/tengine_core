@@ -28,7 +28,7 @@ class Tengine::Core::Config
     end
     # ARGVなどの配列から設定をロードします
     def parse_to_hash(args)
-      Tengine::Core::Config::Parser.new(default_hash, args.flatten).parse
+      Tengine::Core::Config::Parser.new(skelton_hash, args.flatten).parse
     end
   end
 
