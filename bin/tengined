@@ -45,7 +45,7 @@ verbose "define show_status" do
     verbose("show_status") do
       pid_to_status = {}
       Dir.glob(File.expand_path(@__config__[:tengined][:status_dir] + "/*.status")).map do |status_filepath|
-        pid_to_status[status_filepath.scan(/\d+/).first.to_i] = File.read(status_filepath).chomp
+        pid_to_status[File.basename(status_filepath).scan(/\d+/).first.to_i] = File.read(status_filepath).chomp
       end
       pid_lines = `ps -opid -p #{pid_to_status.keys.join(',')}`.split(/\n/)
       living_pids = pid_lines.select{|line| line =~ /^\s*\d+\s*$/}.map(&:to_i)
