@@ -49,6 +49,11 @@ module Tengine::Core
       @stderr_logger ||= Logger.new(STDERR)
     end
     attr_writer :stderr_logger
+
+    # リリースされたtengine_coreパッケージのバージョンを返します
+    def version
+      File.read(File.expand_path("../../VERSION", File.dirname(__FILE__))).strip
+    end
   end
 
   # 設定ファイルエラー

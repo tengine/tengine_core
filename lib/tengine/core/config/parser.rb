@@ -122,7 +122,7 @@ EOS
   o.separator "General options:"
   o.on("-V", '--verbose', "Show detail to this command"){ @hash[:verbose] = true}
   o.on("-v", '--version', "Show version."){
-    puts File.read(File.expand_path("../VERSION", File.dirname(__FILE__)));
+    puts Tengine::Core.version.to_s
     exit;
   }
   o.on("-h", '--help', "Show this help message."){ puts o; exit}
