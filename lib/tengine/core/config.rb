@@ -14,6 +14,39 @@ class Tengine::Core::Config
   # memoize については http://wota.jp/ac/?date=20081025#p11 などを参照してください
   extend ActiveSupport::Memoizable
 
+  class << self
+    # Tengine::Core::Configへの型変換を行うメソッドです
+    def [](obj)
+      obj.is_a?(self) ? obj : new(obj)
+    end
+
+    # ARGVなどの配列から設定をロードします
+    def parse(args)
+      hash = Tengine::Core::Config::Parser.new(default_hash, args.flatten).parse
+      new(hash)
+    end
+
+    def default_hash
+      copy_deeply(DEFAULT, {})
+    end
+
+    def copy_deeply(source, dest)
+      source.each do |key, value|
+        case value
+        when NilClass, TrueClass, FalseClass, Numeric, Symbol then
+          dest[key] = value
+        when Hash then
+          dest[key] = copy_deeply(value, dest[key] || {})
+        else
+          dest[key] = value.dup
+        end
+      end
+      dest
+    end
+
+  end
+
+
   def initialize(original= nil)
     @hash = ActiveSupport::HashWithIndifferentAccess.new(self.class.default_hash)
     original = ActiveSupport::HashWithIndifferentAccess.new(original || {})
@@ -266,35 +299,5 @@ class Tengine::Core::Config
     }.freeze,
 
   }.freeze
-
-  class << self
-    def default_hash
-      copy_deeply(DEFAULT, {})
-    end
-
-    def copy_deeply(source, dest)
-      source.each do |key, value|
-        case value
-        when NilClass, TrueClass, FalseClass, Numeric, Symbol then
-          dest[key] = value
-        when Hash then
-          dest[key] = copy_deeply(value, dest[key] || {})
-        else
-          dest[key] = value.dup
-        end
-      end
-      dest
-    end
-
-    # Tengine::Core::Configへの型変換を行うメソッドです
-    def [](obj)
-      obj.is_a?(self) ? obj : new(obj)
-    end
-
-    def parse(args)
-      hash = Tengine::Core::Config::Parser.new(default_hash, args.flatten).parse
-      new(hash)
-    end
-  end
 
 end
