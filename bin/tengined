@@ -7,12 +7,12 @@ require 'daemons'
 $LOAD_PATH << File.expand_path('../lib', File.dirname(__FILE__))
 require 'tengine_core'
 
-@hash = Tengine::Core::Config.parse(ARGV)
-Signal.trap(:INT) {puts ":INT"; @bootstrap.stop_kernel}
+@__config__ = Tengine::Core::Config.parse(ARGV)
+Signal.trap(:INT) {puts ":INT"; @__bootstrap__.stop_kernel}
 
-@verbose = @hash[:verbose]
+@__verbose__ = @__config__[:verbose]
 def verbose(msg, output = STDOUT)
-  if @verbose
+  if @__verbose__
     if block_given?
       output.puts("#{msg} begin")
       begin
@@ -32,7 +32,7 @@ end
 verbose "define stop_process" do
   def stop_process(signal)
     verbose("stop_process") do
-      pids = Dir.glob(File.expand_path(@hash[:tengined][:pid_dir] + "/*")).map do |pid_path|
+      pids = Dir.glob(File.expand_path(@__config__[:tengined][:pid_dir] + "/*")).map do |pid_path|
         File.open(pid_path, "r"){|f| f.gets.chomp.to_i}
       end
       results = pids.map{|pid| Process.kill(signal, pid)}
@@ -44,7 +44,7 @@ verbose "define show_status" do
   def show_status
     verbose("show_status") do
       pid_to_status = {}
-      Dir.glob(File.expand_path(@hash[:tengined][:status_dir] + "/*.status")).map do |status_filepath|
+      Dir.glob(File.expand_path(@__config__[:tengined][:status_dir] + "/*.status")).map do |status_filepath|
         pid_to_status[status_filepath.scan(/\d+/).first.to_i] = File.read(status_filepath).chomp
       end
       pid_lines = `ps -opid -p #{pid_to_status.keys.join(',')}`.split(/\n/)
@@ -61,16 +61,16 @@ verbose "define run_daemons" do
     verbose("run_daemons") do
       daemonize_options = {
         :ARGV => ['start'],
-        :ontop => !@hash[:tengined][:daemon],
+        :ontop => !@__config__[:tengined][:daemon],
         :dir_mode => :normal,
-        :dir => File.expand_path(@hash[:tengined][:pid_dir]),
-        # :log_dir => File.expand_path("../#{@hash[:tengined][:log_dir]}", File.dirname(__FILE__)),
+        :dir => File.expand_path(@__config__[:tengined][:pid_dir]),
+        # :log_dir => File.expand_path("../#{@__config__[:tengined][:log_dir]}", File.dirname(__FILE__)),
         # :log_output => false
       }
       daemonize_options.update(:ARGV => ['start'])
       current_dir = Dir.pwd
       begin
-        if @hash[:action].to_sym == :start
+        if @__config__[:action].to_sym == :start
           # pidファイルは、"tengined.0.pid"の数字の部分を連番でふります
           pids = Dir.glob("#{daemonize_options[:dir]}/tengined.*.pid")
           if pids.count == 0
@@ -80,7 +80,7 @@ verbose "define run_daemons" do
           end
           pid_file_name = "#{File.basename(@__daemon_proc_path__)}.#{max_pid_num}"
         else
-          pid_file_name = "#{File.basename(@__daemon_proc_path__)}_#{@hash[:action]}"
+          pid_file_name = "#{File.basename(@__daemon_proc_path__)}_#{@__config__[:action]}"
         end
 
         Daemons.run_proc(pid_file_name, daemonize_options) do
@@ -96,9 +96,9 @@ end
 verbose "define make_activations" do
   def make_activations
     verbose("make_activations") do
-      Dir.glob(File.expand_path(@hash[:tengined][:pid_dir] + "/tengined.*.pid")).each do |pid_path|
+      Dir.glob(File.expand_path(@__config__[:tengined][:pid_dir] + "/tengined.*.pid")).each do |pid_path|
         pid = File.open(pid_path, "r"){|f| f.gets.chomp}
-        File.new(File.expand_path(@hash[:tengined][:activation_dir] + "/tengined_#{pid}.activation"), "w").close
+        File.new(File.expand_path(@__config__[:tengined][:activation_dir] + "/tengined_#{pid}.activation"), "w").close
       end
     end
   end
@@ -107,7 +107,7 @@ end
 verbose "define run" do
   def run(&block)
     verbose("run") do
-      case @hash[:action].to_sym
+      case @__config__[:action].to_sym
       when :stop       then stop_process("HUP")
       when :force_stop then stop_process("KILL")
       when :status     then show_status
@@ -115,7 +115,7 @@ verbose "define run" do
         run_daemons(&block)
       when :activate   then make_activations
       else
-        verbose("Unknown action: #{@hash[:action]}", STDERR)
+        verbose("Unknown action: #{@__config__[:action]}", STDERR)
       end
     end
   rescue SystemExit
@@ -130,16 +130,16 @@ end
 @__daemon_proc_path__ = File.expand_path(__FILE__)
 tengined_root = File.expand_path("..", File.expand_path(File.dirname(__FILE__)))
 
-if @verbose
+if @__verbose__
   verbose "configurations:"
-  require 'pp'; pp @hash
+  require 'pp'; pp @__config__
   verbose "tengined_root: #{tengined_root}"
 end
 
 run do
   config = nil
   begin
-    config = @hash.dup
+    config = @__config__.dup
     config.setup_loggers
   rescue Exception
     puts "[#{$!.class.name}] #{$!.message}\n  " << $!.backtrace.join("\n  ")
@@ -152,7 +152,7 @@ run do
     include Tengine::Core::CollectionAccessible
   end
   Mongoid.config.from_hash(config[:db])
-  Tengine::Core::MethodTraceable.disabled = !@hash[:verbose] # Tengine::Core::Bootstrapが動く前に設定しないと余計なログが出ます
-  @bootstrap = Tengine::Core::Bootstrap.new(config)
-  @bootstrap.boot
+  Tengine::Core::MethodTraceable.disabled = !@__config__[:verbose] # Tengine::Core::Bootstrapが動く前に設定しないと余計なログが出ます
+  @__bootstrap__ = Tengine::Core::Bootstrap.new(config)
+  @__bootstrap__.boot
 end
