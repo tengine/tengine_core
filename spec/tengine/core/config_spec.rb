@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'spec_helper'
 
+require 'tengine/event'
+
 describe Tengine::Core::Config do
 
   # log_configのテストは spec/models/tengine/core/config_spec/log_config_spec.rb にあります。
@@ -263,6 +265,39 @@ describe Tengine::Core::Config do
       subject[:event_queue][:connection][:host].object_id.should_not == @source[:event_queue][:connection][:host].object_id
       subject[:event_queue][:queue][:name].should_not == @source[:event_queue][:queue][:name].object_id
     end
+  end
+
+  context "[BUG] tengined起動時に-fオプションで設定ファイルを指定した際に、設定ファイルに記載したdb-portの設定が有効でない" do
+    before do
+      @config_path = File.expand_path("config_spec/another_port.yml", File.dirname(__FILE__))
+    end
+
+    shared_examples_for "正しく読み込む" do
+      it "DBについて" do
+        @config.should be_a(Tengine::Core::Config)
+        @config[:db][:port].should == 21039
+        @config[:db][:host].should == 'localhost'
+        @config[:db][:username].should == nil
+        @config[:db][:password].should == nil
+        @config[:db][:database].should == "tengine_production"
+      end
+    end
+
+    context "バグストーリーに添付された設定ファイルをロード" do
+      # このテストは元々パスしてました
+      before do
+        @config = Tengine::Core::Config.new(:config => @config_path)
+      end
+      it_should_behave_like "正しく読み込む"
+    end
+
+    context "起動コマンドの引数を解釈" do
+      before do
+        @config = Tengine::Core::Config.parse(["-f", @config_path]) # bin/tenginedではARGVが渡されます
+      end
+      it_should_behave_like "正しく読み込む"
+    end
+
   end
 
 end

@@ -1,0 +1,53 @@
+tengined:
+  daemon: false
+  activation_timeout: 300,
+  load_path: "./spec_dsl/"
+  log_dir: "./"                                  # 本番環境での例 "/var/log/tengined"
+  pid_dir:        "./tmp/tengined_pids"          # 本番環境での例 "/var/run/tengined_pids"
+  activation_dir: "./tmp/tengined_activations"   # 本番環境での例 "/var/run/tengined_activations"
+
+db:
+  host: 'localhost'
+  port: 21039
+  username:
+  password:
+  database: 'tengine_production'
+
+event_queue:
+  connection:
+    host: 'localhost'
+    port: 5672
+    # vhost:
+    # user:
+    # pass:
+  exchange:
+    name: 'tengine_event_exchange'
+    type: 'direct'
+    durable: true
+  queue:
+    name: 'tengine_event_queue'
+    durable: true
+
+log_common:
+  output:                      # file path or "STDOUT" / "STDERR"
+  rotation: 3                  # rotation file count or daily,weekly,monthly. default: 3
+  rotation_size: 1024 * 1024   # number of max log file size. default: 1048576 (10MB)
+  level: 'debug'               # debug/info/warn/error/fatal. default: info
+
+application_log:
+  output:                      # file path or "STDOUT" / "STDERR". default: if daemon process then "./log/application.log" else "STDOUT"
+  rotation:                    # rotation file count or daily,weekly,monthly. default: value of --log-common-rotation
+  rotation_size:               # number of max log file size. default: value of --log-common-rotation-size
+  level:                       # debug/info/warn/error/fatal. default: value of --log-common-level
+
+process_stdout_log:
+  output:                      # file path or "STDOUT" / "STDERR". default: if daemon process then "./log/#{$PROGRAM_NAME}_#{Process.pid}_stdout.log" else "STDOUT"
+  rotation:                    # rotation file count or daily,weekly,monthly. default: value of --log-common-rotation
+  rotation_size:               # number of max log file size. default: value of --log-common-rotation-size
+  level:                       # debug/info/warn/error/fatal. default: value of --log-common-level
+
+process_stderr_log:
+  output:                      # file path or "STDOUT" / "STDERR". default: if daemon process then "./log/#{$PROGRAM_NAME}_#{Process.pid}_stderr.log" else "STDERR"
+  rotation:                    # rotation file count or daily,weekly,monthly. default: value of --log-common-rotation
+  rotation_size:               # number of max log file size. default: value of --log-common-rotation-size
+  level:                       # debug/info/warn/error/fatal. default: value of --log-common-level

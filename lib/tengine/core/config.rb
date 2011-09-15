@@ -9,6 +9,8 @@ require 'active_support/hash_with_indifferent_access'
 require 'active_support/memoizable'
 
 class Tengine::Core::Config
+  autoload :Parser, 'tengine/core/config/parser'
+
   # memoize については http://wota.jp/ac/?date=20081025#p11 などを参照してください
   extend ActiveSupport::Memoizable
 
@@ -284,10 +286,15 @@ class Tengine::Core::Config
       dest
     end
 
+    # Tengine::Core::Configへの型変換を行うメソッドです
     def [](obj)
       obj.is_a?(self) ? obj : new(obj)
     end
-  end
 
+    def parse(args)
+      hash = Tengine::Core::Config::Parser.new(default_hash, args.flatten).parse
+      new(hash)
+    end
+  end
 
 end
