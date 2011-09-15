@@ -58,4 +58,16 @@ module Tengine::Core::DslEvaluator
       remove_method(:&, :and)
     end
   end
+
+  # requireではなく、ファイルを文字列としてロードしてinstance_evalで評価される場合、
+  # Proc#source_locationが返す配列の一つ目の文字列がUTF-8ではなくASCII-8BITになってしまう。
+  # そのままこれを使って検索すると、ヒットするべき検索もヒットしない。
+  # これを回避するためにUTF-8として解釈するようにString#force_encodingを使用している。
+  # http://doc.ruby-lang.org/ja/1.9.2/method/String/i/force_encoding.html
+  def __source_location__(block)
+    filepath, lineno = *block.source_location
+    filepath = filepath.dup
+    filepath.force_encoding(Encoding::UTF_8)
+    return filepath, lineno
+  end
 end

@@ -33,7 +33,7 @@ module Tengine::Core::DslLoader
 
   def on(filter_def, options = {}, &block)
     event_type_names = filter_def.respond_to?(:event_type_names) ? filter_def.event_type_names : [filter_def.to_s]
-    filepath, lineno = *block.source_location
+    filepath, lineno = *__source_location__(block)
     @__driver__.handlers.new(
       # filepathはTengineコアが動く環境ごとに違うかもしれないので、相対パスを使う必要があります。
       :filepath => config.relative_path_from_dsl_dir(filepath),

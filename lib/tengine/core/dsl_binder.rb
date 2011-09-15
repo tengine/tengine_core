@@ -23,21 +23,21 @@ module Tengine::Core::DslBinder
     if driver
       __safety_driver__(driver, &block)
     else
-      raise Tengine::Core::VersionError, "version mismatch. #{config.dsl_version}"
+      raise Tengine::Core::KernelError, "DSL Version mismatch. #{config.dsl_version}"
     end
     driver
   end
 
   def on(event_type_name, options = {}, &block)
-    filepath, lineno = *block.source_location
-    handler = @__driver__.handlers.find(:first, :conditions => {
-        :filepath => config.relative_path_from_dsl_dir(filepath),
-        :lineno => lineno
-      })
+    filepath, lineno = *__source_location__(block)
+    conditions = {
+      :filepath => config.relative_path_from_dsl_dir(filepath),
+      :lineno => lineno
+    }
+    handler = @__driver__.handlers.find(:first, :conditions => conditions)
     # 古い（なのに同じバージョンを使用している）Driverにはないハンドラが登録された場合は開発環境などでは十分ありえる
     if handler.nil?
-      # TODO こういう場合の例外は何を投げるべき？
-      raise "Tengine::Core::Handler not found for #{filepath}:#{lineno}"
+      raise Tengine::Core::KernelError, "Tengine::Core::Handler not found for #{conditions.inspect}"
     end
     __bind_blocks_for_handler_id__(handler, &block)
   end
