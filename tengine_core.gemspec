@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tengine_core}
-  s.version = "0.0.9"
+  s.version = "0.0.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = [%q{t-akima}]
-  s.date = %q{2011-09-14}
+  s.date = %q{2011-09-15}
   s.description = %q{tengine_core is a framework/engine to support distributed processing}
   s.email = %q{akima@nautilus-technologies.com}
   s.executables = [%q{tengined}]
@@ -52,6 +52,8 @@ Gem::Specification.new do |s|
     "lib/tengine/core/bootstrap.rb",
     "lib/tengine/core/collection_accessible.rb",
     "lib/tengine/core/config.rb",
+    "lib/tengine/core/config/default.rb",
+    "lib/tengine/core/config/parser.rb",
     "lib/tengine/core/connection_test/.gitignore",
     "lib/tengine/core/connection_test/fire_bar_on_foo.rb",
     "lib/tengine/core/driver.rb",
@@ -83,6 +85,7 @@ Gem::Specification.new do |s|
     "spec/spec_helper.rb",
     "spec/tengine/core/bootstrap_spec.rb",
     "spec/tengine/core/config_spec.rb",
+    "spec/tengine/core/config_spec/another_port.yml",
     "spec/tengine/core/config_spec/config_with_dir_load_path.yml",
     "spec/tengine/core/config_spec/config_with_file_load_path.yml",
     "spec/tengine/core/config_spec/log_config_spec.rb",
