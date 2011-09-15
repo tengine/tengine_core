@@ -24,8 +24,11 @@ class Tengine::Core::Config
 
     # ARGVなどの配列から設定をロードします
     def parse(args)
-      hash = Tengine::Core::Config::Parser.new(default_hash, args.flatten).parse
-      new(hash)
+      new(parse_to_hash(args))
+    end
+    # ARGVなどの配列から設定をロードします
+    def parse_to_hash(args)
+      Tengine::Core::Config::Parser.new(default_hash, args.flatten).parse
     end
   end
 

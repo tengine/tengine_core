@@ -274,12 +274,13 @@ describe Tengine::Core::Config do
 
     shared_examples_for "正しく読み込む" do
       it "DBについて" do
-        @config.should be_a(Tengine::Core::Config)
-        @config[:db][:port].should == 21039
-        @config[:db][:host].should == 'localhost'
-        @config[:db][:username].should == nil
-        @config[:db][:password].should == nil
-        @config[:db][:database].should == "tengine_production"
+        @config.should be_a(Tengine::Core::Config) if @config
+        hash = @config || @hash
+        hash[:db][:port].should == 21039
+        hash[:db][:host].should == 'localhost'
+        hash[:db][:username].should == nil
+        hash[:db][:password].should == nil
+        hash[:db][:database].should == "tengine_production"
       end
     end
 
@@ -296,6 +297,17 @@ describe Tengine::Core::Config do
         @config = Tengine::Core::Config.parse(["-f", @config_path]) # bin/tenginedではARGVが渡されます
       end
       it_should_behave_like "正しく読み込む"
+    end
+
+    context "起動コマンドの引数を解釈" do
+      before do
+        @hash = Tengine::Core::Config.parse_to_hash(["-f", @config_path]) # bin/tenginedではARGVが渡されます
+      end
+      it "-fを除いてデフォルトとほとんど同じ" do
+        @hash[:config].should == @config_path
+        @hash[:config] = nil
+        @hash.should == Tengine::Core::Config.default_hash
+      end
     end
 
   end
