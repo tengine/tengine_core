@@ -78,9 +78,9 @@ verbose "define run_daemons" do
           else
             max_pid_num = pids.map{|pid_path| File.basename(pid_path).scan(/\d+/).first.to_i}.max.succ
           end
-          pid_file_name = "#{File.basename(@hash[:daemon_proc_path])}.#{max_pid_num}"
+          pid_file_name = "#{File.basename(@__daemon_proc_path__)}.#{max_pid_num}"
         else
-          pid_file_name = "#{File.basename(@hash[:daemon_proc_path])}_#{@hash[:action]}"
+          pid_file_name = "#{File.basename(@__daemon_proc_path__)}_#{@hash[:action]}"
         end
 
         Daemons.run_proc(pid_file_name, daemonize_options) do
@@ -127,7 +127,7 @@ verbose "define run" do
   end
 end
 
-@hash.update(:daemon_proc_path => File.expand_path(__FILE__))
+@__daemon_proc_path__ = File.expand_path(__FILE__)
 tengined_root = File.expand_path("..", File.expand_path(File.dirname(__FILE__)))
 
 if @verbose
@@ -139,10 +139,10 @@ end
 run do
   config = nil
   begin
-    config = Tengine::Core::Config.new(@hash)
+    config = @hash.dup
     config.setup_loggers
   rescue Exception
-    puts "[#{$!.class.name}] #{$!.message}\n  " << $!.backrace.join("\n  ")
+    puts "[#{$!.class.name}] #{$!.message}\n  " << $!.backtrace.join("\n  ")
     raise
   end
 
