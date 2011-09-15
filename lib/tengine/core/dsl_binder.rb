@@ -30,17 +30,16 @@ module Tengine::Core::DslBinder
 
   def on(event_type_name, options = {}, &block)
     filepath, lineno = *block.source_location
-    handlers = @__driver__.handlers.where(
-      :filepath => config.relative_path_from_dsl_dir(filepath),
-      :lineno => lineno).to_a
+    handler = @__driver__.handlers.find(:first, :conditions => {
+        :filepath => config.relative_path_from_dsl_dir(filepath),
+        :lineno => lineno
+      })
     # 古い（なのに同じバージョンを使用している）Driverにはないハンドラが登録された場合は開発環境などでは十分ありえる
-    if handlers.empty?
+    if handler.nil?
       # TODO こういう場合の例外は何を投げるべき？
-      raise "Handler not found for #{filepath}:#{lineno}"
+      raise "Tengine::Core::Handler not found for #{filepath}:#{lineno}"
     end
-    handlers.each do |handler|
-      __bind_blocks_for_handler_id__(handler, &block)
-    end
+    __bind_blocks_for_handler_id__(handler, &block)
   end
 
   def fire(event_type_name, options = {})
