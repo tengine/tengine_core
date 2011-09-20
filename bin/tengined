@@ -152,6 +152,8 @@ run do
     include Tengine::Core::CollectionAccessible
   end
   Mongoid.config.from_hash(config[:db])
+  Mongoid.config.option(:persist_in_safe_mode, :default => true)
+  Mongoid.config.option(:autocreate_indexes, :default => true)     # http://mongoid.org/docs/indexing.html
   Tengine::Core::MethodTraceable.disabled = !@__config__[:verbose] # Tengine::Core::Bootstrapが動く前に設定しないと余計なログが出ます
   @__bootstrap__ = Tengine::Core::Bootstrap.new(config)
   @__bootstrap__.boot
