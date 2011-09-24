@@ -84,6 +84,7 @@ class Tengine::Core::Kernel
 
   def activate
     EM.run do
+      setup_mq_connection
       # queueへの接続までできたら稼働中
       # self.status_key = :running if mq.queue
       update_status(:running) if mq.queue
@@ -143,6 +144,32 @@ class Tengine::Core::Kernel
   end
 
   private
+
+  def setup_mq_connection
+    # see http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/ErrorHandling.textile#Recovering_from_network_connection_failures
+    # mq.connection raiases AMQP::TCPConnectionFailed unless connects to MQ.
+    connection = mq.connection
+    connection.on_error do |conn, connection_close|
+      Tengine::Core.stderr_logger.error("mq.connection.on_error connection_close: " << connection_close.inspect)
+    end
+    connection.on_tcp_connection_loss do |conn, settings|
+      Tengine::Core.stderr_logger.warn("mq.connection.on_tcp_connection_loss: now reconnecting #{mq.auto_reconnect_delay} second(s) later.")
+      conn.reconnect(false, mq.auto_reconnect_delay.to_i)
+    end
+    connection.after_recovery do |session, settings|
+      Tengine::Core.stderr_logger.info("mq.connection.after_recovery: recovered successfully.")
+    end
+    # on_open, on_closedに渡されたブロックは、何度再接続をしても最初の一度だけしか呼び出されないが、
+    # after_recovery(on_recovery)に渡されたブロックは、再接続の度に呼び出されます。
+    # connection.on_open{ Tengine::Core.stderr_logger.info "mq.connection.on_open first time" }
+    # connection.on_closed{ Tengine::Core.stderr_logger.info  "mq.connection.on_closed first time" }
+
+    mq.channel.on_error do |ch, channel_close|
+      Tengine::Core.stderr_logger.error("mq.channel.on_error channel_close: " << channel_close.inspect)
+      # raise channel_close.reply_text
+      # channel_close.reuse # channel.on_error時にどのように振る舞うべき?
+    end
+  end
 
   def parse_event(msg)
     begin
@@ -234,10 +261,14 @@ class Tengine::Core::Kernel
   # TODO 状態遷移図、状態遷移表に基づいたチェックを入れるべき
   # https://cacoo.com/diagrams/hwYJGxDuumYsmFzP#EBF87
   def update_status(status)
+    Tengine::Core.stdout_logger.info("\#{self.class.name}#update_status from #{@status.inspect} to #{status.inspect}")
     raise ArgumentError, "Unkown status #{status.inspect}" unless STATUS_LIST.include?(status)
     @status_filepath ||= File.expand_path("tengined_#{Process.pid}.status", config.status_dir)
     @status = status
     File.open(@status_filepath, "w"){|f| f.write(status.to_s)}
+  rescue Exception => e
+    Tengine::Core.stderr_logger.error("\#{self.class.name}#update_status failure. [\#{e.class.name}] \#{e.message}\n  " << e.backtrace.join("\n  "))
+    raise e
   end
 
   def sender
@@ -250,9 +281,11 @@ class Tengine::Core::Kernel
 
   # 自動でログ出力する
   extend Tengine::Core::MethodTraceable
-  method_trace(:start, :stop, :bind, :wait_for_activation, :activate, :subscribe_queue, :update_status,
-    :process_message, :parse_event, :fire_failed_event, :save_event, :find_handlers, :delegate, :close_if_shutting_down,
-    :enable_heartbeat)
+  method_trace(:start, :stop, :bind, :wait_for_activation, :activate,
+    :setup_mq_connection, :subscribe_queue, # :update_status, # update_statusは別途ログ出力します
+    :process_message, :parse_event, :fire_failed_event, :save_event,
+    :find_handlers, :delegate, :close_if_shutting_down, :enable_heartbeat
+    )
 end
 
 

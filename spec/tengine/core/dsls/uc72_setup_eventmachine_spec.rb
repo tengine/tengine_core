@@ -22,6 +22,7 @@ describe "uc64_safety_countup" do
     }.to change(@kernel.em_setup_blocks, :length).by(1)
     EM.should_receive(:run).and_yield
     @kernel.should_receive(:mq).and_return(mock(:mq, :queue => nil))
+    @kernel.should_receive(:setup_mq_connection)
     @kernel.should_receive(:subscribe_queue)
     @kernel.context.should_receive(:puts).with("setup_eventmachine")
     EM.should_receive(:add_periodic_timer).with(3)

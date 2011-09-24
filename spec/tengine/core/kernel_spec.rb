@@ -115,12 +115,14 @@ describe Tengine::Core::Kernel do
 
         it "heartbeatは有効にならない" do
           @kernel.should_not_receive(:enable_heartbeat)
+          @kernel.should_receive(:setup_mq_connection)
           @kernel.start
         end
 
         it "heartbeatは有効になる" do
           @kernel.config.should_receive(:heartbeat_enabled?).and_return(true)
           @kernel.should_receive(:enable_heartbeat)
+          @kernel.should_receive(:setup_mq_connection)
           @kernel.start
         end
       end
@@ -147,6 +149,7 @@ describe Tengine::Core::Kernel do
           @mock_raw_event.stub!(:attributes).and_return(:event_type_name => :foo, :key => "uniq_key", :level => Tengine::Event::LEVELS_INV[:info])
           @mock_raw_event.stub!(:level).and_return(Tengine::Event::LEVELS_INV[:info])
           count = lambda{ Tengine::Core::Event.where(:event_type_name => :foo, :confirmed => true).count }
+          @kernel.should_receive(:setup_mq_connection)
           expect{ @kernel.start }.should change(count, :call).by(1) # イベントが登録されていることを検証
         end
 
@@ -156,6 +159,7 @@ describe Tengine::Core::Kernel do
           @mock_raw_event.stub!(:attributes).and_return(:event_type_name => :foo, :key => "uniq_key", :level => Tengine::Event::LEVELS_INV[:warn])
           @mock_raw_event.stub!(:level).and_return(Tengine::Event::LEVELS_INV[:warn])
           count = lambda{ Tengine::Core::Event.where(:event_type_name => :foo, :confirmed => false).count }
+          @kernel.should_receive(:setup_mq_connection)
           expect{ @kernel.start }.should change(count, :call).by(1) # イベントが登録されていることを検証
         end
       end
@@ -207,6 +211,7 @@ describe Tengine::Core::Kernel do
                                               :properties => { :original_event => @raw_event }
                                             })
           # @kernel.__send__(:do_save?, @raw_event)
+          @kernel.should_receive(:setup_mq_connection)
           @kernel.start
           events = Tengine::Core::Event.where(:key => @raw_event.key, :sender_name => @raw_event.sender_name)
           events.count.should == 1
@@ -240,7 +245,42 @@ describe Tengine::Core::Kernel do
         @header.should_receive(:ack)
 
         # 実行
+        @kernel.should_receive(:setup_mq_connection)
         @kernel.start
+      end
+    end
+
+
+    describe :setup_mq_connection do
+      before do
+        config = Tengine::Core::Config.new({
+            :tengined => {
+              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+            },
+          })
+        @kernel = Tengine::Core::Kernel.new(config)
+        @mock_connection = mock(:connection)
+        @mock_channel = mock(:channel)
+      end
+
+      it "MQ接続時にエラーなどのイベントハンドリングを行います" do
+        mq = @kernel.send(:mq)
+        mq.should_receive(:connection).and_return(@mock_connection)
+        mq.should_receive(:channel).and_return(@mock_channel)
+        # ここではイベント発生時の振る舞いもチェックします
+        @mock_connection.should_receive(:on_error).and_yield("connection", "connection close reason object")
+        Tengine::Core.stderr_logger.should_receive(:error).with('mq.connection.on_error connection_close: "connection close reason object"')
+        mock_conn = mock(:temp_connection)
+        @mock_connection.should_receive(:on_tcp_connection_loss).and_yield(mock_conn, "settings")
+        mock_conn.should_receive(:reconnect).with(false, 1)
+        Tengine::Core.stderr_logger.should_receive(:warn).with('mq.connection.on_tcp_connection_loss: now reconnecting 1 second(s) later.')
+        @mock_connection.should_receive(:after_recovery).and_yield("connection", "settings")
+        Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
+
+        @mock_channel.should_receive(:on_error).and_yield("channel", "channel close reason object")
+        Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
+
+        @kernel.send(:setup_mq_connection)
       end
     end
   end
@@ -316,6 +356,7 @@ describe Tengine::Core::Kernel do
         mq.should_receive(:queue).twice.and_return(mock_queue)
         mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true)
 
+        @kernel.should_receive(:setup_mq_connection)
         @kernel.start
         @kernel.status.should == :running
       end
@@ -342,6 +383,7 @@ describe Tengine::Core::Kernel do
         mq.should_receive(:queue).exactly(3).times.and_return(@mock_queue)
         @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true)
 
+        kernel.should_receive(:setup_mq_connection)
         kernel.start
         kernel.status.should == :running
 
