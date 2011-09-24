@@ -74,7 +74,6 @@ describe Tengine::Core::Kernel do
       before do
         @mock_channel = mock(:channel)
         @mock_queue = mock(:queue)
-        @mock_consumer = mock(:consumer)
 
         @header = AMQP::Header.new(@mock_channel, nil, {
             :routing_key  => "",
@@ -326,7 +325,6 @@ describe Tengine::Core::Kernel do
       before do
         @mock_channel = mock(:channel)
         @mock_queue = mock(:queue)
-        @mock_consumer = mock(:consumer)
       end
 
       it "停止要求を受け取った直後では「停止中」および「停止済」の状態を返す(稼働中)" do
