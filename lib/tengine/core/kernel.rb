@@ -196,7 +196,7 @@ class Tengine::Core::Kernel
   # 受信したイベントを登録
   def save_event(raw_event)
     event = Tengine::Core::Event.create!(
-      raw_event.attributes.update(:confirmed => (raw_event.level <= config.confirmation_threshold)))
+      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
     Tengine.logger.debug("saved a event #{event.inspect}")
     event
   rescue Mongo::OperationFailure => e
