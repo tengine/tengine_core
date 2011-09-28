@@ -4,15 +4,15 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = "tengine_core"
-  s.version = "0.0.15"
+  s.name = %q{tengine_core}
+  s.version = "0.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["t-akima"]
-  s.date = "2011-09-27"
-  s.description = "tengine_core is a framework/engine to support distributed processing"
-  s.email = "akima@nautilus-technologies.com"
-  s.executables = ["tengined"]
+  s.authors = [%q{t-akima}]
+  s.date = %q{2011-09-28}
+  s.description = %q{tengine_core is a framework/engine to support distributed processing}
+  s.email = %q{akima@nautilus-technologies.com}
+  s.executables = [%q{tengined}]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -85,6 +85,7 @@ Gem::Specification.new do |s|
     "spec/spec_helper.rb",
     "spec/tengine/core/bootstrap_spec.rb",
     "spec/tengine/core/bugfix/bind_dsl_file_in_multi_byte_dir_spec.rb",
+    "spec/tengine/core/bugfix/receive_event_spec.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/source_location_encoding.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/非ASCIIのファイル名_dsl.rb",
     "spec/tengine/core/config_spec.rb",
@@ -118,15 +119,16 @@ Gem::Specification.new do |s|
     "spec/tengine/core/kernel_spec.rb",
     "spec/tengine/core/session_spec.rb",
     "spec/tengine/core_spec.rb",
+    "spec/tengine_spec.rb",
     "tengine_core.gemspec",
     "tmp/log/.gitignore",
     "tmp/tengined_status/.gitignore"
   ]
-  s.homepage = "http://github.com/akm/tengine_core"
-  s.licenses = ["MIT"]
-  s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.10"
-  s.summary = "tengine_core is a framework/engine to support distributed processing"
+  s.homepage = %q{http://github.com/akm/tengine_core}
+  s.licenses = [%q{MIT}]
+  s.require_paths = [%q{lib}]
+  s.rubygems_version = %q{1.8.6}
+  s.summary = %q{tengine_core is a framework/engine to support distributed processing}
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
