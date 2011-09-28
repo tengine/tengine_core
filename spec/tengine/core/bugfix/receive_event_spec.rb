@@ -11,7 +11,7 @@ describe "receive_event" do
     # DSLのloadからbindまで
     @config = Tengine::Core::Config.new({
         :tengined => {
-          :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+          :load_path => File.expand_path('./use_event_in_handler_dsl.rb', File.dirname(__FILE__)),
           :wait_activation => false,
           :confirmation_threashold => 'info'
         },
@@ -22,7 +22,9 @@ describe "receive_event" do
     @kernel.bind
 
     # キューの mock を生成
+    @mock_connection = mock(:connection)
     @mock_channel = mock(:channel)
+    @mock_exchange = mock(:exchange)
     @mock_queue = mock(:queue)
 
     @header = AMQP::Header.new(@mock_channel, nil, {
@@ -90,8 +92,49 @@ describe "receive_event" do
 
     count = lambda{ Tengine::Core::Event.where(:event_type_name => :event01, :confirmed => true).count }
     @kernel.should_receive(:setup_mq_connection)
-    STDOUT.should_receive(:puts).with("handler01")
+    STDOUT.should_receive(:puts).with("uuid1:handler01")
     expect{ @kernel.start }.should change(count, :call).by(1) # イベントが登録されていることを検証
+  end
+
+  it "イベントハンドラ内で取得できるイベントは発火されたイベントと同等になる", :bug => true do
+#     # eventmachine と mq の mock を生成
+#     EM.should_receive(:run).and_yield
+#     mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
+#     Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
+#     mock_mq.should_receive(:connection).exactly(2).times.and_return(@mock_connection)
+#     mock_mq.should_receive(:channel).exactly(2).times.and_return(@mock_channel)
+#     mock_mq.should_receive(:exchange).exactly(2).times.and_return(@mock_queue)
+#     mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
+
+
+
+    count = lambda{ Tengine::Core::Event.where(:event_type_name => :event01, :confirmed => true).count }
+    @header.should_receive(:ack).exactly(2)
+
+    # subscribe 実施
+    @raw_event1 = Tengine::Event.new(
+      :event_type_name => :event01,
+      'source_name' => "server1",
+      :occurred_at => Time.utc(2011,8,11,12,0),
+      :level => 2,
+      'sender_name' => "server2",
+      )
+
+    # subscribe が発生した後の処理を実行
+    STDOUT.should_receive(:puts).with("#{@raw_event1.key}:handler01")
+    @kernel.process_message(@header, @raw_event1.to_json)
+
+    @raw_event2 = Tengine::Event.new(
+      :event_type_name => :event01,
+      'source_name' => "server1",
+      :occurred_at => Time.utc(2011,8,11,12,0),
+      :level => 2,
+      'sender_name' => "server2",
+      )
+
+    # subscribe が発生した後の処理を実行
+    STDOUT.should_receive(:puts).with("#{@raw_event2.key}:handler01")
+    @kernel.process_message(@header, @raw_event2.to_json)
   end
 
 end

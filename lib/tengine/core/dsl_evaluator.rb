@@ -20,6 +20,7 @@ module Tengine::Core::DslEvaluator
       yield if block_given?
     ensure
       @__event__ = nil
+      @__event_wrapper__ = nil
     end
   end
 
