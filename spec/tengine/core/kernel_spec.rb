@@ -27,6 +27,25 @@ describe Tengine::Core::Kernel do
         @kernel.bind
         @kernel.context.__block_for__(@handler1).should_not be_nil
       end
+
+      context "拡張モジュールあり" do
+        before(:all) do
+          @ext_mod1 = Module.new do
+          end
+          Tengine.dsl_binder_modules << @ext_mod1
+        end
+        after(:all) do
+          Tengine.dsl_binder_modules.clear
+        end
+
+        it "Kernel#contextに拡張モジュールがextendされる" do
+          @kernel.bind
+          @kernel.context.__block_for__(@handler1).should_not be_nil
+          @kernel.context.should be_a(Tengine::Core::DslBinder)
+          @kernel.context.should be_a(@ext_mod1)
+        end
+      end
+
     end
 
     describe :wait_for_activation, "activate待ち" do

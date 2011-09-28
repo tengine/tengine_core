@@ -117,6 +117,33 @@ describe "Tengine::Core::Bootstrap" do
       mock_dsl_dummy_env.should_receive(:__evaluate__)
       bootstrap.load_dsl
     end
+
+    context "拡張モジュールあり" do
+      before(:all) do
+        @ext_mod1 = Module.new do
+        end
+        Tengine.dsl_loader_modules << @ext_mod1
+      end
+      after(:all) do
+        Tengine.dsl_loader_modules.clear
+      end
+
+      it "拡張モジュールがextendされ、Tengine::Core::DslLoaderとのevaluateがよばれる" do
+        options = { :action => "load" }
+        bootstrap = Tengine::Core::Bootstrap.new(options)
+        mock_config = mock(:config)
+        bootstrap.should_receive(:config).and_return(mock_config)
+        mock_dsl_dummy_env = mock(:dsl_dummy_env)
+        Tengine::Core::DslDummyContext.should_receive(:new).and_return(mock_dsl_dummy_env)
+        mock_dsl_dummy_env.should_receive(:extend).with(Tengine::Core::DslLoader)
+        mock_dsl_dummy_env.should_receive(:extend).with(@ext_mod1)
+        mock_dsl_dummy_env.should_receive(:config=).with(mock_config)
+        mock_dsl_dummy_env.should_receive(:__evaluate__)
+        bootstrap.load_dsl
+      end
+
+    end
+
   end
 
   describe :start_kernel do
