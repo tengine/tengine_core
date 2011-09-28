@@ -22,9 +22,7 @@ describe "receive_event" do
     @kernel.bind
 
     # キューの mock を生成
-    @mock_connection = mock(:connection)
     @mock_channel = mock(:channel)
-    @mock_exchange = mock(:exchange)
     @mock_queue = mock(:queue)
 
     @header = AMQP::Header.new(@mock_channel, nil, {
@@ -97,18 +95,6 @@ describe "receive_event" do
   end
 
   it "イベントハンドラ内で取得できるイベントは発火されたイベントと同等になる", :bug => true do
-#     # eventmachine と mq の mock を生成
-#     EM.should_receive(:run).and_yield
-#     mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
-#     Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
-#     mock_mq.should_receive(:connection).exactly(2).times.and_return(@mock_connection)
-#     mock_mq.should_receive(:channel).exactly(2).times.and_return(@mock_channel)
-#     mock_mq.should_receive(:exchange).exactly(2).times.and_return(@mock_queue)
-#     mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
-
-
-
-    count = lambda{ Tengine::Core::Event.where(:event_type_name => :event01, :confirmed => true).count }
     @header.should_receive(:ack).exactly(2)
 
     # subscribe 実施
