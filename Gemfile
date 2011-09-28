@@ -1,5 +1,4 @@
 # mac-mini or rubycenter server in gemserver
-source "http://dev.tenginefw.com/gemserver"
 source "http://rubygems.org"
 
 # Add dependencies required to use your gem here.
@@ -17,7 +16,7 @@ gem "mongo"   , "~> 1.3.1"
 
 gem "mongoid", "~> 2.2.1"
 
-gem "tengine_event", "~> 0.2.4"
+gem "tengine_event", "~> 0.2.4", :git => "git@github.com:tengine/tengine_event.git", :branch => "develop"
 
 gem "daemons", "~> 1.1.4"
 

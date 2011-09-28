@@ -1,5 +1,14 @@
+GIT
+  remote: git@github.com:tengine/tengine_event.git
+  revision: 20ac37984b54f280a2073a722ad0c3641a2b75ac
+  branch: develop
+  specs:
+    tengine_event (0.2.5)
+      activesupport (>= 3.0.0)
+      amqp (~> 0.8.0)
+      uuid (~> 2.3.4)
+
 GEM
-  remote: http://dev.tenginefw.com/gemserver/
   remote: http://rubygems.org/
   specs:
     ZenTest (4.6.2)
@@ -57,10 +66,6 @@ GEM
       simplecov-html (~> 0.5.3)
     simplecov-html (0.5.3)
     systemu (2.2.0)
-    tengine_event (0.2.5)
-      activesupport (>= 3.0.0)
-      amqp (~> 0.8.0)
-      uuid (~> 2.3.4)
     tzinfo (0.3.29)
     uuid (2.3.4)
       macaddr (~> 1.0)
@@ -84,5 +89,5 @@ DEPENDENCIES
   rspec (~> 2.6.0)
   selectable_attr (~> 0.3.14)
   simplecov (~> 0.5.3)
-  tengine_event (~> 0.2.4)
+  tengine_event (~> 0.2.4)!
   yard (~> 0.7.2)
