@@ -31,18 +31,24 @@ class Tengine::Core::Bootstrap
   end
 
   def load_dsl
-    obj = Tengine::Core::DslLoadingContext.new
-    obj.config = config
-    obj.__evaluate__
+    Tengine.plugins.notify(self, :load_dsl) do
+      obj = Tengine::Core::DslLoadingContext.new
+      obj.config = config
+      obj.__evaluate__
+    end
   end
 
   def start_kernel(&block)
-    @kernel = Tengine::Core::Kernel.new(config)
-    kernel.start(&block)
+    Tengine.plugins.notify(self, :start_kernel) do
+      @kernel = Tengine::Core::Kernel.new(config)
+      kernel.start(&block)
+    end
   end
 
   def stop_kernel
-    kernel.stop
+    Tengine.plugins.notify(self, :stop_kernel) do
+      kernel.stop
+    end
   end
 
   def enable_drivers

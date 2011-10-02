@@ -16,7 +16,13 @@ class Tengine::Core::Plugins
   end
 
   def notify(sender, msg)
-    modules.each{|m| m.notify(sender, msg)}
+    if block_given?
+      notify(sender, :"before_#{msg}")
+      yield
+      notify(sender, :"after_#{msg}")
+    else
+      modules.each{|m| m.notify(sender, msg)}
+    end
   end
 
 
