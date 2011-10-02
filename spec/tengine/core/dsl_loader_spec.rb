@@ -17,7 +17,7 @@ describe Tengine::Core::DslLoader do
                 :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__))
               }
             })
-          @loader = Tengine::Core::DslDummyContext.new
+          @loader = Tengine::Core::DslLoadingContext.new
           @loader.extend(Tengine::Core::DslLoader)
           @loader.config = config
         end
@@ -48,7 +48,7 @@ describe Tengine::Core::DslLoader do
                 :skip_enablement => true
               }
             })
-          @loader = Tengine::Core::DslDummyContext.new
+          @loader = Tengine::Core::DslLoadingContext.new
           @loader.extend(Tengine::Core::DslLoader)
           @loader.config = config
         end
@@ -77,7 +77,7 @@ describe Tengine::Core::DslLoader do
               :load_path => File.expand_path('../../../examples', File.dirname(__FILE__))
             }
         })
-        @loader = Tengine::Core::DslDummyContext.new
+        @loader = Tengine::Core::DslLoadingContext.new
         @loader.extend(Tengine::Core::DslLoader)
         @loader.config = config
 
@@ -141,7 +141,7 @@ describe Tengine::Core::DslLoader do
               :load_path => File.expand_path('../../../examples/uc08_if_both_a_and_b_occurs.rb', File.dirname(__FILE__))
             }
           })
-        @loader = Tengine::Core::DslDummyContext.new
+        @loader = Tengine::Core::DslLoadingContext.new
         @loader.extend(Tengine::Core::DslLoader)
         @loader.config = config
       end

@@ -11,7 +11,7 @@ module Tengine::Core
   autoload :DslLoader       , 'tengine/core/dsl_loader'
   autoload :DslBinder       , 'tengine/core/dsl_binder'
   autoload :DslContext      , 'tengine/core/dsl_context'
-  autoload :DslDummyContext , 'tengine/core/dsl_dummy_context'
+  autoload :DslLoadingContext, 'tengine/core/dsl_loading_context'
   autoload :DslFilterDef    , 'tengine/core/dsl_filter_def'
 
   # models
