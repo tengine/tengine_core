@@ -112,7 +112,6 @@ describe "Tengine::Core::Bootstrap" do
       bootstrap.should_receive(:config).and_return(mock_config)
       mock_dsl_dummy_env = mock(:dsl_dummy_env)
       Tengine::Core::DslLoadingContext.should_receive(:new).and_return(mock_dsl_dummy_env)
-      mock_dsl_dummy_env.should_receive(:extend).with(Tengine::Core::DslLoader)
       mock_dsl_dummy_env.should_receive(:config=).with(mock_config)
       mock_dsl_dummy_env.should_receive(:__evaluate__)
       bootstrap.load_dsl
@@ -120,12 +119,11 @@ describe "Tengine::Core::Bootstrap" do
 
     context "拡張モジュールあり" do
       before(:all) do
-        @ext_mod1 = Module.new do
+        @ext_mod1 = Module.new{}
+        @ext_mod1.instance_eval do
+          def dsl_loader; self; end
         end
-        Tengine.dsl_loader_modules << @ext_mod1
-      end
-      after(:all) do
-        Tengine.dsl_loader_modules.clear
+        Tengine.plugins.add(@ext_mod1)
       end
 
       it "拡張モジュールがextendされ、Tengine::Core::DslLoaderとのevaluateがよばれる" do
@@ -134,9 +132,8 @@ describe "Tengine::Core::Bootstrap" do
         mock_config = mock(:config)
         bootstrap.should_receive(:config).and_return(mock_config)
         mock_dsl_dummy_env = mock(:dsl_dummy_env)
+        Tengine::Core::DslLoadingContext.include?(@ext_mod1).should be_true
         Tengine::Core::DslLoadingContext.should_receive(:new).and_return(mock_dsl_dummy_env)
-        mock_dsl_dummy_env.should_receive(:extend).with(Tengine::Core::DslLoader)
-        mock_dsl_dummy_env.should_receive(:extend).with(@ext_mod1)
         mock_dsl_dummy_env.should_receive(:config=).with(mock_config)
         mock_dsl_dummy_env.should_receive(:__evaluate__)
         bootstrap.load_dsl

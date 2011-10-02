@@ -13,14 +13,9 @@ module Tengine
     end
     attr_writer :logger
 
-
-    def dsl_loader_modules
-      @dsl_loader_modules ||= []
+    def plugins
+      @plugins = Tengine::Core::Plugins.new
     end
-    def dsl_binder_modules
-      @dsl_binder_modules ||= []
-    end
-
 
   end
 

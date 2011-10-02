@@ -49,7 +49,6 @@ class Tengine::Core::Kernel
     unless @dsl_context
       @dsl_context = Tengine::Core::DslBindingContext.new(self)
       @dsl_context.config = config
-      Tengine.dsl_binder_modules.each{|ext_module| @dsl_context.extend(ext_module)}
     end
     @dsl_context
   end

@@ -30,12 +30,11 @@ describe Tengine::Core::Kernel do
 
       context "拡張モジュールあり" do
         before(:all) do
-          @ext_mod1 = Module.new do
+          @ext_mod1 = Module.new{}
+          @ext_mod1.instance_eval do
+            def dsl_binder; self; end
           end
-          Tengine.dsl_binder_modules << @ext_mod1
-        end
-        after(:all) do
-          Tengine.dsl_binder_modules.clear
+          Tengine.plugins.add(@ext_mod1)
         end
 
         it "Kernel#contextに拡張モジュールがextendされる" do

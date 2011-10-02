@@ -3,6 +3,7 @@ require 'tengine_core'
 require 'logger'
 
 module Tengine::Core
+  # base
   autoload :Bootstrap        , 'tengine/core/bootstrap'
   autoload :Config           , 'tengine/core/config'
   autoload :Kernel           , 'tengine/core/kernel'
@@ -13,6 +14,7 @@ module Tengine::Core
   autoload :DslBinder        , 'tengine/core/dsl_binder'
   autoload :DslBindingContext, 'tengine/core/dsl_binding_context'
   autoload :DslFilterDef     , 'tengine/core/dsl_filter_def'
+  autoload :Plugins          , 'tengine/core/plugins'
 
   # models
   autoload :Event      , 'tengine/core/event'
