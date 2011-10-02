@@ -10,7 +10,7 @@ module Tengine::Core
   autoload :DslEvaluator    , 'tengine/core/dsl_evaluator'
   autoload :DslLoader       , 'tengine/core/dsl_loader'
   autoload :DslBinder       , 'tengine/core/dsl_binder'
-  autoload :DslContext      , 'tengine/core/dsl_context'
+  autoload :DslBindingContext, 'tengine/core/dsl_binding_context'
   autoload :DslLoadingContext, 'tengine/core/dsl_loading_context'
   autoload :DslFilterDef    , 'tengine/core/dsl_filter_def'
 

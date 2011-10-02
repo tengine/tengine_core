@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'tengine/core'
 
-class Tengine::Core::DslContext
+class Tengine::Core::DslBindingContext
   include Tengine::Core::DslBinder
 
   attr_accessor :__block_bindings__
