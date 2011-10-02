@@ -4,15 +4,15 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{tengine_core}
-  s.version = "0.1.0"
+  s.name = "tengine_core"
+  s.version = "0.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = [%q{t-akima}]
-  s.date = %q{2011-09-28}
-  s.description = %q{tengine_core is a framework/engine to support distributed processing}
-  s.email = %q{akima@nautilus-technologies.com}
-  s.executables = [%q{tengined}]
+  s.authors = ["t-akima"]
+  s.date = "2011-10-02"
+  s.description = "tengine_core is a framework/engine to support distributed processing"
+  s.email = "akima@nautilus-technologies.com"
+  s.executables = ["tengined"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -59,11 +59,11 @@ Gem::Specification.new do |s|
     "lib/tengine/core/driver.rb",
     "lib/tengine/core/driver/finder.rb",
     "lib/tengine/core/dsl_binder.rb",
-    "lib/tengine/core/dsl_context.rb",
-    "lib/tengine/core/dsl_dummy_context.rb",
+    "lib/tengine/core/dsl_binding_context.rb",
     "lib/tengine/core/dsl_evaluator.rb",
     "lib/tengine/core/dsl_filter_def.rb",
     "lib/tengine/core/dsl_loader.rb",
+    "lib/tengine/core/dsl_loading_context.rb",
     "lib/tengine/core/event.rb",
     "lib/tengine/core/event/finder.rb",
     "lib/tengine/core/event_wrapper.rb",
@@ -73,6 +73,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/kernel.rb",
     "lib/tengine/core/kernel_runtime.rb",
     "lib/tengine/core/method_traceable.rb",
+    "lib/tengine/core/plugins.rb",
     "lib/tengine/core/session.rb",
     "lib/tengine/core/session_wrapper.rb",
     "lib/tengine_core.rb",
@@ -86,6 +87,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/bootstrap_spec.rb",
     "spec/tengine/core/bugfix/bind_dsl_file_in_multi_byte_dir_spec.rb",
     "spec/tengine/core/bugfix/receive_event_spec.rb",
+    "spec/tengine/core/bugfix/use_event_in_handler_dsl.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/source_location_encoding.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/非ASCIIのファイル名_dsl.rb",
     "spec/tengine/core/config_spec.rb",
@@ -95,7 +97,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/config_spec/log_config_spec.rb",
     "spec/tengine/core/driver_spec.rb",
     "spec/tengine/core/dsl_binder_spec.rb",
-    "spec/tengine/core/dsl_context_spec.rb",
+    "spec/tengine/core/dsl_binding_context_spec.rb",
     "spec/tengine/core/dsl_loader_spec.rb",
     "spec/tengine/core/dsls/uc08_if_both_a_and_b_occurs_spec.rb",
     "spec/tengine/core/dsls/uc50_commit_event_at_first_spec.rb",
@@ -124,11 +126,11 @@ Gem::Specification.new do |s|
     "tmp/log/.gitignore",
     "tmp/tengined_status/.gitignore"
   ]
-  s.homepage = %q{http://github.com/akm/tengine_core}
-  s.licenses = [%q{MIT}]
-  s.require_paths = [%q{lib}]
-  s.rubygems_version = %q{1.8.6}
-  s.summary = %q{tengine_core is a framework/engine to support distributed processing}
+  s.homepage = "http://github.com/akm/tengine_core"
+  s.licenses = ["MIT"]
+  s.require_paths = ["lib"]
+  s.rubygems_version = "1.8.10"
+  s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
