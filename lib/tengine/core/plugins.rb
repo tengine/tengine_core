@@ -42,7 +42,7 @@ class Tengine::Core::Plugins
 
   private
   def find_sub_module(plugin_module, const_name, method_name)
-    plugin_module.const_defined?(const_name) ? const_get(const_name) :
+    plugin_module.const_defined?(const_name) ? plugin_module.const_get(const_name) :
       plugin_module.respond_to?(method_name) ? plugin_module.send(method_name) : nil
   end
 
