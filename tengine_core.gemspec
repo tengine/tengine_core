@@ -4,15 +4,15 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = "tengine_core"
-  s.version = "0.1.1"
+  s.name = %q{tengine_core}
+  s.version = "0.1.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["t-akima"]
-  s.date = "2011-10-02"
-  s.description = "tengine_core is a framework/engine to support distributed processing"
-  s.email = "akima@nautilus-technologies.com"
-  s.executables = ["tengined"]
+  s.authors = [%q{t-akima}]
+  s.date = %q{2011-10-03}
+  s.description = %q{tengine_core is a framework/engine to support distributed processing}
+  s.email = %q{akima@nautilus-technologies.com}
+  s.executables = [%q{tengined}]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -126,11 +126,11 @@ Gem::Specification.new do |s|
     "tmp/log/.gitignore",
     "tmp/tengined_status/.gitignore"
   ]
-  s.homepage = "http://github.com/akm/tengine_core"
-  s.licenses = ["MIT"]
-  s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.10"
-  s.summary = "tengine_core is a framework/engine to support distributed processing"
+  s.homepage = %q{http://github.com/akm/tengine_core}
+  s.licenses = [%q{MIT}]
+  s.require_paths = [%q{lib}]
+  s.rubygems_version = %q{1.8.6}
+  s.summary = %q{tengine_core is a framework/engine to support distributed processing}
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
