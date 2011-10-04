@@ -50,3 +50,6 @@ pkg
 .rvmrc
 
 tmp
+
+# ci_reporter
+spec/reports/
