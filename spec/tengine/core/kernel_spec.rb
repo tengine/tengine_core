@@ -124,6 +124,12 @@ describe Tengine::Core::Kernel do
         before do
           # eventmachine と mq の mock を生成
           EM.should_receive(:run).and_yield
+          mock_connection = mock(:connection)
+          AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
+              :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+          mock_connection.should_receive(:on_tcp_connection_loss)
+          mock_connection.should_receive(:after_recovery)
+
           mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
           mock_mq.should_receive(:queue).twice.and_return(@mock_queue)
@@ -149,6 +155,12 @@ describe Tengine::Core::Kernel do
         before do
           # eventmachine と mq の mock を生成
           EM.should_receive(:run).and_yield
+          mock_connection = mock(:connection)
+          AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
+              :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+          mock_connection.should_receive(:on_tcp_connection_loss)
+          mock_connection.should_receive(:after_recovery)
+
           mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
           mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
@@ -204,6 +216,12 @@ describe Tengine::Core::Kernel do
         before do
           # eventmachine と mq の mock を生成
           EM.should_receive(:run).and_yield
+          mock_connection = mock(:connection)
+          AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
+              :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+          mock_connection.should_receive(:on_tcp_connection_loss)
+          mock_connection.should_receive(:after_recovery)
+
           mock_sub_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_sub_mq)
           mock_sub_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
@@ -239,6 +257,12 @@ describe Tengine::Core::Kernel do
       it "イベント種別に対応したハンドラの処理を実行することができる" do
         # eventmachine と mq の mock を生成
         EM.should_receive(:run).and_yield
+        mock_connection = mock(:connection)
+        AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
+            :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+        mock_connection.should_receive(:on_tcp_connection_loss)
+        mock_connection.should_receive(:after_recovery)
+
         mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
         mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
@@ -279,9 +303,17 @@ describe Tengine::Core::Kernel do
         @kernel = Tengine::Core::Kernel.new(config)
         @mock_connection = mock(:connection)
         @mock_channel = mock(:channel)
+
       end
 
       it "MQ接続時にエラーなどのイベントハンドリングを行います" do
+
+        mock_connection = mock(:connection)
+        AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
+            :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+        mock_connection.should_receive(:on_tcp_connection_loss)
+        mock_connection.should_receive(:after_recovery)
+
         mq = @kernel.send(:mq)
         mq.should_receive(:connection).and_return(@mock_connection)
         mq.should_receive(:channel).and_return(@mock_channel)
@@ -368,6 +400,12 @@ describe Tengine::Core::Kernel do
 
       it "稼働要求を受け取った直後では「稼働中」の状態を返す" do
         EM.should_receive(:run).and_yield
+        mock_connection = mock(:connection)
+        AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
+            :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+        mock_connection.should_receive(:on_tcp_connection_loss)
+        mock_connection.should_receive(:after_recovery)
+
         mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mq)
         mock_queue = mock(:queue)
@@ -396,6 +434,12 @@ describe Tengine::Core::Kernel do
         kernel.should_receive(:bind)
 
         EM.should_receive(:run).and_yield
+        mock_connection = mock(:connection)
+        AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
+            :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+        mock_connection.should_receive(:on_tcp_connection_loss)
+        mock_connection.should_receive(:after_recovery)
+
         mq = Tengine::Mq::Suite.new(kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(kernel.config[:event_queue]).and_return(mq)
         mq.should_receive(:queue).exactly(3).times.and_return(@mock_queue)
