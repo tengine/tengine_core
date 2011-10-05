@@ -7,8 +7,13 @@ module Tengine::Core::DslEvaluator
   def __evaluate__
     __setup_core_ext__
     begin
-      Tengine::Core.stdout_logger.debug("dsl_file_paths:\n  " << config.dsl_file_paths.join("\n  "))
-      config.dsl_file_paths.each { |f| self.instance_eval(File.read(f), f) }
+      Tengine.plugins.notify(self, :__evaluate__) do
+        Tengine::Core.stdout_logger.debug("dsl_file_paths:\n  " <<
+          config.dsl_file_paths.join("\n  "))
+        config.dsl_file_paths.each do |f|
+          self.instance_eval(File.read(f), f)
+        end
+      end
     ensure
       __teardown_core_ext__
     end
