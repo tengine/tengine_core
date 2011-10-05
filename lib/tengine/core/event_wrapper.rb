@@ -14,5 +14,8 @@ class Tengine::Core::EventWrapper
     EOS
   end
 
+  def [](key)
+    properties[key.to_s]
+  end
 
 end
