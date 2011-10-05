@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'tengine/core'
 
+require 'active_support/core_ext/array/extract_options'
 require 'active_support/hash_with_indifferent_access'
 
 class Tengine::Core::SessionWrapper
@@ -30,7 +31,7 @@ class Tengine::Core::SessionWrapper
   private
   def __update__(target_name, *args, &block)
     if block_given?
-      options = args.last.is_a?(Hash) ? args.pop : {}
+      options = args.extract_options!
       retry_count = options[:retry] || 5
       idx = 0
       begin

@@ -3,6 +3,8 @@ require 'tengine/core'
 
 class Tengine::Core::Session
   include Mongoid::Document
+  include Tengine::Core::OptimisticLock
+
   field :lock_version, :type => Integer, :default => 1
   field :properties, :type => Hash, :default => {}
   map_yaml_accessor :properties

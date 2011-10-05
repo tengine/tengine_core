@@ -31,6 +31,7 @@ module Tengine::Core
   autoload :CollectionAccessible, 'tengine/core/collection_accessible'
   autoload :IoToLogger          , 'tengine/core/io_to_logger'
   autoload :MethodTraceable     , 'tengine/core/method_traceable'
+  autoload :OptimisticLock      , 'tengine/core/optimistic_lock'
 
   class << self
     # Tengine::Coreの正常時の動きをアプリケーション運用者が確認できる内容を出力するロガー
