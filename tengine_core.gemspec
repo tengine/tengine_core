@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.3"
+  s.version = "0.1.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
@@ -73,6 +73,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/kernel.rb",
     "lib/tengine/core/kernel_runtime.rb",
     "lib/tengine/core/method_traceable.rb",
+    "lib/tengine/core/optimistic_lock.rb",
     "lib/tengine/core/plugins.rb",
     "lib/tengine/core/session.rb",
     "lib/tengine/core/session_wrapper.rb",
@@ -115,6 +116,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/dsls/uc80_raise_io_error_spec.rb",
     "spec/tengine/core/dsls/uc81_raise_runtime_error_spec.rb",
     "spec/tengine/core/event_spec.rb",
+    "spec/tengine/core/event_wrapper_spec.rb",
     "spec/tengine/core/handler_path_spec.rb",
     "spec/tengine/core/handler_spec.rb",
     "spec/tengine/core/io_to_logger_spec.rb",
