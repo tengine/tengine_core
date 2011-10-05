@@ -19,10 +19,11 @@ module Tengine::Core::DslLoader
       Tengine::Core::stdout_logger.warn("driver#{name.to_s.dump}は既に登録されています")
       # @__driver__ = driver # ここでインスタンス変数に入れてもブロックを評価しないので使われません。
     else
-      driver = Tengine::Core::Driver.new((options || {}).update({
+      driver = Tengine::Core::Driver.new(options.update({
           :name => name,
           :version => config.dsl_version,
           :enabled => !config[:tengined][:skip_enablement],   # driverを有効化して登録するかのオプション
+          :enabled_on_activation => options[:enabled_on_activation].nil? || options[:enabled_on_activation],  # DSLに記述されているオプション
           }))
       driver.create_session
       __safety_driver__(driver, &block)
