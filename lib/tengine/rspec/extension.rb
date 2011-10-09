@@ -9,7 +9,7 @@ module Tengine::RSpec::Extension
       before do
         Tengine::Core::Driver.delete_all
         Tengine::Core::Session.delete_all
-        @__dsl_path__ = File.expand_path("../../app/#{dsl_path}", File.dirname(__FILE__))
+        @__dsl_path__ = dsl_path
         @__config__ = Tengine::Core::Config.new({
             :tengined => { :load_path => @__dsl_path__ },
           })
