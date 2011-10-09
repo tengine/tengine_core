@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+require 'tengine/rspec'
+
 # イベントドライバのテストのためのメソッドを追加するモジュールです。
 # includeしてお使いください。
 module Tengine::RSpec::Extension
@@ -17,7 +19,7 @@ module Tengine::RSpec::Extension
         @__bootstrap__.load_dsl
         @__kernel__ = Tengine::Core::Kernel.new(@__config__)
         @__kernel__.bind
-        @__tengine__ = TengineContextWrapper.new(@__kernel__)
+        @__tengine__ = Tengine::RSpec::ContextWrapper.new(@__kernel__)
       end
     end
 
