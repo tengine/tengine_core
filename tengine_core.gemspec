@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.5"
+  s.version = "0.1.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
-  s.date = "2011-10-09"
+  s.date = "2011-10-10"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "akima@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -77,6 +77,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/plugins.rb",
     "lib/tengine/core/session.rb",
     "lib/tengine/core/session_wrapper.rb",
+    "lib/tengine/core/validation.rb",
     "lib/tengine/rspec.rb",
     "lib/tengine/rspec/context_wrapper.rb",
     "lib/tengine/rspec/extension.rb",
