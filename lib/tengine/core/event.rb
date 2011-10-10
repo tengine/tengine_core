@@ -7,19 +7,31 @@ class Tengine::Core::Event
   autoload :Finder, 'tengine/core/event/finder'
 
   include Mongoid::Document
+  include Tengine::Core::Validation
   include ::SelectableAttr::Base
+
   field :event_type_name, :type => String
-  field :key, :type => String
-  field :source_name, :type => String
-  field :occurred_at, :type => Time
-  field :level, :type => Integer
-  field :confirmed, :type => Boolean
-  field :sender_name, :type => String
-  field :properties, :type => Hash
+  field :key            , :type => String
+  field :source_name    , :type => String
+  field :occurred_at    , :type => Time
+  field :level          , :type => Integer, :default => 2
+  field :confirmed      , :type => Boolean
+  field :sender_name    , :type => String
+  field :properties     , :type => Hash
   map_yaml_accessor :properties
 
-  # 複数の経路から同じ意味のイベントが複数個送られる場合に、これらを重複して登録しないようにユニーク制約を設定
+  validates :event_type_name, :presence => true #, :format => EVENT_TYPE_NAME.options
+
+  # 以下の２つはバリデーションを設定したいところですが、外部からの入力は極力保存できる
+  # ようにしたいのでバリデーションを外します。
+  # validates :source_name, :presence => true #, :format => RESOURCE_IDENTIFIER.options
+  # validates :sender_name, :presence => true #, :format => RESOURCE_IDENTIFIER.options
+
+  # 複数の経路から同じ意味のイベントが複数個送られる場合に
+  # これらを重複して登録しないようにユニーク制約を設定
   index :key, unique: true
+  # :unique => trueのindexを設定しているので、uniquenessのバリデーションは設定しません
+  validates :key, :presence => true #, :uniqueness => true
 
   # selectable_attrを使ってます
   # see http://github.com/akm/selectable_attr
