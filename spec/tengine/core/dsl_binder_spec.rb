@@ -33,7 +33,7 @@ describe Tengine::Core::DslBinder do
       end
 
       it "同じイベント種別で複数のハンドラが登録されていた場合でもエラーにはならない" do
-        @handler2 = @driver.handlers.new(:event_type_names => ["event01"])
+        @handler2 = @driver.handlers.new(:event_type_names => ["event01"], :filepath => "path/to/driver.rb", :lineno => 7)
         @driver.save!
         @driver.handlers.count.should == 2
 

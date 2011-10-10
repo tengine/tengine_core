@@ -6,11 +6,14 @@ require 'tengine/event'
 class Tengine::Core::Handler
   include Mongoid::Document
   field :filepath, :type => String
-  field :lineno, :type => Integer
+  field :lineno  , :type => Integer
   field :event_type_names, :type => Array
   array_text_accessor :event_type_names
   field :filter, :type => Hash, :default => {}
   map_yaml_accessor :filter
+
+  validates :filepath, :presence => true
+  validates :lineno  , :presence => true
 
   embedded_in :driver, :class_name => "Tengine::Core::Driver"
 

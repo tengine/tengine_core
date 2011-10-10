@@ -5,9 +5,10 @@ describe "uc53_submit_outside_of_handler" do
   before do
     Tengine::Core::Driver.delete_all
     Tengine::Core::Session.delete_all
+    @dsl_path = File.expand_path('../../../../failure_examples/uc53_submit_outside_of_handler.rb', File.dirname(__FILE__))
     @config = Tengine::Core::Config.new({
         :tengined => {
-          :load_path => File.expand_path('../../../../failure_examples/uc53_submit_outside_of_handler.rb', File.dirname(__FILE__)),
+          :load_path => @dsl_path,
         },
       })
   end
@@ -24,7 +25,7 @@ describe "uc53_submit_outside_of_handler" do
   it "仮にロードされていてもbindに失敗して起動できない" do
     @kernel = Tengine::Core::Kernel.new(@config)
     driver = Tengine::Core::Driver.new(:name => :driver53, :version => @config.dsl_version)
-    driver.handlers.new(:event_type_names => ["event53"])
+    driver.handlers.new(:event_type_names => ["event53"], :filepath => @dsl_path, :lineno => 11)
     driver.save!
     expect{
       @kernel.bind

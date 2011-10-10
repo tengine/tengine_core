@@ -6,25 +6,25 @@ describe Tengine::Core::HandlerPath do
     before do
       Tengine::Core::Driver.delete_all
       @d11 = Tengine::Core::Driver.find_or_create_by(name:"driver1", version:"1", enabled:true)
-      @d11h1 = @d11.handlers.find_or_create_by(:event_type_names => ["foo"])
-      @d11h2 = @d11.handlers.find_or_create_by(:event_type_names => ["boo"])
-      @d11h3 = @d11.handlers.find_or_create_by(:event_type_names => ["blah"])
+      @d11h1 = @d11.handlers.find_or_create_by(:event_type_names => ["foo" ], :filepath => "path/to/driver1.rb", :lineno => 5)
+      @d11h2 = @d11.handlers.find_or_create_by(:event_type_names => ["boo" ], :filepath => "path/to/driver1.rb", :lineno => 10)
+      @d11h3 = @d11.handlers.find_or_create_by(:event_type_names => ["blah"], :filepath => "path/to/driver1.rb", :lineno => 15)
       Tengine::Core::HandlerPath.create(:event_type_name => "foo", :driver => @d11, :handler_id => @d11h1.id)
       Tengine::Core::HandlerPath.create(:event_type_name => "boo", :driver => @d11, :handler_id => @d11h2.id)
       Tengine::Core::HandlerPath.create(:event_type_name => "blah", :driver => @d11, :handler_id => @d11h3.id)
       @d21 = Tengine::Core::Driver.find_or_create_by(name:"driver1", version:"2", enabled:true)
-      @d21h1 = @d21.handlers.find_or_create_by(:event_type_names => ["foo"])
-      @d21h2 = @d21.handlers.find_or_create_by(:event_type_names => ["boo"])
+      @d21h1 = @d21.handlers.find_or_create_by(:event_type_names => ["foo"], :filepath => "path/to/driver1.rb", :lineno => 5)
+      @d21h2 = @d21.handlers.find_or_create_by(:event_type_names => ["boo"], :filepath => "path/to/driver1.rb", :lineno => 12)
       Tengine::Core::HandlerPath.create(:event_type_name => "foo", :driver => @d21, :handler_id => @d21h1.id)
       Tengine::Core::HandlerPath.create(:event_type_name => "boo", :driver => @d21, :handler_id => @d21h2.id)
       @d22 = Tengine::Core::Driver.find_or_create_by(name:"driver2", version:"2", enabled:true)
-      @d22h1 = @d22.handlers.find_or_create_by(:event_type_names => ["foo"])
-      @d22h2 = @d22.handlers.find_or_create_by(:event_type_names => ["bar"])
+      @d22h1 = @d22.handlers.find_or_create_by(:event_type_names => ["foo"], :filepath => "path/to/driver2.rb", :lineno => 20)
+      @d22h2 = @d22.handlers.find_or_create_by(:event_type_names => ["bar"], :filepath => "path/to/driver2.rb", :lineno => 30)
       Tengine::Core::HandlerPath.create(:event_type_name => "foo", :driver => @d22, :handler_id => @d22h1.id)
       Tengine::Core::HandlerPath.create(:event_type_name => "bar", :driver => @d22, :handler_id => @d22h2.id)
       @d23 = Tengine::Core::Driver.find_or_create_by(name:"driver3", version:"2", enabled:false)
-      @d23h1 = @d23.handlers.find_or_create_by(:event_type_names => ["bar"])
-      @d23h2 = @d23.handlers.find_or_create_by(:event_type_names => ["baz"])
+      @d23h1 = @d23.handlers.find_or_create_by(:event_type_names => ["bar"], :filepath => "path/to/driver3.rb", :lineno => 2)
+      @d23h2 = @d23.handlers.find_or_create_by(:event_type_names => ["baz"], :filepath => "path/to/driver3.rb", :lineno => 10)
       Tengine::Core::HandlerPath.create(:event_type_name => "bar", :driver => @d23, :handler_id => @d23h1.id)
       Tengine::Core::HandlerPath.create(:event_type_name => "baz", :driver => @d23, :handler_id => @d23h2.id)
     end
@@ -58,7 +58,8 @@ describe Tengine::Core::HandlerPath do
 
       it "should return handlers for enabled driver" do
         @driver = Tengine::Core::Driver.new(:name => "driver01", :version => "123", :enabled => true)
-        @handler1 = @driver.handlers.new(:event_type_names => ["event01"])
+        @handler1 = @driver.handlers.new(:event_type_names => ["event01"],
+          :filepath => "path/to/driver01.rb", :lineno => 8)
         @driver.save!
 
         Tengine::Core::HandlerPath.all.count.should == 1
@@ -72,7 +73,8 @@ describe Tengine::Core::HandlerPath do
 
       it "should return handlers for disabled driver" do
         @driver = Tengine::Core::Driver.new(:name => "driver01", :version => "123", :enabled => false)
-        @handler1 = @driver.handlers.new(:event_type_names => ["event01"])
+        @handler1 = @driver.handlers.new(:event_type_names => ["event01"],
+          :filepath => "path/to/driver01.rb", :lineno => 8)
         @driver.save!
 
         Tengine::Core::HandlerPath.all.count.should == 1

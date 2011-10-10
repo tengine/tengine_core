@@ -2,6 +2,27 @@
 require 'spec_helper'
 
 describe Tengine::Core::Handler do
+  valid_attributes1 = {
+    :filepath => "path/to/driver.rb",
+    :lineno => 100,
+  }.freeze
+
+  context "filepathとlinenoは必須" do
+    it "正常系" do
+      driver1 = Tengine::Core::Handler.new(valid_attributes1)
+      driver1.valid?.should == true
+    end
+
+    [:filepath, :lineno].each do |key|
+      it "#{key}なし" do
+        attrs = valid_attributes1.dup
+        attrs.delete(key)
+        driver1 = Tengine::Core::Handler.new(attrs)
+        driver1.valid?.should == false
+      end
+    end
+  end
+
   context :process_event do
     before do
       @handler = Tengine::Core::Handler.new
@@ -46,7 +67,10 @@ describe Tengine::Core::Handler do
           Tengine::Core::Driver.delete_all
           Tengine::Core::Session.delete_all
           @driver1 = Tengine::Core::Driver.new(:name => "driver1", :version => "123")
-          @handler = @driver1.handlers.new(:event_type_names => [:foo, :bar], :filter => {
+          @handler = @driver1.handlers.new(:event_type_names => [:foo, :bar],
+            :filepath => "path/to/driver.rb",
+            :lineno => 11,
+            :filter => {
               'method' => :and,
               'children' => [
                 { 'pattern' => 'foo', 'method' => :find_or_mark_in_session },
@@ -123,7 +147,8 @@ describe Tengine::Core::Handler do
     end
 
     it "デフォルトでは空のHash" do
-      @driver1.handlers.new(:event_type_names => [:foo, :bar])
+      @driver1.handlers.new(:event_type_names => [:foo, :bar],
+        :filepath => "path/to/driver.rb", :lineno => 8)
       @driver1.save!
       loaded = Tengine::Core::Driver.find(@driver1.id)
       handler1 = loaded.handlers.first
@@ -144,7 +169,9 @@ describe Tengine::Core::Handler do
             { :method => :equal, :pattern => "baz"}
           ]
         }
-      @driver1.handlers.new(:event_type_names => [:foo, :bar], :filter => expected_hash)
+      @driver1.handlers.new(:event_type_names => [:foo, :bar],
+        :filepath => "path/to/driver.rb", :lineno => 8,
+        :filter => expected_hash)
       @driver1.save!
       loaded = Tengine::Core::Driver.find(@driver1.id)
       handler1 = loaded.handlers.first
