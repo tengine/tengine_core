@@ -46,6 +46,20 @@ describe Tengine::Core::Driver do
     end
   end
 
+  context "nameのフォーマットはベース名に準拠する" do
+    it "スラッシュ'/’はリソース識別子で使われるのでnameには使用できません" do
+      driver1 = Tengine::Core::Driver.new(:name => "foo/bar")
+      driver1.valid?.should == false
+      driver1.errors[:name].should == [Tengine::Core::Validation::BASE_NAME.message]
+    end
+
+    it "コロン':'はリソース識別子で使われるのでnameには使用できません" do
+      driver1 = Tengine::Core::Driver.new(:name => "foo:bar")
+      driver1.valid?.should == false
+      driver1.errors[:name].should == [Tengine::Core::Validation::BASE_NAME.message]
+    end
+  end
+
   context "保存時にHandlerPathを自動的に登録します" do
     before do
       Tengine::Core::Driver.delete_all

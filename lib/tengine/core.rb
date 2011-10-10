@@ -32,6 +32,7 @@ module Tengine::Core
   autoload :IoToLogger          , 'tengine/core/io_to_logger'
   autoload :MethodTraceable     , 'tengine/core/method_traceable'
   autoload :OptimisticLock      , 'tengine/core/optimistic_lock'
+  autoload :Validation          , 'tengine/core/validation'
 
   class << self
     # Tengine::Coreの正常時の動きをアプリケーション運用者が確認できる内容を出力するロガー

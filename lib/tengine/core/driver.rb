@@ -5,12 +5,16 @@ class Tengine::Core::Driver
   autoload :Finder, 'tengine/core/driver/finder'
 
   include Mongoid::Document
+  include Tengine::Core::Validation
   field :name, :type => String
   field :version, :type => String
   field :enabled, :type => Boolean
   field :enabled_on_activation, :type => Boolean, :default => true
 
-  validates :name, :presence => true, :uniqueness => {:scope => :version, :message => "is already taken in same version"}
+  validates(:name, :presence => true,
+    :uniqueness => {:scope => :version, :message => "is already taken in same version"},
+    :format => BASE_NAME.options
+    )
   validates :version, :presence => true
 
   embeds_many :handlers, :class_name => "Tengine::Core::Handler"
