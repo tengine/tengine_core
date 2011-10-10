@@ -10,6 +10,9 @@ class Tengine::Core::Driver
   field :enabled, :type => Boolean
   field :enabled_on_activation, :type => Boolean, :default => true
 
+  validates :name, :presence => true, :uniqueness => {:scope => :version, :message => "is already taken in same version"}
+  validates :version, :presence => true
+
   embeds_many :handlers, :class_name => "Tengine::Core::Handler"
 
   belongs_to :session, :index => true, :class_name => "Tengine::Core::Session"

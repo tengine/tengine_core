@@ -2,6 +2,50 @@
 require 'spec_helper'
 
 describe Tengine::Core::Driver do
+
+  valid_attributes1 = {
+    :name => "driver100",
+    :version => "100",
+  }.freeze
+
+  context "nameとversionは必須" do
+    it "正常系" do
+      Tengine::Core::Driver.delete_all
+      driver1 = Tengine::Core::Driver.new(valid_attributes1)
+      driver1.valid?.should == true
+    end
+
+    [:name, :version].each do |key|
+      it "#{key}なし" do
+        attrs = valid_attributes1.dup
+        attrs.delete(key)
+        driver1 = Tengine::Core::Driver.new(attrs)
+        driver1.valid?.should == false
+      end
+    end
+  end
+
+  context "nameはバージョン毎にユニーク" do
+    before do
+      Tengine::Core::Driver.delete_all
+      Tengine::Core::Driver.create!(valid_attributes1)
+    end
+
+    it "同じ名前で登録されているものが存在する場合エラー" do
+      expect{
+        Tengine::Core::Driver.create!(valid_attributes1)
+      }.to raise_error(Mongoid::Errors::Validations, "Validation failed - Name is already taken in same version.")
+    end
+
+    it "同じバージョンでも異なる名前ならばOK" do
+      Tengine::Core::Driver.create!(valid_attributes1.merge(:name => "driver200"))
+    end
+
+    it "同じ名前でも異なるバージョンならばOK" do
+      Tengine::Core::Driver.create!(valid_attributes1.merge(:version => "101"))
+    end
+  end
+
   context "保存時にHandlerPathを自動的に登録します" do
     before do
       Tengine::Core::Driver.delete_all
@@ -27,4 +71,5 @@ describe Tengine::Core::Driver do
     end
     its(:session){ should be_a(Tengine::Core::Session)}
   end
+
 end

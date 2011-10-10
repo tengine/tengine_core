@@ -16,6 +16,7 @@ describe "receive_event" do
           :confirmation_threashold => 'info'
         },
       })
+    @config.dsl_version.should_not be_blank
     @bootstrap = Tengine::Core::Bootstrap.new(@config)
     @bootstrap.load_dsl
     @kernel = Tengine::Core::Kernel.new(@config)
