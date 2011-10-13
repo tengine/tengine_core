@@ -241,6 +241,7 @@ describe Tengine::Core::Kernel do
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
           mock_sender = mock(:sender)
           Tengine::Event::Sender.should_receive(:new).with(mock_mq).and_return(mock_sender)
+          mock_sender.should_receive(:default_keep_connection=).with(true)
           mock_sender.should_receive(:fire).with("#{@raw_event.event_type_name}.failed.tengined",
                                             {
                                               :level => Tengine::Event::LEVELS_INV[:error],

@@ -16,7 +16,7 @@ gem "mongo"   , "~> 1.3.1"
 
 gem "mongoid", "~> 2.2.1"
 
-gem "tengine_event", "~> 0.2.4", :git => "git@github.com:tengine/tengine_event.git", :branch => "develop"
+gem "tengine_event", "~> 0.2.7", :git => "git@github.com:tengine/tengine_event.git", :branch => "develop"
 
 gem "daemons", "~> 1.1.4"
 

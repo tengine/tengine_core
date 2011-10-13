@@ -122,7 +122,7 @@ class Tengine::Core::Kernel
         handlers = find_handlers(event)
         safty_handlers(handlers) do
           delegate(event, handlers)
-          ack if all_submitted?
+          headers.ack if all_submitted?
         end
       end
       close_if_shutting_down
@@ -141,6 +141,18 @@ class Tengine::Core::Kernel
         sender.fire(GR_HEARTBEAT_EVENT_TYPE_NAME, GR_HEARTBEAT_ATTRIBUTES.dup)
       end
     end
+  end
+
+  def sender
+    unless @sender
+      @sender = Tengine::Event::Sender.new(mq)
+      @sender.default_keep_connection = true
+    end
+    @sender
+  end
+
+  def mq
+    @mq ||= Tengine::Mq::Suite.new(config[:event_queue])
   end
 
   private
@@ -244,8 +256,7 @@ class Tengine::Core::Kernel
     # unsubscribed されている場合は安全な停止を行う
     # return if mq.queue.default_consumer
     return unless status == :shutting_down
-    # TODO: loggerへ
-    # puts "connection closing..."
+    Tengine::Core.stdout_logger.warning("connection closing...")
     mq.connection.close{ EM.stop_event_loop }
   end
 
@@ -261,22 +272,14 @@ class Tengine::Core::Kernel
   # TODO 状態遷移図、状態遷移表に基づいたチェックを入れるべき
   # https://cacoo.com/diagrams/hwYJGxDuumYsmFzP#EBF87
   def update_status(status)
-    Tengine::Core.stdout_logger.info("\#{self.class.name}#update_status from #{@status.inspect} to #{status.inspect}")
+    Tengine::Core.stdout_logger.info("#{self.class.name}#update_status #{@status.inspect} ==================> #{status.inspect}")
     raise ArgumentError, "Unkown status #{status.inspect}" unless STATUS_LIST.include?(status)
     @status_filepath ||= File.expand_path("tengined_#{Process.pid}.status", config.status_dir)
     @status = status
     File.open(@status_filepath, "w"){|f| f.write(status.to_s)}
   rescue Exception => e
-    Tengine::Core.stderr_logger.error("\#{self.class.name}#update_status failure. [\#{e.class.name}] \#{e.message}\n  " << e.backtrace.join("\n  "))
+    Tengine::Core.stderr_logger.error("#{self.class.name}#update_status failure. [\#{e.class.name}] \#{e.message}\n  " << e.backtrace.join("\n  "))
     raise e
-  end
-
-  def sender
-    @sender ||= Tengine::Event::Sender.new(mq)
-  end
-
-  def mq
-    @mq ||= Tengine::Mq::Suite.new(config[:event_queue])
   end
 
   # 自動でログ出力する

@@ -43,12 +43,7 @@ module Tengine::Core::DslBinder
   end
 
   def fire(event_type_name, options = {})
-    Tengine::Event.config = {
-      :connection => config[:event_queue][:connection],
-      :exchange => config[:event_queue][:exchange],
-      :queue => config[:event_queue][:queue]
-    }
-    Tengine::Event.fire(event_type_name, options)
+    @__kernel__.sender.fire(event_type_name, options)
   end
 
   def session
