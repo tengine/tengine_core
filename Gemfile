@@ -34,5 +34,4 @@ group :development do
   # gem "rcov", ">= 0"
   gem "simplecov", "~> 0.5.3"
   gem "ZenTest", "~> 4.6.2"
-  gem "ci_reporter", "~>1.6.5"
 end
