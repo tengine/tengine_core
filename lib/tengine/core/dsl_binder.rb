@@ -37,7 +37,7 @@ module Tengine::Core::DslBinder
     handler = @__driver__.handlers.find(:first, :conditions => conditions)
     # 古い（なのに同じバージョンを使用している）Driverにはないハンドラが登録された場合は開発環境などでは十分ありえる
     if handler.nil?
-      raise Tengine::Core::KernelError, "Tengine::Core::Handler not found for #{conditions.inspect}"
+      raise Tengine::Core::KernelError, "Tengine::Core::Handler not found for #{conditions.inspect}\nhandlers are\n    " << @__driver__.handlers.map(&:inspect).join("\n    ")
     end
     __bind_blocks_for_handler_id__(handler, &block)
   end

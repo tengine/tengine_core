@@ -52,7 +52,7 @@ describe Tengine::Core::DslBinder do
         @binder.extend(Tengine::Core::DslBinder)
         @binder.config = config
 
-        @binder.config.should_receive(:dsl_file_paths).twice.and_return([
+        @binder.config.should_receive(:dsl_file_paths).and_return([
             "#{config[:tengined][:load_path]}/uc01_execute_processing_for_event.rb",
             "#{config[:tengined][:load_path]}/uc02_fire_another_event.rb",
             "#{config[:tengined][:load_path]}/uc03_2handlers_for_1event.rb",

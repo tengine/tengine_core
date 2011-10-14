@@ -256,7 +256,7 @@ class Tengine::Core::Kernel
     # unsubscribed されている場合は安全な停止を行う
     # return if mq.queue.default_consumer
     return unless status == :shutting_down
-    Tengine::Core.stdout_logger.warning("connection closing...")
+    Tengine::Core.stdout_logger.warn("connection closing...")
     mq.connection.close{ EM.stop_event_loop }
   end
 

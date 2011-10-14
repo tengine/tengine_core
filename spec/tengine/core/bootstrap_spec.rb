@@ -160,6 +160,13 @@ describe "Tengine::Core::Bootstrap" do
 
   describe :enable_drivers do
     before do
+      # capistranoのデフォルトのデプロイ先を想定しています
+      # see "BACK TO CONFIGURATION" in https://github.com/capistrano/capistrano/wiki/2.x-From-The-Beginning
+      # http://www.slideshare.net/T2J/capistrano-tips-tips
+      Dir.stub!(:pwd).and_return("/u/apps/app1/current")
+    end
+
+    before do
       Tengine::Core::Driver.delete_all
       t = Time.local(2011,9,5,17,28,30)
       Time.stub!(:now).and_return(t)
@@ -170,7 +177,8 @@ describe "Tengine::Core::Bootstrap" do
     end
 
     it "enabled=true に更新される" do
-      File.stub!(:exist?).with(File.expand_path("examples/VERSION")).and_return(false)
+      Dir.stub!(:exist?).with("/u/apps/app1/current/examples").and_return(true)
+      File.stub!(:exist?).with("/u/apps/app1/current/examples/VERSION").and_return(false)
       options = {
         :action => "enable",
         :tengined => { :load_path => "examples" }

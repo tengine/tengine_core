@@ -17,7 +17,10 @@ class Tengine::Core::Bootstrap
 
   def prepare_trap; Signal.trap(:HUP) { kernel.stop } end
 
+  DEBUG_CONFIG_ATTRS = [:dsl_dir_path, :dsl_file_paths, :dsl_version_path, :dsl_version].freeze
+
   def boot
+    Tengine::Core.stdout_logger.debug(DEBUG_CONFIG_ATTRS.map{|attr| "#{attr}: " << config.send(attr).inspect}.join(", "))
     case config[:action]
     when "load" then load_dsl
     when "start" then
@@ -58,11 +61,7 @@ class Tengine::Core::Bootstrap
 
   def test_connection
     config[:tengined][:load_path] = File.expand_path("connection_test/fire_bar_on_foo.rb", File.dirname(__FILE__))
-
-    # VERSIONファイルの生成とバージョンアップの書き込み
-    version_file = File.open("#{config.dsl_dir_path}/VERSION", "w")
-    version_file.write(Time.now.strftime("%Y%m%d%H%M%S").to_s)
-    version_file.close
+    config.prepare_dir_and_paths(true)
 
     begin
       load_dsl
