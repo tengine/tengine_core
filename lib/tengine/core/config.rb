@@ -60,24 +60,42 @@ class Tengine::Core::Config
   end
   memoize :dsl_load_path
 
-  def dsl_dir_path
-    # RSpecで何度もモックを作らなくていいようにDir.exist?などを最小限にする
-    case @dsl_load_path_type
-    when :dir  then File.expand_path(dsl_load_path)
-    when :file then File.expand_path(File.dirname(dsl_load_path))
+  def prepare_dir_and_paths
+    return if @prepare_dir_and_paths_done
+    path = dsl_load_path
+    if Dir.exist?(path)
+      @dsl_dir_path = File.expand_path(path)
+    elsif File.exist?(path)
+      @dsl_dir_path = File.expand_path(File.dirname(path))
     else
-      if Dir.exist?(dsl_load_path)
-        @dsl_load_path_type = :dir
-        File.expand_path(dsl_load_path)
-      elsif File.exist?(dsl_load_path)
-        @dsl_load_path_type = :file
-        File.expand_path(File.dirname(dsl_load_path))
-      else
-        raise Tengine::Core::ConfigError, "file or directory doesn't exist. #{dsl_load_path}"
-      end
+      raise Tengine::Core::ConfigError, "file or directory doesn't exist. #{path}"
     end
+    @prepare_dir_and_paths_done = true
   end
-  memoize :dsl_dir_path
+
+  def dsl_dir_path
+    prepare_dir_and_paths
+    @dsl_dir_path
+  end
+
+#   def dsl_dir_path
+#     # RSpecで何度もモックを作らなくていいようにDir.exist?などを最小限にする
+#     case @dsl_load_path_type
+#     when :dir  then File.expand_path(dsl_load_path)
+#     when :file then File.expand_path(File.dirname(dsl_load_path))
+#     else
+#       if Dir.exist?(dsl_load_path)
+#         @dsl_load_path_type = :dir
+#         File.expand_path(dsl_load_path)
+#       elsif File.exist?(dsl_load_path)
+#         @dsl_load_path_type = :file
+#         File.expand_path(File.dirname(dsl_load_path))
+#       else
+#         raise Tengine::Core::ConfigError, "file or directory doesn't exist. #{dsl_load_path}"
+#       end
+#     end
+#   end
+#   memoize :dsl_dir_path
 
 
   def dsl_file_paths
