@@ -17,7 +17,10 @@ class Tengine::Core::Bootstrap
 
   def prepare_trap; Signal.trap(:HUP) { kernel.stop } end
 
+  # DEBUG_CONFIG_ATTRS = [:dsl_dir_path, :dsl_file_paths, :dsl_version_path, :dsl_version].freeze
+
   def boot
+    # Tengine::Core.stdout_logger.debug(DEBUG_CONFIG_ATTRS.map{|attr| "#{attr}: " << config.send(attr)}.join(", "))
     case config[:action]
     when "load" then load_dsl
     when "start" then
