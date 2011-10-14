@@ -56,7 +56,32 @@ describe Tengine::Core::Config do
       end
   end
 
-  context "load_pathに絶対パスのディレクトリを指定する設定ファイル" do
+  context "load_pathに絶対パス" do
+
+  shared_examples_for "絶対パス指定時のパスの振る舞い" do
+      it :dsl_dir_path do
+        subject.dsl_dir_path.should == "/var/lib/tengine"
+      end
+
+      it :dsl_version_path do
+        subject.dsl_version_path.should == "/var/lib/tengine/VERSION"
+      end
+
+        it "VERSIONファイルがある場合" do
+          File.should_receive(:exist?).with("/var/lib/tengine/VERSION").and_return(true)
+          File.should_receive(:read).and_return("TEST20110905164100")
+          subject.dsl_version.should == "TEST20110905164100"
+        end
+
+        it "VERSIONファイルがない場合" do
+          File.should_receive(:exist?).with("/var/lib/tengine/VERSION").and_return(false)
+          t = Time.local(2011,9,5,17,28,30)
+          Time.stub!(:now).and_return(t)
+          subject.dsl_version.should == "20110905172830"
+        end
+  end
+
+  context "のディレクトリを指定する設定ファイル" do
     subject do
       Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_dir_absolute_load_path.yml", File.dirname(__FILE__)))
     end
@@ -104,10 +129,6 @@ describe Tengine::Core::Config do
         Dir.should_receive(:exist?).with("/var/lib/tengine").and_return(true)
       end
 
-      it :dsl_dir_path do
-        subject.dsl_dir_path.should == "/var/lib/tengine"
-      end
-
       it :dsl_file_paths do
         Dir.should_receive(:glob).
           with("/var/lib/tengine/**/*.rb").
@@ -124,30 +145,13 @@ describe Tengine::Core::Config do
         subject.dsl_file_paths.should == ["/var/lib/tengine/foo/bar.rb"]
       end
 
-      it :dsl_version_path do
-        subject.dsl_version_path.should == "/var/lib/tengine/VERSION"
-      end
-
-      context :dsl_version do
-        it "VERSIONファイルがある場合" do
-          File.should_receive(:exist?).with("/var/lib/tengine/VERSION").and_return(true)
-          File.should_receive(:read).and_return("TEST20110905164100")
-          subject.dsl_version.should == "TEST20110905164100"
-        end
-
-        it "VERSIONファイルがない場合" do
-          File.should_receive(:exist?).with("/var/lib/tengine/VERSION").and_return(false)
-          t = Time.local(2011,9,5,17,28,30)
-          Time.stub!(:now).and_return(t)
-          subject.dsl_version.should == "20110905172830"
-        end
-      end
+      it_should_behave_like "絶対パス指定時のパスの振る舞い"
     end
 
     it_should_behave_like "ディレクトリもファイルも存在しない場合はエラー", "/var/lib/tengine"
   end
 
-  context "load_pathに絶対パスのファイルを指定する設定ファイル" do
+  context "のファイルを指定する設定ファイル" do
     subject do
       Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_file_absolute_load_path.yml", File.dirname(__FILE__)))
     end
@@ -186,35 +190,15 @@ describe Tengine::Core::Config do
         File.should_receive(:exist?).with("/var/lib/tengine/init.rb").and_return(true)
       end
 
-      it :dsl_dir_path do
-        subject.dsl_dir_path.should == "/var/lib/tengine"
-      end
-
       it :dsl_file_paths do
         subject.dsl_file_paths.should == ["/var/lib/tengine/init.rb"]
       end
 
-      it :dsl_version_path do
-        subject.dsl_version_path.should == "/var/lib/tengine/VERSION"
-      end
-
-      context :dsl_version do
-        it "VERSIONファイルがある場合" do
-          File.should_receive(:exist?).with("/var/lib/tengine/VERSION").and_return(true)
-          File.should_receive(:read).and_return("TEST20110905164100")
-          subject.dsl_version.should == "TEST20110905164100"
-        end
-
-        it "VERSIONファイルがない場合" do
-          File.should_receive(:exist?).with("/var/lib/tengine/VERSION").and_return(false)
-          t = Time.local(2011,9,5,17,28,30)
-          Time.stub!(:now).and_return(t)
-          subject.dsl_version.should == "20110905172830"
-        end
-      end
+      it_should_behave_like "絶対パス指定時のパスの振る舞い"
     end
 
     it_should_behave_like "ディレクトリもファイルも存在しない場合はエラー", "/var/lib/tengine/init.rb"
+  end
   end
 
   context "指定した設定ファイルが存在しない場合" do
