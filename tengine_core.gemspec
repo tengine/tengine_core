@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.9"
+  s.version = "0.1.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
@@ -66,6 +66,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/dsl_loading_context.rb",
     "lib/tengine/core/event.rb",
     "lib/tengine/core/event/finder.rb",
+    "lib/tengine/core/event_exception_reportable.rb",
     "lib/tengine/core/event_wrapper.rb",
     "lib/tengine/core/handler.rb",
     "lib/tengine/core/handler_path.rb",
