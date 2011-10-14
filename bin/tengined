@@ -137,6 +137,8 @@ if @__verbose__
 end
 
 run do
+  verbose "Dir.pwd: #{Dir.pwd}"
+
   config = nil
   begin
     config = @__config__.dup
