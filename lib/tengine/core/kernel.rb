@@ -9,6 +9,7 @@ require 'selectable_attr'
 class Tengine::Core::Kernel
   include ::SelectableAttr::Base
   include Tengine::Core::KernelRuntime
+  include Tengine::Core::EventExceptionReportable
 
   attr_reader :config, :status
   attr_accessor :before_delegate, :after_delegate
@@ -234,18 +235,8 @@ class Tengine::Core::Kernel
     handlers.each do |handler|
       safety_handler(handler) do
         block = dsl_context.__block_for__(handler)
-        begin
+        report_on_exception(dsl_context, event, block) do
           handler.process_event(event, &block)
-        rescue Exception => e
-          Tengine.logger.debug("[#{e.class.name}] #{e.message}\n  " << e.backtrace.join("\n  "))
-          dsl_context.fire("#{event.event_type_name}.error.tengined",
-            :properties => {
-              :original_event => event.to_json,
-              :error_class_name => e.class.name,
-              :error_message => e.message,
-              :error_backtrace => e.backtrace,
-              :block_source_location => '%s:%d' % block.source_location,
-            })
         end
       end
     end
