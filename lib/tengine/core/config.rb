@@ -60,9 +60,9 @@ class Tengine::Core::Config
   end
   memoize :dsl_load_path
 
-  def prepare_dir_and_paths
-    return if @prepare_dir_and_paths_done
-    path = dsl_load_path
+  def prepare_dir_and_paths(force = false)
+    return if !force && @prepare_dir_and_paths_done
+    path = dsl_load_path(true) # キャッシュをクリア
     if path.nil?
       @dsl_dir_path = nil
       @dsl_file_paths = []
@@ -89,12 +89,14 @@ class Tengine::Core::Config
   end
 
   def dsl_version_path
-    File.expand_path("VERSION", dsl_dir_path)
+    path = dsl_dir_path
+    path ? File.expand_path("VERSION", path) : nil
   end
   memoize :dsl_version_path
 
   def dsl_version
-    File.exist?(dsl_version_path) ? File.read(dsl_version_path).strip : Time.now.strftime("%Y%m%d%H%M%S")
+    path = dsl_version_path
+    (path && File.exist?(dsl_version_path)) ? File.read(dsl_version_path).strip : Time.now.strftime("%Y%m%d%H%M%S")
   end
   memoize :dsl_version
 

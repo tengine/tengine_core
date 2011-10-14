@@ -61,11 +61,7 @@ class Tengine::Core::Bootstrap
 
   def test_connection
     config[:tengined][:load_path] = File.expand_path("connection_test/fire_bar_on_foo.rb", File.dirname(__FILE__))
-
-    # VERSIONファイルの生成とバージョンアップの書き込み
-    version_file = File.open("#{config.dsl_dir_path}/VERSION", "w")
-    version_file.write(Time.now.strftime("%Y%m%d%H%M%S").to_s)
-    version_file.close
+    config.prepare_dir_and_paths(true)
 
     begin
       load_dsl
