@@ -170,6 +170,7 @@ describe "Tengine::Core::Bootstrap" do
     end
 
     it "enabled=true に更新される" do
+      Dir.stub!(:exist?).with("examples").and_return(true)
       File.stub!(:exist?).with(File.expand_path("examples/VERSION")).and_return(false)
       options = {
         :action => "enable",

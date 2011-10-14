@@ -84,7 +84,6 @@ describe Tengine::Core::Config do
       end
 
       it :dsl_file_paths do
-        Dir.should_receive(:exist?).with("/var/lib/tengine").and_return(true)
         Dir.should_receive(:glob).
           with("/var/lib/tengine/**/*.rb").
           and_return(["/var/lib/tengine/foo/bar.rb"])
@@ -93,7 +92,6 @@ describe Tengine::Core::Config do
 
       # C0カバレッジを100%にするために追加しています
       it "dsl_dir_path and dsl_file_paths" do 
-        Dir.should_receive(:exist?).with("/var/lib/tengine").and_return(true)
         Dir.should_receive(:glob).
           with("/var/lib/tengine/**/*.rb").
           and_return(["/var/lib/tengine/foo/bar.rb"])
