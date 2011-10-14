@@ -3,12 +3,18 @@
 require 'rubygems'
 require 'optparse'
 require 'daemons'
+require 'fileutils'
 
 $LOAD_PATH << File.expand_path('../lib', File.dirname(__FILE__))
 require 'tengine_core'
 
 @__config__ = Tengine::Core::Config.parse(ARGV)
 Signal.trap(:INT) {puts ":INT"; @__bootstrap__.stop_kernel}
+
+# 必要なディレクトリの生成
+FileUtils.mkdir_p(File.expand_path(@__config__[:tengined][:pid_dir]))
+FileUtils.mkdir_p(File.expand_path(@__config__[:tengined][:status_dir]))
+FileUtils.mkdir_p(File.expand_path(@__config__[:tengined][:activation_dir]))
 
 @__verbose__ = @__config__[:verbose]
 def verbose(msg, output = STDOUT)
