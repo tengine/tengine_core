@@ -56,7 +56,9 @@ class Tengine::Core::Config
   end
 
   def dsl_load_path
-    self[:tengined][:load_path]
+    original = self[:tengined][:load_path]
+    # 本来は指定する必要はありませんが、specでDir.pwdをstubで返すようにするために、明示的に第２引数にDir.pwdを指定しています
+    original ? File.expand_path(original, Dir.pwd) : nil
   end
   memoize :dsl_load_path
 

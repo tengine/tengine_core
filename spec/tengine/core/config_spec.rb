@@ -38,23 +38,186 @@ describe Tengine::Core::Config do
       Dir.should_receive(:exist?).with(path).and_return(false)
       File.should_receive(:exist?).with(path).and_return(false)
     end
-
     it :dsl_dir_path do
       expect{ subject.dsl_dir_path }.should raise_error(Tengine::Core::ConfigError, @error_message)
     end
-
     it :dsl_file_paths do
       expect{ subject.dsl_file_paths }.should raise_error(Tengine::Core::ConfigError, @error_message)
     end
-
     it :dsl_version_path do
       expect{ subject.dsl_version_path }.should raise_error(Tengine::Core::ConfigError, @error_message)
     end
-
     it :dsl_version do
       expect{ subject.dsl_version }.should raise_error(Tengine::Core::ConfigError, @error_message)
     end
   end
+
+
+
+
+
+  context "load_pathに相対パス" do
+    before do
+      # capistranoのデフォルトのデプロイ先を想定しています
+      # see "BACK TO CONFIGURATION" in https://github.com/capistrano/capistrano/wiki/2.x-From-The-Beginning
+      # http://www.slideshare.net/T2J/capistrano-tips-tips
+      Dir.stub!(:pwd).and_return("/u/apps/app1/current")
+    end
+
+    shared_examples_for "相対パス指定時のパスの振る舞い" do
+      it :dsl_dir_path do
+        subject.dsl_dir_path.should == "/u/apps/app1/current/tengine_dsls"
+      end
+
+      it :dsl_version_path do
+        subject.dsl_version_path.should == "/u/apps/app1/current/tengine_dsls/VERSION"
+      end
+
+      it "VERSIONファイルがある場合" do
+        File.should_receive(:exist?).with("/u/apps/app1/current/tengine_dsls/VERSION").and_return(true)
+        File.should_receive(:read).and_return("TEST20110905164100")
+        subject.dsl_version.should == "TEST20110905164100"
+      end
+
+      it "VERSIONファイルがない場合" do
+        File.should_receive(:exist?).with("/u/apps/app1/current/tengine_dsls/VERSION").and_return(false)
+        t = Time.local(2011,9,5,17,28,30)
+        Time.stub!(:now).and_return(t)
+        subject.dsl_version.should == "20110905172830"
+      end
+    end
+
+    context "のディレクトリを指定する設定ファイル" do
+      subject do
+        Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_dir_relative_load_path.yml", File.dirname(__FILE__)))
+      end
+      it "should allow to read value by using []" do
+        expected = {
+          'daemon' => true,
+          "activation_timeout" => 300,
+          "load_path" => "tengine_dsls",
+          "pid_dir" => "tmp/tengined_pids",
+          "status_dir" => "tmp/tengined_status",
+          "activation_dir" => "tmp/tengined_activations",
+          "heartbeat_period" => 600,
+          "confirmation_threshold" => "warn",
+        }
+        subject[:tengined].should == expected
+        subject['tengined'].should == expected
+        subject[:tengined]['daemon'].should == true
+        subject[:tengined][:daemon].should == true
+        subject[:event_queue][:connection][:host].should == "localhost"
+        subject['event_queue']['connection']['host'].should == "localhost"
+        subject[:event_queue][:queue][:name].should == "tengine_event_queue2"
+        subject['event_queue']['queue']['name'].should == "tengine_event_queue2"
+      end
+      its(:heartbeat_enabled?){ should == true }
+
+      describe :relative_path_from_dsl_dir do
+        it "絶対パスが指定されるとdsl_dir_pathからの相対パスを返します" do
+          Dir.should_receive(:exist?).with("/u/apps/app1/current/tengine_dsls").and_return(true)
+          subject.relative_path_from_dsl_dir("/u/apps/app1/shared/config").should == "../../shared/config"
+        end
+
+        it "相対パスが指定されると（計算のしようがないので）そのまま返します" do
+          subject.relative_path_from_dsl_dir("lib/tengine/foo/bar").should == "lib/tengine/foo/bar"
+        end
+      end
+
+      describe :confirmation_threshold do
+        it "--tengined-confirmation-levelで設定した値を数値に変換する" do
+          subject.confirmation_threshold.should == Tengine::Event::LEVELS_INV[:warn]
+        end
+      end
+
+      context "ディレクトリが存在する場合" do
+        before do
+          Dir.should_receive(:exist?).with("/u/apps/app1/current/tengine_dsls").and_return(true)
+        end
+
+        it :dsl_file_paths do
+          Dir.should_receive(:glob).
+            with("/u/apps/app1/current/tengine_dsls/**/*.rb").
+            and_return(["/u/apps/app1/current/tengine_dsls/foo/bar.rb"])
+          subject.dsl_file_paths.should == ["/u/apps/app1/current/tengine_dsls/foo/bar.rb"]
+        end
+
+        it_should_behave_like "相対パス指定時のパスの振る舞い"
+      end
+
+      it_should_behave_like "ディレクトリもファイルも存在しない場合はエラー", "/u/apps/app1/current/tengine_dsls"
+    end
+
+    context "のファイルを指定する設定ファイル" do
+      subject do
+        Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_file_relative_load_path.yml", File.dirname(__FILE__)))
+      end
+      it "should allow to read value by using []" do
+        expected = {
+          'daemon' => true,
+          "activation_timeout" => 300,
+          "load_path" => "tengine_dsls/init.rb",
+          "pid_dir" => "tmp/tengined_pids",
+          "status_dir" => "tmp/tengined_status",
+          "activation_dir" => "tmp/tengined_activations",
+          "heartbeat_period" => 600,
+          "confirmation_threshold" => "warn",
+        }
+        subject[:tengined].should == expected
+        subject['tengined'].should == expected
+        subject[:tengined]['load_path'].should == "tengine_dsls/init.rb"
+        subject[:tengined][:load_path].should == "tengine_dsls/init.rb"
+      end
+
+      describe :relative_path_from_dsl_dir do
+        it "絶対パスが指定されるとdsl_dir_pathからの相対パスを返します" do
+          Dir.should_receive(:exist?).with("/u/apps/app1/current/tengine_dsls/init.rb").and_return(false)
+          File.should_receive(:exist?).with("/u/apps/app1/current/tengine_dsls/init.rb").and_return(true)
+          subject.relative_path_from_dsl_dir("/u/apps/app1/shared/config").should == "../../shared/config"
+        end
+
+        it "相対パスが指定されると（計算のしようがないので）そのまま返します" do
+          subject.relative_path_from_dsl_dir("lib/tengine/foo/bar").should == "lib/tengine/foo/bar"
+        end
+      end
+
+      context "ファイルが存在する場合" do
+        before do
+          Dir.should_receive(:exist?).with("/u/apps/app1/current/tengine_dsls/init.rb").and_return(false)
+          File.should_receive(:exist?).with("/u/apps/app1/current/tengine_dsls/init.rb").and_return(true)
+        end
+
+        it :dsl_file_paths do
+          subject.dsl_file_paths.should == ["/u/apps/app1/current/tengine_dsls/init.rb"]
+        end
+
+        it_should_behave_like "相対パス指定時のパスの振る舞い"
+      end
+
+      it_should_behave_like "ディレクトリもファイルも存在しない場合はエラー", "/u/apps/app1/current/tengine_dsls/init.rb"
+    end
+  end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   context "load_pathに絶対パス" do
 
