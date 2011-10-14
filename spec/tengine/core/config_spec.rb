@@ -31,9 +31,9 @@ describe Tengine::Core::Config do
     its(:heartbeat_enabled?){ should == false }
   end
 
-  context "ディレクトリ指定の設定ファイル" do
+  context "load_pathに絶対パスのディレクトリを指定する設定ファイル" do
     subject do
-      Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_dir_load_path.yml", File.dirname(__FILE__)))
+      Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_dir_absolute_load_path.yml", File.dirname(__FILE__)))
     end
     it "should allow to read value by using []" do
       expected = {
@@ -99,7 +99,6 @@ describe Tengine::Core::Config do
         subject.dsl_file_paths.should == ["/var/lib/tengine/foo/bar.rb"]
       end
 
-
       it :dsl_version_path do
         subject.dsl_version_path.should == "/var/lib/tengine/VERSION"
       end
@@ -145,9 +144,9 @@ describe Tengine::Core::Config do
     end
   end
 
-  context "ファイル指定の設定ファイル" do
+  context "load_pathに絶対パスのファイルを指定する設定ファイル" do
     subject do
-      Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_file_load_path.yml", File.dirname(__FILE__)))
+      Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_file_absolute_load_path.yml", File.dirname(__FILE__)))
     end
     it "should allow to read value by using []" do
       expected = {
