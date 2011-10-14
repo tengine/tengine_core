@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.8"
+  s.version = "0.1.9"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
-  s.date = "2011-10-13"
+  s.date = "2011-10-14"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "akima@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -98,8 +98,10 @@ Gem::Specification.new do |s|
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/非ASCIIのファイル名_dsl.rb",
     "spec/tengine/core/config_spec.rb",
     "spec/tengine/core/config_spec/another_port.yml",
-    "spec/tengine/core/config_spec/config_with_dir_load_path.yml",
-    "spec/tengine/core/config_spec/config_with_file_load_path.yml",
+    "spec/tengine/core/config_spec/config_with_dir_absolute_load_path.yml",
+    "spec/tengine/core/config_spec/config_with_dir_relative_load_path.yml",
+    "spec/tengine/core/config_spec/config_with_file_absolute_load_path.yml",
+    "spec/tengine/core/config_spec/config_with_file_relative_load_path.yml",
     "spec/tengine/core/config_spec/log_config_spec.rb",
     "spec/tengine/core/driver_spec.rb",
     "spec/tengine/core/dsl_binder_spec.rb",
