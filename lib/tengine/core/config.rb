@@ -63,7 +63,10 @@ class Tengine::Core::Config
   def prepare_dir_and_paths
     return if @prepare_dir_and_paths_done
     path = dsl_load_path
-    if Dir.exist?(path)
+    if path.nil?
+      @dsl_dir_path = nil
+      @dsl_file_paths = []
+    elsif Dir.exist?(path)
       @dsl_dir_path = File.expand_path(path)
       @dsl_file_paths = Dir.glob("#{@dsl_dir_path}/**/*.rb")
     elsif File.exist?(path)
