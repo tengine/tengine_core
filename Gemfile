@@ -1,4 +1,6 @@
-# mac-mini or rubycenter server in gemserver
+# -*- coding: utf-8 -*-
+# private gemserver
+source "http://bts.tenginefw.com/gemserver"
 source "http://rubygems.org"
 
 # Add dependencies required to use your gem here.
@@ -16,7 +18,8 @@ gem "mongo"   , "~> 1.3.1"
 
 gem "mongoid", "~> 2.2.1"
 
-gem "tengine_event", "~> 0.2.7", :git => "git@github.com:tengine/tengine_event.git", :branch => "develop"
+# 一般公開して、rubygems に登録するまでは、gemserver を使うようにします
+gem "tengine_event", "~> 0.2.7"  #, :git => "git@github.com:tengine/tengine_event.git", :branch => "develop"
 
 gem "daemons", "~> 1.1.4"
 
