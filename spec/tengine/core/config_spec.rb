@@ -31,6 +31,31 @@ describe Tengine::Core::Config do
     its(:heartbeat_enabled?){ should == false }
   end
 
+
+  shared_examples_for "ディレクトリもファイルも存在しない場合はエラー" do |path|
+      before do
+        @error_message = "file or directory doesn't exist. #{path}"
+        Dir.should_receive(:exist?).with(path).and_return(false)
+        File.should_receive(:exist?).with(path).and_return(false)
+      end
+
+      it :dsl_dir_path do
+        expect{ subject.dsl_dir_path }.should raise_error(Tengine::Core::ConfigError, @error_message)
+      end
+
+      it :dsl_file_paths do
+        expect{ subject.dsl_file_paths }.should raise_error(Tengine::Core::ConfigError, @error_message)
+      end
+
+      it :dsl_version_path do
+        expect{ subject.dsl_version_path }.should raise_error(Tengine::Core::ConfigError, @error_message)
+      end
+
+      it :dsl_version do
+        expect{ subject.dsl_version }.should raise_error(Tengine::Core::ConfigError, @error_message)
+      end
+  end
+
   context "load_pathに絶対パスのディレクトリを指定する設定ファイル" do
     subject do
       Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_dir_absolute_load_path.yml", File.dirname(__FILE__)))
@@ -119,29 +144,7 @@ describe Tengine::Core::Config do
       end
     end
 
-    context "ディレクトリもファイルも存在しない場合" do
-      before do
-        @error_message = "file or directory doesn't exist. /var/lib/tengine"
-        Dir.should_receive(:exist?).with("/var/lib/tengine").and_return(false)
-        File.should_receive(:exist?).with("/var/lib/tengine").and_return(false)
-      end
-
-      it :dsl_dir_path do
-        expect{ subject.dsl_dir_path }.should raise_error(Tengine::Core::ConfigError, @error_message)
-      end
-
-      it :dsl_file_paths do
-        expect{ subject.dsl_file_paths }.should raise_error(Tengine::Core::ConfigError, @error_message)
-      end
-
-      it :dsl_version_path do
-        expect{ subject.dsl_version_path }.should raise_error(Tengine::Core::ConfigError, @error_message)
-      end
-
-      it :dsl_version do
-        expect{ subject.dsl_version }.should raise_error(Tengine::Core::ConfigError, @error_message)
-      end
-    end
+    it_should_behave_like "ディレクトリもファイルも存在しない場合はエラー", "/var/lib/tengine"
   end
 
   context "load_pathに絶対パスのファイルを指定する設定ファイル" do
@@ -211,29 +214,7 @@ describe Tengine::Core::Config do
       end
     end
 
-    context "ファイルもディレクトリも存在しない場合" do
-      before do
-        @error_message = "file or directory doesn't exist. /var/lib/tengine/init.rb"
-        Dir.should_receive(:exist?).with("/var/lib/tengine/init.rb").and_return(false)
-        File.should_receive(:exist?).with("/var/lib/tengine/init.rb").and_return(false)
-      end
-
-      it :dsl_dir_path do
-        expect{ subject.dsl_dir_path }.should raise_error(Tengine::Core::ConfigError, @error_message)
-      end
-
-      it :dsl_file_paths do
-        expect{ subject.dsl_file_paths }.should raise_error(Tengine::Core::ConfigError, @error_message)
-      end
-
-      it :dsl_version_path do
-        expect{ subject.dsl_version_path }.should raise_error(Tengine::Core::ConfigError, @error_message)
-      end
-
-      it :dsl_version do
-        expect{ subject.dsl_version }.should raise_error(Tengine::Core::ConfigError, @error_message)
-      end
-    end
+    it_should_behave_like "ディレクトリもファイルも存在しない場合はエラー", "/var/lib/tengine/init.rb"
   end
 
   context "指定した設定ファイルが存在しない場合" do
