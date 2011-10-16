@@ -15,7 +15,9 @@ module Tengine::Core::EventExceptionReportable
   end
 
   FIRE_EXCEPT_TESTING_ERROR = lambda do |kernel, dsl_context, event, exception, block|
-    unless exception.class.name =~ /^Test::|^MiniTest::|^RSpec::|^Spec::/
+    if exception.class.name =~ /^Test::|^MiniTest::|^RSpec::|^Spec::/
+      raise exception
+    else
       FIRE_ON_ALL_EXCEPTION.call(kernel, dsl_context, event, exception, block)
     end
   end
