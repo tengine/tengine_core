@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'spec_helper'
 
-describe "" do
+describe "bind_dsl_file_in_multi_byte_dir" do
   before do
     Tengine::Core::Driver.delete_all
     Tengine::Core::Session.delete_all
