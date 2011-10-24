@@ -168,7 +168,7 @@ describe "Tengine::Core::Bootstrap" do
 
     before do
       Tengine::Core::Driver.delete_all
-      t = Time.local(2011,9,5,17,28,30)
+      t = Time.utc(2011,9,5,17,28,30)
       Time.stub!(:now).and_return(t)
       @time_str = "20110905172830"
       @d1 = Tengine::Core::Driver.create!(:name=>"driver1", :version=>@time_str, :enabled=>false, :enabled_on_activation=>true)
