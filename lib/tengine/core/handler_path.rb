@@ -2,6 +2,8 @@ require 'tengine/core'
 
 class Tengine::Core::HandlerPath
   include Mongoid::Document
+  include Mongoid::Timestamps
+
   field :event_type_name, :type => String
   field :handler_id, :type => Object
 

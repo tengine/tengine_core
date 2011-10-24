@@ -5,6 +5,8 @@ require 'tengine/event'
 
 class Tengine::Core::Handler
   include Mongoid::Document
+  include Mongoid::Timestamps
+
   field :filepath, :type => String
   field :lineno  , :type => Integer
   field :event_type_names, :type => Array

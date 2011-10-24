@@ -5,7 +5,9 @@ class Tengine::Core::Driver
   autoload :Finder, 'tengine/core/driver/finder'
 
   include Mongoid::Document
+  include Mongoid::Timestamps
   include Tengine::Core::Validation
+
   field :name, :type => String
   field :version, :type => String
   field :enabled, :type => Boolean

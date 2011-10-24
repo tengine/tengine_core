@@ -7,6 +7,7 @@ class Tengine::Core::Event
   autoload :Finder, 'tengine/core/event/finder'
 
   include Mongoid::Document
+  include Mongoid::Timestamps
   include Tengine::Core::Validation
   include ::SelectableAttr::Base
 
