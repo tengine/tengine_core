@@ -14,7 +14,7 @@ module Tengine
     attr_writer :logger
 
     def plugins
-      @plugins = Tengine::Core::Plugins.new
+      @plugins ||= Tengine::Core::Plugins.new
     end
 
   end

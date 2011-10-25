@@ -22,7 +22,9 @@ class Tengine::Core::Plugins
       yield
       notify(sender, :"after_#{msg}")
     else
-      modules.each{|m| m.notify(sender, msg)}
+      modules.each do |m|
+        m.notify(sender, msg) if m.respond_to?(:notify)
+      end
     end
   end
 
