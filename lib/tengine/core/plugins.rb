@@ -10,6 +10,7 @@ class Tengine::Core::Plugins
 
   def add(plugin_module)
     return if modules.include?(plugin_module)
+    Tengine::Core.stdout_logger.info("#{self.class.name}#add(#{plugin_module.name})")
     modules << plugin_module
     enable_plugin(plugin_module)
     plugin_module
