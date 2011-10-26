@@ -22,6 +22,7 @@ module Tengine::Core
   autoload :Session    , 'tengine/core/session'
   autoload :Handler    , 'tengine/core/handler'
   autoload :HandlerPath, 'tengine/core/handler_path'
+  autoload :Setting    , 'tengine/core/setting'
 
   # model wrappers
   autoload :EventWrapper  , 'tengine/core/event_wrapper'
