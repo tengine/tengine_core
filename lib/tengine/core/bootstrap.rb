@@ -39,6 +39,12 @@ class Tengine::Core::Bootstrap
       obj.config = config
       obj.__evaluate__
     end
+    if dsl_version_document = Tengine::Core::Setting.first(:conditions => {:name => "dsl_version"})
+      dsl_version_document.value = config.dsl_version
+      dsl_version_document.save!
+    else
+      Tengine::Core::Setting.create!(:name => "dsl_version", :value => config.dsl_version)
+    end
   end
 
   def start_kernel(&block)

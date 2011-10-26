@@ -109,7 +109,8 @@ describe "Tengine::Core::Bootstrap" do
 
       bootstrap = Tengine::Core::Bootstrap.new(options)
       mock_config = mock(:config)
-      bootstrap.should_receive(:config).and_return(mock_config)
+      mock_config.should_receive(:dsl_version).and_return("test2011102623595999")
+      bootstrap.should_receive(:config).twice.and_return(mock_config)
       mock_dsl_dummy_env = mock(:dsl_dummy_env)
       Tengine::Core::DslLoadingContext.should_receive(:new).and_return(mock_dsl_dummy_env)
       mock_dsl_dummy_env.should_receive(:config=).with(mock_config)
@@ -130,7 +131,8 @@ describe "Tengine::Core::Bootstrap" do
         options = { :action => "load" }
         bootstrap = Tengine::Core::Bootstrap.new(options)
         mock_config = mock(:config)
-        bootstrap.should_receive(:config).and_return(mock_config)
+        mock_config.should_receive(:dsl_version).and_return("test2011102623595999")
+        bootstrap.should_receive(:config).twice.and_return(mock_config)
         mock_dsl_dummy_env = mock(:dsl_dummy_env)
         Tengine::Core::DslLoadingContext.include?(@ext_mod1).should be_true
         Tengine::Core::DslLoadingContext.should_receive(:new).and_return(mock_dsl_dummy_env)
@@ -138,6 +140,42 @@ describe "Tengine::Core::Bootstrap" do
         mock_dsl_dummy_env.should_receive(:__evaluate__)
         bootstrap.load_dsl
       end
+
+    end
+
+    context "Tengine::Core::Settingとしてdsl_versionが保存される" do
+      shared_examples_for "dsl_versionに値が設定される" do
+        it do
+          Tengine::Core::Driver.delete_all
+          Tengine::Core::Session.delete_all
+          config = Tengine::Core::Config.new({
+              :tengined => {
+                :load_path => File.expand_path('../../../examples/uc08_if_both_a_and_b_occurs.rb', File.dirname(__FILE__)),
+              },
+            })
+          @bootstrap = Tengine::Core::Bootstrap.new(config)
+          @bootstrap.load_dsl
+          dsl_version_document = Tengine::Core::Setting.first(:conditions => {:name => "dsl_version"})
+          dsl_version_document.should_not be_nil
+          dsl_version_document.value.should == "20110902213500" # examples/VERSION の中身
+        end
+      end
+
+      context "Tengine::Core::Settingにname=dsl_versionのドキュメントが存在しない" do
+        before do
+          Tengine::Core::Setting.delete_all
+        end
+        it_should_behave_like "dsl_versionに値が設定される"
+      end
+
+      context "Tengine::Core::Settingにname=dsl_versionのドキュメントが存在する場合" do
+        before do
+          Tengine::Core::Setting.delete_all
+          Tengine::Core::Setting.create!(:name => "dsl_version", :value => "fooo")
+        end
+        it_should_behave_like "dsl_versionに値が設定される"
+      end
+
 
     end
 
