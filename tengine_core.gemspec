@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.13"
+  s.version = "0.1.14"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
-  s.date = "2011-10-25"
+  s.date = "2011-10-26"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "akima@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -78,6 +78,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/plugins.rb",
     "lib/tengine/core/session.rb",
     "lib/tengine/core/session_wrapper.rb",
+    "lib/tengine/core/setting.rb",
     "lib/tengine/core/validation.rb",
     "lib/tengine/rspec.rb",
     "lib/tengine/rspec/context_wrapper.rb",
@@ -132,6 +133,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/io_to_logger_spec.rb",
     "spec/tengine/core/kernel_spec.rb",
     "spec/tengine/core/session_spec.rb",
+    "spec/tengine/core/setting_spec.rb",
     "spec/tengine/core_spec.rb",
     "spec/tengine_spec.rb",
     "tengine_core.gemspec",
@@ -141,7 +143,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/akm/tengine_core"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.10"
+  s.rubygems_version = "1.8.11"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
