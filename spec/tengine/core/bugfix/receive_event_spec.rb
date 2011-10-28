@@ -77,6 +77,7 @@ describe "receive_event" do
         :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
     mock_connection.should_receive(:on_tcp_connection_loss)
     mock_connection.should_receive(:after_recovery)
+    mock_connection.should_receive(:on_closed)
 
     mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
     Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
