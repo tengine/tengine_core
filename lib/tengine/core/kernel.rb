@@ -130,8 +130,8 @@ class Tengine::Core::Kernel
     end
   end
 
-  GR_HEARTBEAT_EVENT_TYPE_NAME = "gr_heart_beat.tengined".freeze
-  GR_HEARTBEAT_ATTRIBUTES = {
+  HEARTBEAT_EVENT_TYPE_NAME = "core.heartbeat.tengine".freeze
+  HEARTBEAT_ATTRIBUTES = {
     :level => Tengine::Event::LEVELS_INV[:debug]
   }.freeze
 
@@ -139,7 +139,7 @@ class Tengine::Core::Kernel
     EM.defer do
       @heartbeat_timer = EM.add_periodic_timer(config.heartbeat_period) do
         Tengine::Core.stdout_logger.debug("sending heartbeat") if config[:verbose]
-        sender.fire(GR_HEARTBEAT_EVENT_TYPE_NAME, GR_HEARTBEAT_ATTRIBUTES.dup)
+        sender.fire(HEARTBEAT_EVENT_TYPE_NAME, HEARTBEAT_ATTRIBUTES.dup)
       end
     end
   end
