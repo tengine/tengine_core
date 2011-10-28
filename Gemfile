@@ -34,4 +34,9 @@ group :development do
   # gem "rcov", ">= 0"
   gem "simplecov", "~> 0.5.3"
   gem "ZenTest", "~> 4.6.2"
+
+  # for markdown
+  gem 'rdiscount'
+  gem 'kramdown'
+
 end
