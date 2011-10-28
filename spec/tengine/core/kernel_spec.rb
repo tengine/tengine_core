@@ -129,7 +129,6 @@ describe Tengine::Core::Kernel do
               :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
           mock_connection.should_receive(:on_tcp_connection_loss)
           mock_connection.should_receive(:after_recovery)
-          mock_connection.should_receive(:on_closed)
 
           @mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(@mock_mq)
@@ -172,7 +171,6 @@ describe Tengine::Core::Kernel do
               :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
           mock_connection.should_receive(:on_tcp_connection_loss)
           mock_connection.should_receive(:after_recovery)
-          mock_connection.should_receive(:on_closed)
 
           mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
@@ -234,7 +232,6 @@ describe Tengine::Core::Kernel do
               :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
           mock_connection.should_receive(:on_tcp_connection_loss)
           mock_connection.should_receive(:after_recovery)
-          mock_connection.should_receive(:on_closed)
 
           mock_sub_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_sub_mq)
@@ -277,7 +274,6 @@ describe Tengine::Core::Kernel do
             :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
-        mock_connection.should_receive(:on_closed)
 
         mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
@@ -329,7 +325,6 @@ describe Tengine::Core::Kernel do
             :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
-        mock_connection.should_receive(:on_closed)
 
         mq = @kernel.send(:mq)
         mq.should_receive(:connection).and_return(@mock_connection)
@@ -422,7 +417,6 @@ describe Tengine::Core::Kernel do
             :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
-        mock_connection.should_receive(:on_closed)
 
         mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mq)
@@ -457,7 +451,6 @@ describe Tengine::Core::Kernel do
             :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
-        mock_connection.should_receive(:on_closed)
 
         mq = Tengine::Mq::Suite.new(kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(kernel.config[:event_queue]).and_return(mq)
