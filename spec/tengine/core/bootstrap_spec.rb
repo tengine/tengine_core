@@ -246,7 +246,7 @@ describe "Tengine::Core::Bootstrap" do
     it "イベント:fooを発火して、テスト用のDSLが受信後にbarを発火、それを受け取るイベントハンドラから通知が来るまで待つ" do
       bootstrap = Tengine::Core::Bootstrap.new(:action => "test")
       mock_mq = mock(:mq)
-      Tengine::Event.should_receive(:fire).with(:foo, :level_key => :info)
+      Tengine::Event.should_receive(:fire).with(:foo, :level_key => :info, :keep_connection => true)
       bootstrap.should_receive(:loop).and_yield
       bootstrap.start_connection_test(mock_mq)
       #
