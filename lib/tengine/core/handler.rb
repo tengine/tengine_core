@@ -3,14 +3,25 @@ require 'tengine/core'
 
 require 'tengine/event'
 
+# イベントハンドラ
+#
+# Tengineコアは、イベントを受信するとそのイベント種別名にマッチするイベントハンドラを探して
+# 見つかったイベントハンドラをすべて実行します。
 class Tengine::Core::Handler
   include Mongoid::Document
   include Mongoid::Timestamps
 
+  # @attribute 実行するRubyのブロックが定義されているファイル名
   field :filepath, :type => String
+
+  # @attribute 実行するRubyのブロックが定義されているファイルでの行番号
   field :lineno  , :type => Integer
+
+  # @attribute 処理するイベントのイベント種別名の配列
   field :event_type_names, :type => Array
   array_text_accessor :event_type_names
+
+  # @attribute イベントが対象かどうかを判断するためのフィルタ定義
   field :filter, :type => Hash, :default => {}
   map_yaml_accessor :filter
 

@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 require 'tengine/core'
 
+# イベントドライバ
+#
+# イベントに対する処理はイベントハンドラによって実行されますが、イベントドライバはそのイベントハンドラの上位の概念です。
+# イベントハンドラは必ずイベントドライバの中に定義されます。
+#
+# またイベントドライバは有効化／無効化を設定する単位であり、起動時の設定あるいはユーザーの指定によって変更することができます。
+#
 class Tengine::Core::Driver
   autoload :Finder, 'tengine/core/driver/finder'
 
@@ -8,9 +15,16 @@ class Tengine::Core::Driver
   include Mongoid::Timestamps
   include Tengine::Core::Validation
 
+  # @attribute 名前
   field :name, :type => String
+
+  # @attribute バージョン。デプロイされた際に設定されます。
   field :version, :type => String
+
+  # @attribute 有効／無効
   field :enabled, :type => Boolean
+
+  # @attribute 実行時有効／無効
   field :enabled_on_activation, :type => Boolean, :default => true
 
   validates(:name, :presence => true,
