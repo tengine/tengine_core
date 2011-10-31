@@ -61,13 +61,13 @@ class Tengine::Core::HeartbeatWatcher
 
 	def send_invalidate_event type, e0
 		obj = e0.as_document.to_hash.inject({}) {|r, (k, v)| r.update(k.to_sym => v) }
+		Tengine.logger.info "Heartbeat expiration detected! for #{e0.event_type_name} of #{e0.source_name}: last seen #{e0.occurred_at} (#{(Time.now - e0.occurred_at).to_f} secs before)"
 		obj.delete :_id
 		obj.delete :confirmed
 		obj.delete :updated_at
 		obj.delete :created_at
 		obj[:event_type_name] = type
 		e1 = Tengine::Event.new obj
-		Tengine.logger.info e1.inspect
 		sender.fire e1, keep_connection: true
 	rescue Tengine::Event::Sender::RetryError
 		# see you next time
