@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+require_relative '../lib/tengine/core/heartbeat_watcher'
+
+hbw = Tengine::Core::HeartbeatWatcher.new(ARGV)
+Signal.trap(:INT) { hbw.shutdown }
+
+hbw.run __FILE__
