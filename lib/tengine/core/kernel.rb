@@ -34,7 +34,10 @@ class Tengine::Core::Kernel
   def stop(force = false)
     if self.status == :running
       update_status(:shutting_down)
-      EM.cancel_timer(@heartbeat_timer) if @heartbeat_timer
+      if @heartbeat_timer
+        EM.cancel_timer(@heartbeat_timer)
+        send_last_event
+      end
       if mq.queue.default_consumer
         mq.queue.unsubscribe
         close_if_shutting_down if !@processing_event || force
@@ -90,7 +93,7 @@ class Tengine::Core::Kernel
       # self.status_key = :running if mq.queue
       update_status(:running) if mq.queue
       subscribe_queue
-      enable_heartbeat if config.heartbeat_enabled?
+      enable_heartbeat
       yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
       em_setup_blocks.each{|block| block.call }
     end
@@ -142,16 +145,23 @@ class Tengine::Core::Kernel
     end
   end
 
-  GR_HEARTBEAT_EVENT_TYPE_NAME = "gr_heart_beat.tengined".freeze
+  require 'uuid'
+  GR_HEARTBEAT_EVENT_TYPE_NAME = "core.heartbeat.tengine".freeze
   GR_HEARTBEAT_ATTRIBUTES = {
-    :level => Tengine::Event::LEVELS_INV[:debug]
+    :key => UUID.new.generate,
+    :level => Tengine::Event::LEVELS_INV[:info],
+    :source_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid),
+    :sender_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid)
   }.freeze
 
   def enable_heartbeat
-    EM.defer do
-      @heartbeat_timer = EM.add_periodic_timer(config.heartbeat_period) do
-        Tengine::Core.stdout_logger.debug("sending heartbeat") if config[:verbose]
-        sender.fire(GR_HEARTBEAT_EVENT_TYPE_NAME, GR_HEARTBEAT_ATTRIBUTES.dup)
+    n = config[:heartbeat][:core][:interval]
+    if n and n > 0
+      EM.defer do
+        @heartbeat_timer = EM.add_periodic_timer(n) do
+          Tengine::Core.stdout_logger.debug("sending heartbeat") if config[:verbose]
+          sender.fire(GR_HEARTBEAT_EVENT_TYPE_NAME, GR_HEARTBEAT_ATTRIBUTES.dup)
+        end
       end
     end
   end
@@ -353,6 +363,18 @@ class Tengine::Core::Kernel
   rescue Exception => e
     Tengine::Core.stderr_logger.error("#{self.class.name}#update_status failure. [\#{e.class.name}] \#{e.message}\n  " << e.backtrace.join("\n  "))
     raise e
+  end
+
+  def send_last_event
+    sender.fire "finished.process.core.tengine", GR_HEARTBEAT_ATTRIBUTES.dup
+  rescue Tengine::Event::Sender::RetryError
+    retry # try again
+  else
+    EM.next_tick do
+      sender.mq_suite.connection.close do
+        EM.stop
+      end
+    end
   end
 
   # 自動でログ出力する
