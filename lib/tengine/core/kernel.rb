@@ -206,6 +206,21 @@ class Tengine::Core::Kernel
     end
   end
 
+  def save_failed_event(raw_event)
+    # これに失敗したときにさらに failed_event を fire してしまうと無限
+    # に fire が続いてしまうので NG.
+    event = Tengine::Core::Event.create!(
+      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
+    Tengine.logger.debug("saved a event #{event.inspect}")
+    event
+  rescue Mongo::OperationFailure => e
+    Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
+    return nil
+  rescue Exception => e
+    Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
+    raise e
+  end
+
   # 受信したイベントを登録
   def save_event(raw_event)
     event = Tengine::Core::Event.create!(
