@@ -108,12 +108,14 @@ class Tengine::Core::Kernel
       raw_event = parse_event(msg)
       if raw_event.nil?
         headers.ack
+        Tengine.logger.warn("ack successfully to queue cause of parse failure.")
         return
       end
 
       event = save_event(raw_event)
       unless event
         headers.ack
+        Tengine.logger.warn("ack successfully to queue cause of parse failure.")
         return
       end
 
@@ -146,7 +148,7 @@ class Tengine::Core::Kernel
 
   def sender
     unless @sender
-      @sender = Tengine::Event::Sender.new(mq)
+      @sender = Tengine::Event::Sender.new(mq, :logger => Tengine.logger)
       @sender.default_keep_connection = true
     end
     @sender
