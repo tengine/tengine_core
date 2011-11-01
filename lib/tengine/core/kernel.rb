@@ -237,6 +237,11 @@ class Tengine::Core::Kernel
     event
   rescue Mongo::OperationFailure => e
     Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
+    # FIXME!!
+    # このままではログに埋もれてしまうのでなんとかすべき。
+    # 案1 : root@にメールを投げる
+    # 案2 : プロセスが死ぬ
+    # 案3 : ...
     return nil
   rescue Exception => e
     Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
@@ -369,12 +374,6 @@ class Tengine::Core::Kernel
     sender.fire "finished.process.core.tengine", GR_HEARTBEAT_ATTRIBUTES.dup
   rescue Tengine::Event::Sender::RetryError
     retry # try again
-  else
-    EM.next_tick do
-      sender.mq_suite.connection.close do
-        EM.stop
-      end
-    end
   end
 
   # 自動でログ出力する
