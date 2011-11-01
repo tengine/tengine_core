@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.15"
+  s.version = "0.1.16"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     "README.md",
     "Rakefile",
     "VERSION",
+    "bin/tengine_heartbeat_watchd",
     "bin/tengined",
     "examples/VERSION",
     "examples/uc01_execute_processing_for_event.rb",
@@ -68,6 +69,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/event_wrapper.rb",
     "lib/tengine/core/handler.rb",
     "lib/tengine/core/handler_path.rb",
+    "lib/tengine/core/heartbeat_watcher.rb",
     "lib/tengine/core/io_to_logger.rb",
     "lib/tengine/core/kernel.rb",
     "lib/tengine/core/kernel_runtime.rb",
@@ -128,6 +130,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/event_wrapper_spec.rb",
     "spec/tengine/core/handler_path_spec.rb",
     "spec/tengine/core/handler_spec.rb",
+    "spec/tengine/core/heartbeat_watcher_spec.rb",
     "spec/tengine/core/io_to_logger_spec.rb",
     "spec/tengine/core/kernel_spec.rb",
     "spec/tengine/core/session_spec.rb",
