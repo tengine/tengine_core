@@ -130,7 +130,7 @@ class Tengine::Core::Kernel
               end
       unless event
         headers.ack
-        Tengine.logger.warn("ack successfully to queue cause of parse failure.")
+        Tengine.logger.warn("ack successfully to queue cause of saving failure.")
         return
       end
 
@@ -382,8 +382,9 @@ class Tengine::Core::Kernel
   extend Tengine::Core::MethodTraceable
   method_trace(:start, :stop, :bind, :wait_for_activation, :activate,
     :setup_mq_connection, :subscribe_queue, # :update_status, # update_statusは別途ログ出力します
-    :process_message, :parse_event, :fire_failed_event, :save_event,
-    :find_handlers, :delegate, :close_if_shutting_down, :enable_heartbeat
+    :process_message, :parse_event, :fire_failed_event,
+    :find_handlers, :delegate, :close_if_shutting_down, :enable_heartbeat,
+    :save_event, :save_heartbeat_beat, :save_heartbeat_ng, :save_heartbeat_ok, :save_failed_event,
     )
 end
 
