@@ -21,6 +21,7 @@ describe "uc64_safety_countup" do
       @kernel.bind
     }.to change(@kernel.em_setup_blocks, :length).by(1)
     EM.should_receive(:run).and_yield
+    EM.stub(:defer)
     @kernel.should_receive(:mq).and_return(mock(:mq, :queue => nil))
     @kernel.should_receive(:setup_mq_connection)
     @kernel.should_receive(:subscribe_queue)

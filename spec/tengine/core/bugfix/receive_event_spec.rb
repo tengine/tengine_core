@@ -72,6 +72,7 @@ describe "receive_event" do
   it "発火されたイベントを受信して登録できる" do
     # eventmachine と mq の mock を生成
     EM.should_receive(:run).and_yield
+    EM.stub(:defer)
     mock_connection = mock(:connection)
     AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
         :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
