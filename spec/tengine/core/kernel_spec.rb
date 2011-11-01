@@ -56,12 +56,19 @@ describe Tengine::Core::Kernel do
               :activation_timeout => 3,
               :activation_dir => File.expand_path('.', File.dirname(__FILE__)),
             },
+            :heartbeat => {
+              :core => {
+                :interval => 1024,
+                :expire => 32768,
+              },
+            },
           })
         @kernel = Tengine::Core::Kernel.new(config)
         @driver = Tengine::Core::Driver.new(:name => "driver01", :version => config.dsl_version, :enabled => true)
         @handler1 = @driver.handlers.new(:filepath => "uc01_execute_processing_for_event.rb", :lineno => 7, :event_type_names => ["event01"])
         @driver.save!
         @activation_file_path = "#{@kernel.config[:tengined][:activation_dir]}\/tengined_#{Process.pid}.activation"
+        EM.stub(:defer)
       end
 
       after do
@@ -129,6 +136,7 @@ describe Tengine::Core::Kernel do
               :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
           mock_connection.should_receive(:on_tcp_connection_loss)
           mock_connection.should_receive(:after_recovery)
+          mock_connection.should_receive(:on_closed)
 
           mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
@@ -138,14 +146,16 @@ describe Tengine::Core::Kernel do
         end
 
         it "heartbeatは有効にならない" do
-          @kernel.should_not_receive(:enable_heartbeat)
+          @kernel.config[:heartbeat][:core][:interval] = -1
+          EM.should_not_receive(:defer)
           @kernel.should_receive(:setup_mq_connection)
           @kernel.start
         end
 
         it "heartbeatは有効になる" do
-          @kernel.config.should_receive(:heartbeat_enabled?).and_return(true)
-          @kernel.should_receive(:enable_heartbeat)
+          @kernel.config[:heartbeat][:core][:interval] = 65535
+          EM.should_receive(:defer).and_yield
+          EM.should_receive(:add_periodic_timer).with(65535)
           @kernel.should_receive(:setup_mq_connection)
           @kernel.start
         end
@@ -155,11 +165,13 @@ describe Tengine::Core::Kernel do
         before do
           # eventmachine と mq の mock を生成
           EM.should_receive(:run).and_yield
+          EM.stub(:defer)
           mock_connection = mock(:connection)
           AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
               :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
           mock_connection.should_receive(:on_tcp_connection_loss)
           mock_connection.should_receive(:after_recovery)
+          mock_connection.should_receive(:on_closed)
 
           mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
@@ -178,6 +190,7 @@ describe Tengine::Core::Kernel do
           @mock_raw_event.stub!(:sender_name).and_return("localhost")
           @mock_raw_event.stub!(:attributes).and_return(:event_type_name => :foo, :key => "uniq_key", :level => Tengine::Event::LEVELS_INV[:info])
           @mock_raw_event.stub!(:level).and_return(Tengine::Event::LEVELS_INV[:info])
+          @mock_raw_event.stub!(:event_type_name).and_return("foo")
           count = lambda{ Tengine::Core::Event.where(:event_type_name => :foo, :confirmed => true).count }
           @kernel.should_receive(:setup_mq_connection)
           expect{ @kernel.start }.should change(count, :call).by(1) # イベントが登録されていることを検証
@@ -188,6 +201,7 @@ describe Tengine::Core::Kernel do
           @mock_raw_event.stub!(:sender_name).and_return("localhost")
           @mock_raw_event.stub!(:attributes).and_return(:event_type_name => :foo, :key => "uniq_key", :level => Tengine::Event::LEVELS_INV[:warn])
           @mock_raw_event.stub!(:level).and_return(Tengine::Event::LEVELS_INV[:warn])
+          @mock_raw_event.stub!(:event_type_name).and_return("foo")
           count = lambda{ Tengine::Core::Event.where(:event_type_name => :foo, :confirmed => false).count }
           @kernel.should_receive(:setup_mq_connection)
           expect{ @kernel.start }.should change(count, :call).by(1) # イベントが登録されていることを検証
@@ -216,11 +230,13 @@ describe Tengine::Core::Kernel do
         before do
           # eventmachine と mq の mock を生成
           EM.should_receive(:run).and_yield
+          EM.stub(:defer).and_yield
           mock_connection = mock(:connection)
           AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
               :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
           mock_connection.should_receive(:on_tcp_connection_loss)
           mock_connection.should_receive(:after_recovery)
+          mock_connection.should_receive(:on_closed)
 
           mock_sub_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_sub_mq)
@@ -237,6 +253,7 @@ describe Tengine::Core::Kernel do
           # @raw_event = Tengine::Event.new(:key => "uuid1", :sender_name => "localhost", :event_type_name => "event1")
 
           EM.should_receive(:next_tick).and_yield
+          EM.stub(:defer)
           mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
           mock_sender = mock(:sender)
@@ -258,11 +275,13 @@ describe Tengine::Core::Kernel do
       it "イベント種別に対応したハンドラの処理を実行することができる" do
         # eventmachine と mq の mock を生成
         EM.should_receive(:run).and_yield
+        EM.stub(:defer)
         mock_connection = mock(:connection)
         AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
             :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
+        mock_connection.should_receive(:on_closed)
 
         mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
@@ -275,6 +294,7 @@ describe Tengine::Core::Kernel do
         mock_raw_event.stub!(:sender_name).and_return("localhost")
         mock_raw_event.should_receive(:attributes).and_return(:event_type_name => :event01, :key => "uuid")
         mock_raw_event.stub!(:level).and_return(Tengine::Event::LEVELS_INV[:info])
+        mock_raw_event.stub!(:event_type_name).and_return("event01")
         Tengine::Event.should_receive(:parse).with(:message).and_return(mock_raw_event)
         # イベントの登録
         Tengine::Core::Event.should_receive(:create!).with(:event_type_name => :event01, :key => "uuid", :confirmed => true).and_return(@event1)
@@ -314,6 +334,7 @@ describe Tengine::Core::Kernel do
             :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
+        mock_connection.should_receive(:on_closed)
 
         mq = @kernel.send(:mq)
         mq.should_receive(:connection).and_return(@mock_connection)
@@ -345,6 +366,7 @@ describe Tengine::Core::Kernel do
             },
           })
         @kernel = Tengine::Core::Kernel.new(config)
+        EM.stub(:defer).and_yield
       end
 
       it "カーネルのインスタンス生成直後は「初期化済み」の状態を返す" do
@@ -377,6 +399,7 @@ describe Tengine::Core::Kernel do
             },
           })
         @kernel = Tengine::Core::Kernel.new(config)
+        EM.stub(:defer).and_yield
       end
 
       it "起動処理が終了した直後に「稼働要求待ち」の状態を返す" do
@@ -401,11 +424,13 @@ describe Tengine::Core::Kernel do
 
       it "稼働要求を受け取った直後では「稼働中」の状態を返す" do
         EM.should_receive(:run).and_yield
+        EM.stub(:defer)
         mock_connection = mock(:connection)
         AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
             :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
+        mock_connection.should_receive(:on_closed)
 
         mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mq)
@@ -435,11 +460,13 @@ describe Tengine::Core::Kernel do
         kernel.should_receive(:bind)
 
         EM.should_receive(:run).and_yield
+        EM.stub(:defer)
         mock_connection = mock(:connection)
         AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
             :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
+        mock_connection.should_receive(:on_closed)
 
         mq = Tengine::Mq::Suite.new(kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(kernel.config[:event_queue]).and_return(mq)
