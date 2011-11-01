@@ -34,7 +34,10 @@ class Tengine::Core::Kernel
   def stop(force = false)
     if self.status == :running
       update_status(:shutting_down)
-      EM.cancel_timer(@heartbeat_timer) if @heartbeat_timer
+      if @heartbeat_timer
+        EM.cancel_timer(@heartbeat_timer)
+        send_last_event
+      end
       if mq.queue.default_consumer
         mq.queue.unsubscribe
         close_if_shutting_down if !@processing_event || force
@@ -90,7 +93,7 @@ class Tengine::Core::Kernel
       # self.status_key = :running if mq.queue
       update_status(:running) if mq.queue
       subscribe_queue
-      enable_heartbeat if config.heartbeat_enabled?
+      enable_heartbeat
       yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
       em_setup_blocks.each{|block| block.call }
     end
@@ -112,7 +115,19 @@ class Tengine::Core::Kernel
         return
       end
 
-      event = save_event(raw_event)
+      # ハートビートは *保存より前に* 特別扱いが必要
+      event = case raw_event.event_type_name
+              when /finished\.process\.([^.]+)\.tengine$/
+                save_heartbeat_ok(raw_event)
+              when /expired\.([^.]+)\.heartbeat\.tengine$/
+                save_heartbeat_ng(raw_event)
+              when /heartbeat\.tengine$/ # when の順番に注意
+                save_heartbeat_beat(raw_event)
+              when /\.failed\.tengined$/
+                save_failed_event(raw_event)
+              else
+                save_event(raw_event)
+              end
       unless event
         headers.ack
         Tengine.logger.warn("ack successfully to queue cause of parse failure.")
@@ -132,16 +147,23 @@ class Tengine::Core::Kernel
     end
   end
 
+  require 'uuid'
   HEARTBEAT_EVENT_TYPE_NAME = "core.heartbeat.tengine".freeze
   HEARTBEAT_ATTRIBUTES = {
-    :level => Tengine::Event::LEVELS_INV[:debug]
+    :key => UUID.new.generate,
+    :level => Tengine::Event::LEVELS_INV[:info],
+    :source_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid),
+    :sender_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid)
   }.freeze
 
   def enable_heartbeat
-    EM.defer do
-      @heartbeat_timer = EM.add_periodic_timer(config.heartbeat_period) do
-        Tengine::Core.stdout_logger.debug("sending heartbeat") if config[:verbose]
-        sender.fire(HEARTBEAT_EVENT_TYPE_NAME, HEARTBEAT_ATTRIBUTES.dup)
+    n = config[:heartbeat][:core][:interval]
+    if n and n > 0
+      EM.defer do
+        @heartbeat_timer = EM.add_periodic_timer(n) do
+          Tengine::Core.stdout_logger.debug("sending heartbeat") if config[:verbose]
+          sender.fire(HEARTBEAT_EVENT_TYPE_NAME, HEARTBEAT_ATTRIBUTES.dup)
+        end
       end
     end
   end
@@ -208,6 +230,26 @@ class Tengine::Core::Kernel
     end
   end
 
+  def save_failed_event(raw_event)
+    # これに失敗したときにさらに failed_event を fire してしまうと無限
+    # に fire が続いてしまうので NG.
+    event = Tengine::Core::Event.create!(
+      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
+    Tengine.logger.debug("saved a event #{event.inspect}")
+    event
+  rescue Mongo::OperationFailure => e
+    Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
+    # FIXME!!
+    # このままではログに埋もれてしまうのでなんとかすべき。
+    # 案1 : root@にメールを投げる
+    # 案2 : プロセスが死ぬ
+    # 案3 : ...
+    return nil
+  rescue Exception => e
+    Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
+    raise e
+  end
+
   # 受信したイベントを登録
   def save_event(raw_event)
     event = Tengine::Core::Event.create!(
@@ -221,7 +263,62 @@ class Tengine::Core::Kernel
     fire_failed_event(raw_event) if Tengine::Core::Event.where(:key => raw_event.key, :sender_name => raw_event.sender_name).count > 0
     return nil
   rescue Exception => e
-    Tengine.logger.error("failed to save a event #{event.inspect}\n[#{e.class.name}] #{e.message}")
+    Tengine.logger.error("failed to save an event #{event.inspect}\n[#{e.class.name}] #{e.message}")
+    raise e
+  end
+
+  def upsert(ev, idx)
+    ev.collection.driver.update(idx, { "$set" => ev.to_hash }, upsert: true)
+  end
+
+  def save_heartbeat_beat(raw_event)
+    event = Tengine::Core::Event.new(
+      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
+    upsert(event, key: event.key, event_type_name: event.event_type_name)
+    Tengine.logger.debug("saved a event #{event.inspect}")
+    event
+  rescue Mongo::OperationFailure => e
+    Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
+    fire_failed_event(raw_event)
+    return nil
+  rescue Exception => e
+    Tengine.logger.error("failed to save an event #{event.inspect}\n[#{e.class.name}] #{e.message}")
+    raise e
+  end
+
+  def save_heartbeat_ng(raw_event)
+    event = Tengine::Core::Event.new(
+      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
+    upsert(event, key: event.key)
+    #event.collection.update({ key: event.key }, event, upsert: true)
+    Tengine.logger.debug("saved a event #{event.inspect}")
+    event
+  rescue Mongo::OperationFailure => e
+    Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
+    fire_failed_event(raw_event)
+    return nil
+  rescue Exception => e
+    Tengine.logger.error("failed to save an event #{event.inspect}\n[#{e.class.name}] #{e.message}")
+    raise e
+  end
+
+  def save_heartbeat_ok(raw_event)
+    k = case raw_event.event_type_name when /^finished\.process\.(.+?)\.tengine$/ then
+          "#$1.heartbeat.tengine"
+        else
+          raise "unknown event #{raw_event.inspect}"
+        end
+    event = Tengine::Core::Event.new(
+      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
+    upsert(event, key: event.key, event_type_name: k)
+    Tengine.logger.debug("saved a event #{event.inspect}")
+    event
+  rescue Mongo::OperationFailure => e
+    Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
+    fire_failed_event(raw_event)
+    return nil
+  rescue Exception => e
+    Tengine.logger.error("failed to save an event #{event.inspect}\n[#{e.class.name}] #{e.message}")
     raise e
   end
 
@@ -273,6 +370,12 @@ class Tengine::Core::Kernel
   rescue Exception => e
     Tengine::Core.stderr_logger.error("#{self.class.name}#update_status failure. [\#{e.class.name}] \#{e.message}\n  " << e.backtrace.join("\n  "))
     raise e
+  end
+
+  def send_last_event
+    sender.fire "finished.process.core.tengine", HEARTBEAT_ATTRIBUTES.dup
+  rescue Tengine::Event::Sender::RetryError
+    retry # try again
   end
 
   # 自動でログ出力する
