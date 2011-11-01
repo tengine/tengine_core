@@ -5,25 +5,23 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.14"
+  s.version = "0.1.15"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
-  s.date = "2011-10-26"
+  s.date = "2011-11-01"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "akima@nautilus-technologies.com"
   s.executables = ["tengined"]
   s.extra_rdoc_files = [
-    "LICENSE.txt",
-    "README.rdoc"
+    "README.md"
   ]
   s.files = [
     ".document",
     ".rspec",
     "Gemfile",
     "Gemfile.lock",
-    "LICENSE.txt",
-    "README.rdoc",
+    "README.md",
     "Rakefile",
     "VERSION",
     "bin/tengined",
@@ -157,7 +155,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<bson_ext>, ["~> 1.3.1"])
       s.add_runtime_dependency(%q<mongo>, ["~> 1.3.1"])
       s.add_runtime_dependency(%q<mongoid>, ["~> 2.2.1"])
-      s.add_runtime_dependency(%q<tengine_event>, ["~> 0.2.7"])
+      s.add_runtime_dependency(%q<tengine_event>, ["~> 0.2.9"])
       s.add_runtime_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_development_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_development_dependency(%q<factory_girl>, ["~> 2.1.2"])
@@ -166,6 +164,8 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<jeweler>, ["~> 1.6.4"])
       s.add_development_dependency(%q<simplecov>, ["~> 0.5.3"])
       s.add_development_dependency(%q<ZenTest>, ["~> 4.6.2"])
+      s.add_development_dependency(%q<rdiscount>, [">= 0"])
+      s.add_development_dependency(%q<kramdown>, [">= 0"])
     else
       s.add_dependency(%q<activesupport>, ["~> 3.1.0"])
       s.add_dependency(%q<activemodel>, ["~> 3.1.0"])
@@ -174,7 +174,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bson_ext>, ["~> 1.3.1"])
       s.add_dependency(%q<mongo>, ["~> 1.3.1"])
       s.add_dependency(%q<mongoid>, ["~> 2.2.1"])
-      s.add_dependency(%q<tengine_event>, ["~> 0.2.7"])
+      s.add_dependency(%q<tengine_event>, ["~> 0.2.9"])
       s.add_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_dependency(%q<factory_girl>, ["~> 2.1.2"])
@@ -183,6 +183,8 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
       s.add_dependency(%q<simplecov>, ["~> 0.5.3"])
       s.add_dependency(%q<ZenTest>, ["~> 4.6.2"])
+      s.add_dependency(%q<rdiscount>, [">= 0"])
+      s.add_dependency(%q<kramdown>, [">= 0"])
     end
   else
     s.add_dependency(%q<activesupport>, ["~> 3.1.0"])
@@ -192,7 +194,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bson_ext>, ["~> 1.3.1"])
     s.add_dependency(%q<mongo>, ["~> 1.3.1"])
     s.add_dependency(%q<mongoid>, ["~> 2.2.1"])
-    s.add_dependency(%q<tengine_event>, ["~> 0.2.7"])
+    s.add_dependency(%q<tengine_event>, ["~> 0.2.9"])
     s.add_dependency(%q<daemons>, ["~> 1.1.4"])
     s.add_dependency(%q<rspec>, ["~> 2.6.0"])
     s.add_dependency(%q<factory_girl>, ["~> 2.1.2"])
@@ -201,6 +203,8 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
     s.add_dependency(%q<simplecov>, ["~> 0.5.3"])
     s.add_dependency(%q<ZenTest>, ["~> 4.6.2"])
+    s.add_dependency(%q<rdiscount>, [">= 0"])
+    s.add_dependency(%q<kramdown>, [">= 0"])
   end
 end
 
