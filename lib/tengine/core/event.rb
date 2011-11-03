@@ -9,7 +9,7 @@ class Tengine::Core::Event
   include Mongoid::Document
   include Mongoid::Timestamps
   include Tengine::Core::Validation
-  include ::SelectableAttr::Base
+  include Tengine::Core::SelectableAttr
 
   field :event_type_name, :type => String
   field :key            , :type => String

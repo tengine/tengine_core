@@ -31,6 +31,7 @@ module Tengine::Core
   # utilities
   autoload :CollectionAccessible, 'tengine/core/collection_accessible'
   autoload :IoToLogger          , 'tengine/core/io_to_logger'
+  autoload :SelectableAttr      , 'tengine/core/selectable_attr'
   autoload :MethodTraceable     , 'tengine/core/method_traceable'
   autoload :OptimisticLock      , 'tengine/core/optimistic_lock'
   autoload :Validation          , 'tengine/core/validation'

@@ -10,7 +10,7 @@ source "http://rubygems.org"
 gem "activesupport", "~> 3.1.0"
 gem "activemodel"  , "~> 3.1.0"
 
-gem "selectable_attr", "~> 0.3.14"
+gem "selectable_attr", "~> 0.3.15"
 
 gem "bson"    , "~> 1.3.1"
 gem "bson_ext", "~> 1.3.1"

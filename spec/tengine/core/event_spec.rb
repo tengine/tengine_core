@@ -50,4 +50,60 @@ describe Tengine::Core::Event do
       }.to raise_error # (Mongo::OperationFailure, /duplicate key error/)
     end
   end
+
+
+  describe :level do
+    context :i18n_scope do
+      before(:all) do
+        @default_locale_backup = I18n.default_locale
+        @locale_backup = I18n.locale
+      end
+
+      after(:all) do
+        I18n.locale = @locale_backup
+        I18n.default_locale = @default_locale_backup
+      end
+
+      before do
+        I18n.backend = I18n::Backend::Simple.new
+        I18n.backend.store_translations 'en', 'selectable_attrs' => {'tengine/core/event' => {'level' => {
+            'debug' => 'DEBUG',
+            'info'  => 'INFO',
+            'warn'  => 'WARN',
+            'error' => 'ERROR',
+            'fatal' => 'FATAL',
+            } } }
+        I18n.backend.store_translations 'ja', 'selectable_attrs' => {'tengine/core/event' => {'level' => {
+            'debug' => 'デバッグ',
+            'info'  => '情報',
+            'warn'  => '警告',
+            'error' => 'エラー',
+            'fatal' => '致命的なエラー',
+            } } }
+      end
+
+      context "#level_name" do
+        {
+          :debug => {:en => "DEBUG", :ja => "デバッグ"},
+          :info  => {:en => "INFO" , :ja => "情報"},
+          :warn  => {:en => "WARN" , :ja => "警告"},
+          :error => {:en => "ERROR", :ja => "エラー"},
+          :fatal => {:en => "FATAL", :ja => "致命的なエラー"},
+        }.each do |level_key, hash|
+          context level_key.inspect do
+            subject{ Tengine::Core::Event.new(:level_key => level_key)}
+            hash.each do |locale, level_name|
+              it do
+                I18n.locale = locale.to_s
+                subject.level_name.should == level_name
+              end
+            end
+          end
+
+        end
+      end
+
+    end
+  end
+
 end
