@@ -117,5 +117,24 @@ class Tengine::Core::Config
       :level         => nil, # debug/info/warn/error/fatal. default: value of --log-common-level
     }.freeze,
 
+    # tengine_docs/source/architechture_design/core.rst
+    :heartbeat => {
+      :core => {
+        :interval => 30,
+        :expire => 120,
+      }.freeze,
+      :job => {
+        :interval => 5,
+        :expire => 20,
+      }.freeze,
+      :hbw => {
+        :interval => 30,
+        :expire => 120,
+      }.freeze,
+      :resourcew => {
+        :interval => 30,
+        :expire => 120,
+      }.freeze,
+    }.freeze,
   }.freeze
 end

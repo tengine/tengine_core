@@ -45,4 +45,15 @@ class Tengine::Core::Event
     entry 5, :fatal       , "fatal"
   end
 
+  def to_hash
+    [:event_type_name,
+     :key,
+     :source_name,
+     :occurred_at,   
+     :level,   
+     :confirmed,
+     :sender_name,
+     :properties
+    ].inject({}) {|r, i| r.update i => send(i) }
+  end
 end
