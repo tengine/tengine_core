@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.16"
+  s.version = "0.1.17"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
-  s.date = "2011-11-01"
+  s.date = "2011-11-03"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "akima@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -76,6 +76,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/method_traceable.rb",
     "lib/tengine/core/optimistic_lock.rb",
     "lib/tengine/core/plugins.rb",
+    "lib/tengine/core/selectable_attr.rb",
     "lib/tengine/core/session.rb",
     "lib/tengine/core/session_wrapper.rb",
     "lib/tengine/core/setting.rb",
@@ -144,7 +145,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/akm/tengine_core"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.11"
+  s.rubygems_version = "1.8.10"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
@@ -153,7 +154,7 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<activesupport>, ["~> 3.1.0"])
       s.add_runtime_dependency(%q<activemodel>, ["~> 3.1.0"])
-      s.add_runtime_dependency(%q<selectable_attr>, ["~> 0.3.14"])
+      s.add_runtime_dependency(%q<selectable_attr>, ["~> 0.3.15"])
       s.add_runtime_dependency(%q<bson>, ["~> 1.3.1"])
       s.add_runtime_dependency(%q<bson_ext>, ["~> 1.3.1"])
       s.add_runtime_dependency(%q<mongo>, ["~> 1.3.1"])
@@ -172,7 +173,7 @@ Gem::Specification.new do |s|
     else
       s.add_dependency(%q<activesupport>, ["~> 3.1.0"])
       s.add_dependency(%q<activemodel>, ["~> 3.1.0"])
-      s.add_dependency(%q<selectable_attr>, ["~> 0.3.14"])
+      s.add_dependency(%q<selectable_attr>, ["~> 0.3.15"])
       s.add_dependency(%q<bson>, ["~> 1.3.1"])
       s.add_dependency(%q<bson_ext>, ["~> 1.3.1"])
       s.add_dependency(%q<mongo>, ["~> 1.3.1"])
@@ -192,7 +193,7 @@ Gem::Specification.new do |s|
   else
     s.add_dependency(%q<activesupport>, ["~> 3.1.0"])
     s.add_dependency(%q<activemodel>, ["~> 3.1.0"])
-    s.add_dependency(%q<selectable_attr>, ["~> 0.3.14"])
+    s.add_dependency(%q<selectable_attr>, ["~> 0.3.15"])
     s.add_dependency(%q<bson>, ["~> 1.3.1"])
     s.add_dependency(%q<bson_ext>, ["~> 1.3.1"])
     s.add_dependency(%q<mongo>, ["~> 1.3.1"])
