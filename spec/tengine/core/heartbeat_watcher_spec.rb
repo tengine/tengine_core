@@ -3,32 +3,7 @@ require 'spec_helper'
 require 'amqp'
 
 require_relative '../../../lib/tengine/core/heartbeat_watcher'
-
-describe Enumerable do
-  describe "#each_next_tick" do
-    it "eachと同じ順にiterateする" do
-      str = ""
-      EM.run do
-        [1, 2, 3, 4].each_next_tick do |i|
-          str << i.to_s
-        end
-        EM.add_timer 0.1 do EM.stop end
-      end
-      str.should == "1234"
-    end
-
-    it "next_tickでやる" do
-      str = ""
-      EM.run do
-        [1, 2, 3, 4].each_next_tick do |i|
-          str << i.to_s
-        end
-        str.should == ""
-        EM.add_timer 0.1 do EM.stop end
-      end
-    end
-  end
-end
+require 'tengine/mq/suite'
 
 describe Tengine::Core::HeartbeatWatcher do
   before do
