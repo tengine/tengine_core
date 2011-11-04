@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'spec_helper'
 
+require 'mongoid/version'
+
 describe Tengine::Core::Driver do
 
   valid_attributes1 = {
@@ -32,9 +34,16 @@ describe Tengine::Core::Driver do
     end
 
     it "同じ名前で登録されているものが存在する場合エラー" do
+      msg =
+        case Mongoid::VERSION
+        when /^2\.2\./ then
+          "Validation failed - Name is already taken in same version."
+        else
+          "Validation failed - Name is already taken."
+        end
       expect{
         Tengine::Core::Driver.create!(valid_attributes1)
-      }.to raise_error(Mongoid::Errors::Validations, "Validation failed - Name is already taken in same version.")
+      }.to raise_error(Mongoid::Errors::Validations, msg)
     end
 
     it "同じバージョンでも異なる名前ならばOK" do
