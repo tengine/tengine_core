@@ -33,16 +33,14 @@ class Tengine::Core::SessionWrapper
     if block_given?
       options = args.extract_options!
       retry_count = options[:retry] || 5
-      idx = 0
-      begin
+      idx = 1
+      while idx <= retry_count
         values = ActiveSupport::HashWithIndifferentAccess.new(__get_properties__(target_name, idx > 0))
         yield(values)
-        __find_and_modify__(target_name, values)
-      rescue Mongo::OperationFailure => e
+        return if __find_and_modify__(target_name, values)
         idx += 1
-        retry if idx <= retry_count
-        raise e
       end
+      raise Tengine::Core::OptimisticLock::RetryOverError, "retried #{retry_count} times but failed to update"
     else
       properties = args.first
       new_vals = __get_properties__(target_name).merge(properties.stringify_keys)
@@ -59,10 +57,11 @@ class Tengine::Core::SessionWrapper
   end
 
   def __find_and_modify__(target_name, values)
-    Tengine::Core::Session.collection.find_and_modify({
+    result = Tengine::Core::Session.collection.find_and_modify({
         :query => {:_id => @source.id, :lock_version => @source.lock_version},
         :update => { target_name => values, :lock_version => @source.lock_version + 1}
       })
+    result
   end
 
 

@@ -58,7 +58,7 @@ describe Tengine::Core::Session do
       session.properties['key1'].should == 101
     end
 
-    it "競合がしても上書きしない" do
+    it "競合しても単純に上書きしたりせず、最新を取得し直して更新する" do
       session1 = Tengine::Core::Session.find(@session1.id)
       session2 = Tengine::Core::Session.find(@session1.id)
       # session1を更新
@@ -71,6 +71,32 @@ describe Tengine::Core::Session do
         session1.properties['key1'] += 1
       end
       session1.properties['key1'].should == 102
+    end
+
+    it "リトライ回数をオーバーすると例外が発生する" do
+      session1 = Tengine::Core::Session.find(@session1.id)
+      session2 = Tengine::Core::Session.find(@session1.id)
+
+      session1.update_with_lock{ session1.properties['key1'] += 1 } # [2] 100 -> [3] 101
+
+      f = Fiber.new do
+        session2.update_with_lock(:retry => 3) do
+          Fiber.yield
+          session1.properties['key1'] += 1
+        end
+      end
+      f.resume # [2] 100 -> [3] 101 を試みて失敗
+
+      session1.reload; session1.update_with_lock{ session1.properties['key1'] += 1 } # [3] 101 -> [4] 102
+      f.resume # [3] 101 -> [4] 102 を試みて失敗。リトライ1回
+
+      session1.reload; session1.update_with_lock{ session1.properties['key1'] += 1 } # [4] 102 -> [5] 103
+      f.resume # [4] 102 -> [5] 103 を試みて失敗。リトライ2回
+
+      session1.reload; session1.update_with_lock{ session1.properties['key1'] += 1 } # [5] 103 -> [6] 104
+      expect{
+        f.resume # [5] 103 -> [6] 104 を試みて失敗。リトライ3回失敗したので、例外がraiseされる
+      }.to raise_error(Tengine::Core::OptimisticLock::RetryOverError)
     end
 
   end
