@@ -72,13 +72,15 @@ describe "receive_event" do
   it "発火されたイベントを受信して登録できる" do
     # eventmachine と mq の mock を生成
     EM.should_receive(:run).and_yield
-    EM.stub(:defer)
+    EM.stub(:defer) {|x, y| x.call; y.call if y}
+    EM.stub(:add_periodic_timer)
     mock_connection = mock(:connection)
     AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
         :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
     mock_connection.should_receive(:on_tcp_connection_loss)
     mock_connection.should_receive(:after_recovery)
     mock_connection.should_receive(:on_closed)
+    mock_connection.stub(:connected?).and_return(true)
 
     mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
     Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
