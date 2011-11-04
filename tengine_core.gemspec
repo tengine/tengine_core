@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.18"
+  s.version = "0.1.19"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
@@ -155,10 +155,10 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<activesupport>, ["~> 3.1.0"])
       s.add_runtime_dependency(%q<activemodel>, ["~> 3.1.0"])
       s.add_runtime_dependency(%q<selectable_attr>, ["~> 0.3.15"])
-      s.add_runtime_dependency(%q<bson>, ["~> 1.3.1"])
-      s.add_runtime_dependency(%q<bson_ext>, ["~> 1.3.1"])
-      s.add_runtime_dependency(%q<mongo>, ["~> 1.3.1"])
-      s.add_runtime_dependency(%q<mongoid>, ["~> 2.2.1"])
+      s.add_runtime_dependency(%q<bson>, ["~> 1.4.0"])
+      s.add_runtime_dependency(%q<bson_ext>, ["~> 1.4.0"])
+      s.add_runtime_dependency(%q<mongo>, ["~> 1.4.0"])
+      s.add_runtime_dependency(%q<mongoid>, ["~> 2.3.3"])
       s.add_runtime_dependency(%q<tengine_event>, ["~> 0.2.8"])
       s.add_runtime_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_development_dependency(%q<rspec>, ["~> 2.6.0"])
@@ -174,10 +174,10 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<activesupport>, ["~> 3.1.0"])
       s.add_dependency(%q<activemodel>, ["~> 3.1.0"])
       s.add_dependency(%q<selectable_attr>, ["~> 0.3.15"])
-      s.add_dependency(%q<bson>, ["~> 1.3.1"])
-      s.add_dependency(%q<bson_ext>, ["~> 1.3.1"])
-      s.add_dependency(%q<mongo>, ["~> 1.3.1"])
-      s.add_dependency(%q<mongoid>, ["~> 2.2.1"])
+      s.add_dependency(%q<bson>, ["~> 1.4.0"])
+      s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
+      s.add_dependency(%q<mongo>, ["~> 1.4.0"])
+      s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
       s.add_dependency(%q<tengine_event>, ["~> 0.2.8"])
       s.add_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_dependency(%q<rspec>, ["~> 2.6.0"])
@@ -194,10 +194,10 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<activesupport>, ["~> 3.1.0"])
     s.add_dependency(%q<activemodel>, ["~> 3.1.0"])
     s.add_dependency(%q<selectable_attr>, ["~> 0.3.15"])
-    s.add_dependency(%q<bson>, ["~> 1.3.1"])
-    s.add_dependency(%q<bson_ext>, ["~> 1.3.1"])
-    s.add_dependency(%q<mongo>, ["~> 1.3.1"])
-    s.add_dependency(%q<mongoid>, ["~> 2.2.1"])
+    s.add_dependency(%q<bson>, ["~> 1.4.0"])
+    s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
+    s.add_dependency(%q<mongo>, ["~> 1.4.0"])
+    s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
     s.add_dependency(%q<tengine_event>, ["~> 0.2.8"])
     s.add_dependency(%q<daemons>, ["~> 1.1.4"])
     s.add_dependency(%q<rspec>, ["~> 2.6.0"])
