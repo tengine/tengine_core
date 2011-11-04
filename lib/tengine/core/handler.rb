@@ -33,7 +33,7 @@ class Tengine::Core::Handler
   def update_handler_path
     event_type_names.each do |event_type_name|
       Tengine::Core::HandlerPath.create!(:event_type_name => event_type_name,
-        :driver => self.driver, :handler_id => self.id)
+        :driver_id => self.driver.id, :handler_id => self.id)
     end
   end
 
