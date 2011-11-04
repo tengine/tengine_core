@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.18"
+  s.version = "0.1.19"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
@@ -145,7 +145,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/akm/tengine_core"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.11"
+  s.rubygems_version = "1.8.10"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
@@ -159,7 +159,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<bson_ext>, ["~> 1.3.1"])
       s.add_runtime_dependency(%q<mongo>, ["~> 1.3.1"])
       s.add_runtime_dependency(%q<mongoid>, ["~> 2.2.1"])
-      s.add_runtime_dependency(%q<tengine_event>, ["~> 0.2.8"])
+      s.add_runtime_dependency(%q<tengine_event>, ["~> 0.3.0"])
       s.add_runtime_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_development_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_development_dependency(%q<factory_girl>, ["~> 2.1.2"])
@@ -178,7 +178,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bson_ext>, ["~> 1.3.1"])
       s.add_dependency(%q<mongo>, ["~> 1.3.1"])
       s.add_dependency(%q<mongoid>, ["~> 2.2.1"])
-      s.add_dependency(%q<tengine_event>, ["~> 0.2.8"])
+      s.add_dependency(%q<tengine_event>, ["~> 0.3.0"])
       s.add_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_dependency(%q<factory_girl>, ["~> 2.1.2"])
@@ -198,7 +198,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bson_ext>, ["~> 1.3.1"])
     s.add_dependency(%q<mongo>, ["~> 1.3.1"])
     s.add_dependency(%q<mongoid>, ["~> 2.2.1"])
-    s.add_dependency(%q<tengine_event>, ["~> 0.2.8"])
+    s.add_dependency(%q<tengine_event>, ["~> 0.3.0"])
     s.add_dependency(%q<daemons>, ["~> 1.1.4"])
     s.add_dependency(%q<rspec>, ["~> 2.6.0"])
     s.add_dependency(%q<factory_girl>, ["~> 2.1.2"])
