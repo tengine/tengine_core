@@ -64,7 +64,7 @@ describe Tengine::Core::Driver do
     before do
       Tengine::Core::Driver.delete_all
       Tengine::Core::HandlerPath.delete_all
-      @d11 = Tengine::Core::Driver.new(name:"driver1", version:"1", enabled:true)
+      @d11 = Tengine::Core::Driver.new(:name => "driver1", :version => "1", :enabled => true)
       @d11h1 = @d11.handlers.new(:event_type_names => ["foo" ], :filepath => "path/to/driver.rb", :lineno => 3)
       @d11h2 = @d11.handlers.new(:event_type_names => ["boo" ], :filepath => "path/to/driver.rb", :lineno => 5)
       @d11h3 = @d11.handlers.new(:event_type_names => ["blah"], :filepath => "path/to/driver.rb", :lineno => 7)
@@ -81,7 +81,7 @@ describe Tengine::Core::Driver do
   context "must have only one session" do
     subject do
       Tengine::Core::Driver.delete_all
-      Tengine::Core::Driver.create!(name:"driver1", version:"1", enabled:true)
+      Tengine::Core::Driver.create!(:name => "driver1", :version => "1", :enabled => true)
     end
     its(:session){ should be_a(Tengine::Core::Session)}
   end
