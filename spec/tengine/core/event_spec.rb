@@ -53,6 +53,11 @@ describe Tengine::Core::Event do
 
 
   describe :level do
+
+    it "i18n_scopeが設定される" do
+      Tengine::Core::Event.level_enum.i18n_scope.should == ['selectable_attrs', 'tengine/core/event', 'level']
+    end
+
     context :i18n_scope do
       before(:all) do
         @default_locale_backup = I18n.default_locale
