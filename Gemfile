@@ -18,7 +18,7 @@ gem "mongo"   , "~> 1.3.1"
 
 gem "mongoid", "~> 2.2.1"
 
-gem "tengine_event", "~> 0.2.8"
+gem "tengine_event", "~> 0.3.0"
 
 gem "daemons", "~> 1.1.4"
 
