@@ -116,6 +116,9 @@ describe Tengine::Core::HeartbeatWatcher do
       Daemons.stub(:run_proc).with(anything, anything).and_yield
       EM.should_receive(:add_periodic_timer).exactly(2).times
       Tengine::Core::MethodTraceable.stub(:disabled=)
+      sender = mock(:sender)
+      sender.stub(:wait_for_connection).and_yield
+      subject.stub(:sender).and_return(sender)
       subject.instance_eval { @config }.stub(:setup_loggers)
       subject.run __FILE__
     end

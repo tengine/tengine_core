@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'spec_helper'
 
-describe "uc64_safety_countup" do
+describe "uc72_setup_eventmachine_spec" do
   before do
     Tengine::Core::Driver.delete_all
     Tengine::Core::Session.delete_all
@@ -22,7 +22,9 @@ describe "uc64_safety_countup" do
     }.to change(@kernel.em_setup_blocks, :length).by(1)
     EM.should_receive(:run).and_yield
     EM.stub(:defer)
-    @kernel.should_receive(:mq).and_return(mock(:mq, :queue => nil))
+    mq = mock(:mq, :queue => nil)
+    mq.stub(:wait_for_connection).and_yield
+    @kernel.should_receive(:mq).at_least(1).times.and_return(mq)
     @kernel.should_receive(:setup_mq_connection)
     @kernel.should_receive(:subscribe_queue)
     @kernel.context.should_receive(:puts).with("setup_eventmachine")

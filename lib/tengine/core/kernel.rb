@@ -88,14 +88,16 @@ class Tengine::Core::Kernel
 
   def activate
     EM.run do
-      setup_mq_connection
-      # queueへの接続までできたら稼働中
-      # self.status_key = :running if mq.queue
-      update_status(:running) if mq.queue
-      subscribe_queue
-      enable_heartbeat
-      yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
-      em_setup_blocks.each{|block| block.call }
+      mq.wait_for_connection do
+        setup_mq_connection
+        # queueへの接続までできたら稼働中
+        # self.status_key = :running if mq.queue
+        update_status(:running) if mq.queue
+        subscribe_queue
+        enable_heartbeat
+        yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
+        em_setup_blocks.each{|block| block.call }
+      end
     end
   end
 

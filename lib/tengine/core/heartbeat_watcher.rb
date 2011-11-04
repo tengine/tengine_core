@@ -14,21 +14,6 @@ require 'tengine/mq'
 require_relative 'config'
 require_relative 'method_traceable'
 
-module Enumerable
-	def each_next_tick
-		raise ArgumentError, "no block given" unless block_given?
-		self.reverse.inject(->{}) do |block, obj|
-			lambda do
-				EM.next_tick do
-					yield obj
-					block.call
-				end
-			end
-		end.call
-	end
-end
-
-
 class Tengine::Core::HeartbeatWatcher
 
 	def initialize argv
@@ -46,11 +31,18 @@ class Tengine::Core::HeartbeatWatcher
 	rescue Tengine::Event::Sender::RetryError
 		retry # try again
 	else
-		EM.next_tick do
-			sender.mq_suite.connection.close do
-				EM.stop
+		p = proc do
+			EM.next_tick do
+				if sender.pending_events.empty?
+					sender.mq_suite.connection.close do
+						EM.stop
+					end
+				else
+					p.call
+				end
 			end
 		end
+		p.call
 	end
 
 	def send_periodic_event
@@ -108,20 +100,22 @@ class Tengine::Core::HeartbeatWatcher
 				Mongoid.config.from_hash @config[:db]
 				Mongoid.config.option :persist_in_safe_mode, default: true
 				EM.run do
-					@invalidate = EM.add_periodic_timer 1 do # !!! MAGIC NUMBER
-						search_for_invalid_heartbeat do |obj|
-							type = case obj.event_type_name when /job|core|hbw/ then
-										 "expired.#$&.heartbeat.tengine"
-									 end
-							EM.next_tick do
-								send_invalidate_event type, obj
+					sender.wait_for_connection do
+						@invalidate = EM.add_periodic_timer 1 do # !!! MAGIC NUMBER
+							search_for_invalid_heartbeat do |obj|
+								type = case obj.event_type_name when /job|core|hbw/ then
+											 "expired.#$&.heartbeat.tengine"
+										 end
+								EM.next_tick do
+									send_invalidate_event type, obj
+								end
 							end
 						end
-					end
-					int = @config[:heartbeat][:hbw][:interval]
-					if int and int > 0
-						@periodic = EM.add_periodic_timer int do
-							send_periodic_event
+						int = @config[:heartbeat][:hbw][:interval]
+						if int and int > 0
+							@periodic = EM.add_periodic_timer int do
+								send_periodic_event
+							end
 						end
 					end
 				end

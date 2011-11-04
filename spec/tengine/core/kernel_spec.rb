@@ -140,15 +140,17 @@ describe Tengine::Core::Kernel do
 
           @mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(@mock_mq)
-          @mock_mq.should_receive(:queue).twice.and_return(@mock_queue)
+          @mock_mq.stub(:queue).twice.and_return(@mock_queue)
+          @mock_mq.stub(:wait_for_connection).and_yield
           # subscribe されていることを検証
           @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true)
         end
 
         it "heartbeatは有効にならない" do
           @kernel.config[:heartbeat][:core][:interval] = -1
-          EM.should_not_receive(:defer)
           @kernel.should_receive(:setup_mq_connection)
+          sender = mock(:sender)
+          @kernel.stub(:sender).and_return(sender)
           @kernel.start
         end
 
@@ -189,6 +191,7 @@ describe Tengine::Core::Kernel do
           mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
           mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
+          mock_mq.stub(:wait_for_connection).and_yield
           @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true).and_yield(@header, :message)
 
           # subscribe してみる
@@ -269,6 +272,7 @@ describe Tengine::Core::Kernel do
           EM.stub(:defer)
           mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
+          mock_mq.stub(:wait_for_connection).and_yield
           mock_sender = mock(:sender)
           Tengine::Event::Sender.should_receive(:new).with(mock_mq).and_return(mock_sender)
           mock_sender.should_receive(:default_keep_connection=).with(true)
@@ -299,7 +303,8 @@ describe Tengine::Core::Kernel do
         mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
         mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
-        @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true).and_yield(@header, :message)
+        mock_mq.stub(:wait_for_connection).and_yield
+        @mock_queue.stub(:subscribe).with(:ack => true, :nowait => true).and_yield(@header, :message)
 
         # subscribe してみる
         mock_raw_event = mock(:row_event)
@@ -626,6 +631,7 @@ describe Tengine::Core::Kernel do
         Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mq)
         mock_queue = mock(:queue)
         mq.should_receive(:queue).twice.and_return(mock_queue)
+        mq.stub(:wait_for_connection).and_yield
         mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true)
 
         @kernel.should_receive(:setup_mq_connection)
@@ -661,6 +667,7 @@ describe Tengine::Core::Kernel do
         mq = Tengine::Mq::Suite.new(kernel.config[:event_queue])
         Tengine::Mq::Suite.should_receive(:new).with(kernel.config[:event_queue]).and_return(mq)
         mq.should_receive(:queue).exactly(3).times.and_return(@mock_queue)
+        mq.stub(:wait_for_connection).and_yield
         @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true)
 
         kernel.should_receive(:setup_mq_connection)
