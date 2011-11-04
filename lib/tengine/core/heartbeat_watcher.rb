@@ -14,21 +14,6 @@ require 'tengine/mq'
 require_relative 'config'
 require_relative 'method_traceable'
 
-module Enumerable
-	def each_next_tick
-		raise ArgumentError, "no block given" unless block_given?
-		self.reverse.inject(->{}) do |block, obj|
-			lambda do
-				EM.next_tick do
-					yield obj
-					block.call
-				end
-			end
-		end.call
-	end
-end
-
-
 class Tengine::Core::HeartbeatWatcher
 
 	def initialize argv
