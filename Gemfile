@@ -18,8 +18,7 @@ gem "mongo"   , "~> 1.3.1"
 
 gem "mongoid", "~> 2.2.1"
 
-# 一般公開して、rubygems に登録するまでは、gemserver を使うようにします
-gem "tengine_event", "~> 0.2.9"  #, :git => "git@github.com:tengine/tengine_event.git", :branch => "develop"
+gem "tengine_event", "~> 0.2.8"
 
 gem "daemons", "~> 1.1.4"
 
