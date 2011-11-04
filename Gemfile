@@ -12,11 +12,11 @@ gem "activemodel"  , "~> 3.1.0"
 
 gem "selectable_attr", "~> 0.3.15"
 
-gem "bson"    , "~> 1.3.1"
-gem "bson_ext", "~> 1.3.1"
-gem "mongo"   , "~> 1.3.1"
+gem "bson"    , "~> 1.4.0"
+gem "bson_ext", "~> 1.4.0"
+gem "mongo"   , "~> 1.4.0"
 
-gem "mongoid", "~> 2.2.1"
+gem "mongoid", "~> 2.3.3"
 
 gem "tengine_event", "~> 0.2.8"
 
