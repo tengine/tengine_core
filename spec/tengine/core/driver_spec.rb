@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'spec_helper'
 
+require 'mongoid/version'
+
 describe Tengine::Core::Driver do
 
   valid_attributes1 = {
@@ -32,9 +34,16 @@ describe Tengine::Core::Driver do
     end
 
     it "同じ名前で登録されているものが存在する場合エラー" do
+      msg =
+        case Mongoid::VERSION
+        when /^2\.2\./ then
+          "Validation failed - Name is already taken in same version."
+        else
+          "Validation failed - Name is already taken."
+        end
       expect{
         Tengine::Core::Driver.create!(valid_attributes1)
-      }.to raise_error(Mongoid::Errors::Validations, "Validation failed - Name is already taken in same version.")
+      }.to raise_error(Mongoid::Errors::Validations, msg)
     end
 
     it "同じバージョンでも異なる名前ならばOK" do
@@ -64,7 +73,7 @@ describe Tengine::Core::Driver do
     before do
       Tengine::Core::Driver.delete_all
       Tengine::Core::HandlerPath.delete_all
-      @d11 = Tengine::Core::Driver.new(name:"driver1", version:"1", enabled:true)
+      @d11 = Tengine::Core::Driver.new(:name => "driver1", :version => "1", :enabled => true)
       @d11h1 = @d11.handlers.new(:event_type_names => ["foo" ], :filepath => "path/to/driver.rb", :lineno => 3)
       @d11h2 = @d11.handlers.new(:event_type_names => ["boo" ], :filepath => "path/to/driver.rb", :lineno => 5)
       @d11h3 = @d11.handlers.new(:event_type_names => ["blah"], :filepath => "path/to/driver.rb", :lineno => 7)
@@ -81,7 +90,7 @@ describe Tengine::Core::Driver do
   context "must have only one session" do
     subject do
       Tengine::Core::Driver.delete_all
-      Tengine::Core::Driver.create!(name:"driver1", version:"1", enabled:true)
+      Tengine::Core::Driver.create!(:name => "driver1", :version => "1", :enabled => true)
     end
     its(:session){ should be_a(Tengine::Core::Session)}
   end

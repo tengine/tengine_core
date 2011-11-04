@@ -9,7 +9,7 @@ class Tengine::Core::HandlerPath
 
   belongs_to :driver, :index => true, :class_name => "Tengine::Core::Driver"
 
-  scope :event_type_name, ->(v){ where(event_type_name: v)}
+  scope(:event_type_name, lambda{|v| where(:event_type_name => v)})
 
   class << self
     def find_handlers(event_type_name)
@@ -19,7 +19,7 @@ class Tengine::Core::HandlerPath
         d[path.driver_id] << path.handler_id
         d
       end
-      drivers = Tengine::Core::Driver.any_in(:_id => paths.map(&:driver_id)).and(enabled:true, version:default_driver_version)
+      drivers = Tengine::Core::Driver.any_in(:_id => paths.map(&:driver_id)).and(:enabled => true, :version => default_driver_version)
       drivers.map do |driver|
         driver.handlers.any_in(:_id => driver_id_to_handler_id[driver.id])
       end.flatten
