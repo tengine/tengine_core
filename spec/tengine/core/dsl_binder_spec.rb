@@ -29,7 +29,7 @@ describe Tengine::Core::DslBinder do
         @driver.handlers.count.should == 1
         @binder.__evaluate__
         @binder.should_receive(:puts).with("handler01")
-        @binder.__block_bindings__[@handler1.id.to_s].call
+        @binder.__block_bindings__[[@handler1.filepath, @handler1.lineno]].call
       end
 
       it "同じイベント種別で複数のハンドラが登録されていた場合でもエラーにはならない" do
@@ -75,16 +75,16 @@ describe Tengine::Core::DslBinder do
         @binder.__evaluate__
 
         @binder.should_receive(:puts).with("handler01")
-        @binder.__block_bindings__[@handler1.id.to_s].call
+        @binder.__block_bindings__[ [@handler1.filepath, @handler1.lineno] ].call
 
         @binder.should_receive(:puts).with("handler02_1")
         @binder.should_receive(:fire).with(:event02_2)
-        @binder.__block_bindings__[@handler2_1.id.to_s].call
+        @binder.__block_bindings__[ [@handler2_1.filepath, @handler2_1.lineno] ].call
 
         @binder.should_receive(:puts).with("handler03_1")
         @binder.should_receive(:puts).with("handler03_2")
-        @binder.__block_bindings__[@handler3_1.id.to_s].call
-        @binder.__block_bindings__[@handler3_2.id.to_s].call
+        @binder.__block_bindings__[ [@handler3_1.filepath, @handler3_1.lineno] ].call
+        @binder.__block_bindings__[ [@handler3_2.filepath, @handler3_2.lineno] ].call
       end
     end
   end

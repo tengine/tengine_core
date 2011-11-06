@@ -51,8 +51,9 @@ module Tengine::Core::DslBinder
   # @see Tengine::Core::DslLoader#on
   def on(event_type_name, options = {}, &block)
     filepath, lineno = *__source_location__(block)
+    filepath_for_bind = config.relative_path_from_dsl_dir(filepath)
     conditions = {
-      :filepath => config.relative_path_from_dsl_dir(filepath),
+      :filepath => filepath_for_bind,
       :lineno => lineno
     }
     handler = @__driver__.handlers.find(:first, :conditions => conditions)
@@ -60,7 +61,7 @@ module Tengine::Core::DslBinder
     if handler.nil?
       raise Tengine::Core::KernelError, "Tengine::Core::Handler not found for #{conditions.inspect}\nhandlers are\n    " << @__driver__.handlers.map(&:inspect).join("\n    ")
     end
-    __bind_blocks_for_handler_id__(handler, &block)
+    __bind_block__(filepath_for_bind, lineno, &block)
   end
 
   # イベントを発火します。

@@ -333,7 +333,7 @@ class Tengine::Core::Kernel
     before_delegate.call if before_delegate.respond_to?(:call)
     handlers.each do |handler|
       safety_handler(handler) do
-        block = dsl_context.__block_for__(handler)
+        block = dsl_context.__block_for__(handler.filepath, handler.lineno)
         report_on_exception(dsl_context, event, block) do
           handler.process_event(event, &block)
         end

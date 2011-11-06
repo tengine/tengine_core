@@ -25,7 +25,7 @@ describe Tengine::Core::Kernel do
 
       it "event_type_nameからblockを検索することができる" do
         @kernel.bind
-        @kernel.context.__block_for__(@handler1).should_not be_nil
+        @kernel.context.__block_for__(@handler1.filepath, @handler1.lineno).should_not be_nil
       end
 
       context "拡張モジュールあり" do
@@ -39,7 +39,7 @@ describe Tengine::Core::Kernel do
 
         it "Kernel#contextに拡張モジュールがextendされる" do
           @kernel.bind
-          @kernel.context.__block_for__(@handler1).should_not be_nil
+          @kernel.context.__block_for__(@handler1.filepath, @handler1.lineno).should_not be_nil
           @kernel.context.should be_a(Tengine::Core::DslBinder)
           @kernel.context.should be_a(@ext_mod1)
         end

@@ -11,12 +11,12 @@ class Tengine::Core::DslBindingContext
     @__block_bindings__ = {}
   end
 
-  def __block_for__(handler)
-    __block_bindings__[handler.id.to_s]
+  def __block_for__(filepath_for_bind, lineno)
+    __block_bindings__[ [filepath_for_bind, lineno] ]
   end
 
-  def __bind_blocks_for_handler_id__(handler, &block)
-    __block_bindings__[handler.id.to_s] = block
+  def __bind_block__(filepath_for_bind, lineno, &block)
+    __block_bindings__[ [filepath_for_bind, lineno] ] = block
   end
 
   # デバッグ用の情報を表示します
