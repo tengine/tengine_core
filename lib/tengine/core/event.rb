@@ -49,8 +49,8 @@ class Tengine::Core::Event
     [:event_type_name,
      :key,
      :source_name,
-     :occurred_at,   
-     :level,   
+     :occurred_at,
+     :level,
      :confirmed,
      :sender_name,
      :properties
