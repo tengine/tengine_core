@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.3.1.alpha1g"
+  s.version = "0.3.1.alpha2"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
