@@ -12,11 +12,11 @@ class Tengine::Core::DslBindingContext
   end
 
   def __block_for__(filepath_for_bind, lineno)
-    __block_bindings__[ [filepath_for_bind, lineno] ]
+    __block_bindings__[ [filepath_for_bind, lineno].join("#") ]
   end
 
   def __bind_block__(filepath_for_bind, lineno, &block)
-    __block_bindings__[ [filepath_for_bind, lineno] ] = block
+    __block_bindings__[ [filepath_for_bind, lineno].join("#") ] = block
   end
 
   # デバッグ用の情報を表示します
