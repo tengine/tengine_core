@@ -73,6 +73,7 @@ class Tengine::Core::Config
       @dsl_file_paths = Dir.glob("#{@dsl_dir_path}/**/*.rb")
     elsif File.exist?(path)
       @dsl_dir_path = File.expand_path(File.dirname(path))
+      @dsl_dir_path.force_encoding(@dsl_dir_path.encoding)
       @dsl_file_paths = [dsl_load_path]
     else
       raise Tengine::Core::ConfigError, "file or directory doesn't exist. #{path}"
