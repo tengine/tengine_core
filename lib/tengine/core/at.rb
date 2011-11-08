@@ -47,8 +47,23 @@ class Tengine::Core::At
 		retry # try again
 	end
 
+	def mark_schedule_done sched
+		# 複数のマシンで複数のatdが複数動いている可能性があり、その場合には複数の
+		# atdが同時に同じエントリに更新をかける可能性はとても高い。そのような状況
+		# でもエラーになってはいけない。
+		Tengine::Core::Schedule.where(
+			:_id => sched.id,
+			:status => Tengine::Core::Schedule::SCHEDULED
+		).update_all(
+			:status => Tengine::Core::Schedule::FIRED
+		)
+	end
+
 	def search_for_schedule
-		Tengine::Core::Schedule.where(:scheduled_at.lte => Time.now).each_next_tick do |i|
+		Tengine::Core::Schedule.where(
+			:scheduled_at.lte => Time.now,
+			:status => Tengine::Core::Schedule::SCHEDULED
+		).each_next_tick do |i|
 			yield i
 		end
 	end
@@ -78,6 +93,7 @@ class Tengine::Core::At
 						@invalidate = EM.add_periodic_timer 1 do # !!! MAGIC NUMBER
 							search_for_schedule do |sched|
 								send_scheduled_event sched
+								mark_schedule_done sched
 							end
 						end
 						int = @config[:heartbeat][:hbw][:interval]
