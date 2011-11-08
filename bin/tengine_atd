@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+require_relative '../lib/tengine/core/at'
+
+atd = Tengine::Core::At.new(ARGV)
+Signal.trap(:INT) { atd.shutdown }
+
+atd.run __FILE__

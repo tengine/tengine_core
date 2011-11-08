@@ -375,6 +375,8 @@ describe Tengine::Core::Kernel do
               e = Tengine::Event.new key: @uuid.generate, event_type_name: "#{kind}.heartbeat.tengine"
 
               @kernel.process_message @header, e.to_json
+              @kernel.process_message @header, e.to_json
+              @kernel.process_message @header, e.to_json
 
               Tengine::Core::Event.where(key: e.key).count.should == 1
               Tengine::Core::Event.where(key: e.key).first.event_type_name.should =~ /^#{kind}/
@@ -505,9 +507,28 @@ describe Tengine::Core::Kernel do
           let(:kind) {"hbw"}
           it_behaves_like "generic heartbeats"
         end
+
+        describe "atd heartbeat" do
+          let(:kind) {"atd"}
+          it_behaves_like "generic heartbeats"
+        end
+      end
+
+      describe "schedule" do
+        it "tenginedが調停する" do
+          @header.stub(:ack)
+          n = "alert.execution.job.tengine"
+          s = "test test"
+          e = Tengine::Event.new event_type_name: n, source_name: s
+
+          @kernel.process_message @header, e.to_json
+          @kernel.process_message @header, e.to_json
+          @kernel.process_message @header, e.to_json
+
+          Tengine::Core::Event.where(event_type_name: n, source_name: s).count.should == 1
+        end
       end
     end
-
 
     describe :setup_mq_connection do
       before do
