@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.3.0"
+  s.version = "0.3.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
-  s.date = "2011-11-04"
+  s.date = "2011-11-08"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "akima@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     "README.md",
     "Rakefile",
     "VERSION",
+    "bin/tengine_atd",
     "bin/tengine_heartbeat_watchd",
     "bin/tengined",
     "examples/VERSION",
@@ -48,6 +49,7 @@ Gem::Specification.new do |s|
     "failure_examples/uc61_event_outside_of_handler.rb",
     "failure_examples/uc63_session_outside_of_driver.rb",
     "lib/tengine/core.rb",
+    "lib/tengine/core/at.rb",
     "lib/tengine/core/bootstrap.rb",
     "lib/tengine/core/collection_accessible.rb",
     "lib/tengine/core/config.rb",
@@ -76,6 +78,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/method_traceable.rb",
     "lib/tengine/core/optimistic_lock.rb",
     "lib/tengine/core/plugins.rb",
+    "lib/tengine/core/schedule.rb",
     "lib/tengine/core/selectable_attr.rb",
     "lib/tengine/core/session.rb",
     "lib/tengine/core/session_wrapper.rb",
@@ -92,6 +95,7 @@ Gem::Specification.new do |s|
     "spec/factories/tengine_core_sessions.rb",
     "spec/mongoid.yml",
     "spec/spec_helper.rb",
+    "spec/tengine/core/at_spec.rb",
     "spec/tengine/core/bootstrap_spec.rb",
     "spec/tengine/core/bugfix/bind_dsl_file_in_multi_byte_dir_spec.rb",
     "spec/tengine/core/bugfix/enabled_on_activation_spec.rb",
