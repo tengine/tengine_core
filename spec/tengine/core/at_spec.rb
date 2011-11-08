@@ -19,16 +19,15 @@ describe Tengine::Core::At do
 
     before do
       @fixtures = Array.new
-      @fixtures << Tengine::Core::Event.new(key: @uuid.generate, event_type_name: "job.heartbeat.tengine", occurred_at: 1.day.ago)
-      @fixtures << Tengine::Core::Event.new(key: @uuid.generate, event_type_name: "job.heartbeat.tengine", occurred_at: 1.second.ago)
+      @fixtures << Tengine::Core::Schedule.new(event_type_name: "stop.execution.job.tengine", scheduled_at: 1.day.ago)
+      @fixtures << Tengine::Core::Schedule.new(event_type_name: "stop.execution.job.tengine", scheduled_at: Time.now + 10)
       @fixtures.each {|i| i.save! }
     end
 
     it "古いものを検索してくる" do
-      pending
       set = []
       EM.run do
-        subject.search_for_invalid_heartbeat do |i|
+        subject.search_for_schedule do |i|
           set << i
         end
         EM.add_timer 0.1 do EM.stop end
@@ -59,18 +58,15 @@ describe Tengine::Core::At do
   end
 
   describe "#send_scheduled_event" do
-    it "引数のイベントのtypeを書き換えて、他は同じで発火" do
-      pending
-      e0 = Tengine::Core::Event.new(key: @uuid.generate, event_type_name: "job.heartbeat.tengine", occurred_at: 1.day.ago)
+    it "スケジュールされたイベントの発火" do
+      s0 = Tengine::Core::Schedule.new(event_type_name: "test.event.not.tengine", source_name: "test://localhost/dev/null")
       sender = mock(:sender)
       subject.stub(:sender).and_return(sender)
-      sender.should_receive(:fire).with(an_instance_of(Tengine::Event), an_instance_of(Hash)) do |e1, h|
-        e1.event_type_name.should == "foobar"
-        e1.occurred_at.should == e0.occurred_at
-        e1.key.should == e0.key
+      sender.should_receive(:fire).with(s0.event_type_name, an_instance_of(Hash)) do |e1, h|
+        h[:source_name].should == s0.source_name
       end
 
-      subject.send_invalidate_event "foobar", e0
+      subject.send_scheduled_event s0
     end
   end
 
