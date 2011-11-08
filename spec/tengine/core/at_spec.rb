@@ -21,6 +21,7 @@ describe Tengine::Core::At do
       @fixtures = Array.new
       @fixtures << Tengine::Core::Schedule.new(event_type_name: "stop.execution.job.tengine", scheduled_at: 1.day.ago)
       @fixtures << Tengine::Core::Schedule.new(event_type_name: "stop.execution.job.tengine", scheduled_at: Time.now + 10)
+      @fixtures << Tengine::Core::Schedule.new(event_type_name: "stop.execution.job.tengine", scheduled_at: 1.day.ago, status: Tengine::Core::Schedule::FIRED)
       @fixtures.each {|i| i.save! }
     end
 
@@ -35,6 +36,7 @@ describe Tengine::Core::At do
 
       set.should include(@fixtures[0])
       set.should_not include(@fixtures[1])
+      set.should_not include(@fixtures[2])
     end
   end
 
@@ -67,6 +69,26 @@ describe Tengine::Core::At do
       end
 
       subject.send_scheduled_event s0
+    end
+  end
+
+  describe "#mark_schedule_done" do
+    it "実行したスケジュールは終了とする" do
+      s0 = Tengine::Core::Schedule.new(event_type_name: "test.event.not.tengine", source_name: "test://localhost/dev/null")
+      s0.save
+      subject.mark_schedule_done s0
+      s0.reload
+      s0.status.should == Tengine::Core::Schedule::FIRED
+    end
+
+    it "すでに終了していたら何もしない" do
+      s0 = Tengine::Core::Schedule.new(event_type_name: "test.event.not.tengine", source_name: "test://localhost/dev/null", status: Tengine::Core::Schedule::FIRED)
+      s0.save
+      s0.reload
+      t = s0.updated_at
+      subject.mark_schedule_done s0
+      s0.reload
+      s0.updated_at.should == t
     end
   end
 
