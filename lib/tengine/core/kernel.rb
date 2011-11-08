@@ -211,7 +211,7 @@ class Tengine::Core::Kernel
   def parse_event(msg)
     begin
       raw_event = Tengine::Event.parse(msg)
-      Tengine.logger.debug("received a event #{raw_event.inspect}")
+      Tengine.logger.debug("received an event #{raw_event.inspect}")
       return raw_event
     rescue Exception => e
       Tengine.logger.error("failed to parse a message because of [#{e.class.name}] #{e.message}.\n#{msg}")
@@ -235,7 +235,7 @@ class Tengine::Core::Kernel
     # に fire が続いてしまうので NG.
     event = Tengine::Core::Event.create!(
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    Tengine.logger.debug("saved a event #{event.inspect}")
+    Tengine.logger.debug("saved an event #{event.inspect}")
     event
   rescue Mongo::OperationFailure => e
     Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
@@ -254,7 +254,7 @@ class Tengine::Core::Kernel
   def save_event(raw_event)
     event = Tengine::Core::Event.create!(
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    Tengine.logger.debug("saved a event #{event.inspect}")
+    Tengine.logger.debug("saved an event #{event.inspect}")
     event
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("same key's event has already stored. \n[#{e.class.name}] #{e.message}")
@@ -275,7 +275,7 @@ class Tengine::Core::Kernel
     event = Tengine::Core::Event.new(
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
     upsert(event, key: event.key, event_type_name: event.event_type_name)
-    Tengine.logger.debug("saved a event #{event.inspect}")
+    Tengine.logger.debug("saved an event #{event.inspect}")
     event
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
@@ -291,7 +291,7 @@ class Tengine::Core::Kernel
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
     upsert(event, key: event.key)
     #event.collection.update({ key: event.key }, event, upsert: true)
-    Tengine.logger.debug("saved a event #{event.inspect}")
+    Tengine.logger.debug("saved an event #{event.inspect}")
     event
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
@@ -311,7 +311,7 @@ class Tengine::Core::Kernel
     event = Tengine::Core::Event.new(
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
     upsert(event, key: event.key, event_type_name: k)
-    Tengine.logger.debug("saved a event #{event.inspect}")
+    Tengine.logger.debug("saved an event #{event.inspect}")
     event
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
