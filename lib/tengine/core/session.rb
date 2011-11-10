@@ -4,6 +4,7 @@ require 'tengine/core'
 class Tengine::Core::Session
   include Mongoid::Document
   include Mongoid::Timestamps
+  include Tengine::Core::CollectionAccessible
   include Tengine::Core::OptimisticLock
 
   field :lock_version, :type => Integer, :default => 1
