@@ -10,6 +10,7 @@ require 'tengine/event'
 class Tengine::Core::Handler
   include Mongoid::Document
   include Mongoid::Timestamps
+  include Tengine::Core::CollectionAccessible
 
   # @attribute 実行するRubyのブロックが定義されているファイル名
   field :filepath, :type => String
