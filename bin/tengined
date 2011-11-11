@@ -156,9 +156,6 @@ run do
 
   require 'mongoid'
   require File.expand_path('./lib/tengine_core', tengined_root)
-  Mongoid::Document.module_eval do
-    include Tengine::Core::CollectionAccessible
-  end
   Mongoid.config.from_hash(config[:db])
   Mongoid.config.option(:persist_in_safe_mode, :default => true)
   Mongoid.config.option(:autocreate_indexes, :default => true)     # http://mongoid.org/docs/indexing.html
