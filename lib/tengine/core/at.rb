@@ -84,9 +84,6 @@ class Tengine::Core::At
 			Dir.chdir cwd do
 				@config.setup_loggers
 				Tengine::Core::MethodTraceable.disabled = !@config[:verbose]
-				Mongoid::Document.module_eval do
-					include Tengine::Core::CollectionAccessible
-				end
 				Mongoid.config.from_hash @config[:db]
 				Mongoid.config.option :persist_in_safe_mode, default: true
 				EM.run do

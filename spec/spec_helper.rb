@@ -13,10 +13,6 @@ require 'tengine_core'
 require 'mongoid'
 Mongoid.load!(File.expand_path('mongoid.yml', File.dirname(__FILE__)))
 
-Mongoid::Document.module_eval do
-  include Tengine::Core::CollectionAccessible
-end
-
 # Requires supporting files with custom matchers and macros, etc,
 # in ./support/ and its subdirectories.
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
