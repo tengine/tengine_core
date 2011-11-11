@@ -31,6 +31,10 @@ module Tengine::Core::DslLoader
   # 例:
   # {include:file:examples/uc01_execute_processing_for_event.rb}
   def driver(name, options = {}, &block)
+    unless block_given?
+      # Tengine::Core::stdout.info("no block given at #{caller.first}")
+      return
+    end
     drivers = Tengine::Core::Driver.where(:name => name.to_s, :version => config.dsl_version)
     # 指定した version の driver が見つかった場合にはデプロイ済みなので以降の処理は行わず処理を終了する
     driver = drivers.first
@@ -62,6 +66,10 @@ module Tengine::Core::DslLoader
   # filter_defとして複合した条件を記述することも可能です。
   # {include:file:examples/uc08_if_both_a_and_b_occurs.rb}
   def on(filter_def, options = {}, &block)
+    unless block_given?
+      # Tengine::Core::stdout.info("no block given at #{caller.first}")
+      return
+    end
     event_type_names = filter_def.respond_to?(:event_type_names) ? filter_def.event_type_names : [filter_def.to_s]
     filepath, lineno = *__source_location__(block)
     @__driver__.handlers.new(
