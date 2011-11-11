@@ -10,6 +10,7 @@ class Tengine::Core::Event
   include Mongoid::Timestamps
   include Tengine::Core::Validation
   include Tengine::Core::SelectableAttr
+  include Tengine::Core::CollectionAccessible
 
   field :event_type_name, :type => String
   field :key            , :type => String
