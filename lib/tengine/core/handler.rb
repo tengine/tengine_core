@@ -107,6 +107,11 @@ class Tengine::Core::Handler
       end
     end
 
+    def match_source_name?
+      pattern = @current['pattern']
+      @event.source_name.include?(pattern)
+    end
+
   end
 
 

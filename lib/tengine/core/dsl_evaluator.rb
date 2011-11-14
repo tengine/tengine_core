@@ -55,6 +55,15 @@ module Tengine::Core::DslEvaluator
           })
       end
       alias_method :&, :and
+
+      def at(soruce_pattern)
+        Tengine::Core::DslFilterDef.new(
+          [self.to_s],
+          {
+            'method' => :match_source_name?,
+            'pattern' => soruce_pattern.to_s,
+          })
+      end
     end
   end
 
