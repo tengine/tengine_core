@@ -15,7 +15,7 @@ require_relative 'config'
 require_relative 'method_traceable'
 require_relative 'schedule'
 
-class Tengine::Core::At
+class Tengine::Core::Scheduler
 
 	def initialize argv
 		@uuid = UUID.new.generate
