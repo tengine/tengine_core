@@ -14,6 +14,7 @@ class Tengine::Core::Driver
   include Mongoid::Document
   include Mongoid::Timestamps
   include Tengine::Core::Validation
+  include Tengine::Core::FindByName
 
   # @attribute 名前
   field :name, :type => String
@@ -49,4 +50,11 @@ class Tengine::Core::Driver
     self.session ||= Tengine::Core::Session.create
   end
 
+  class << self
+    # Tengine::Core::FindByName で定義しているクラスメソッドfind_by_nameを上書きしています
+    def find_by_name(name, options = {})
+      version = options[:version] || Tengine::Core::Setting.dsl_version
+      first(:conditions => {:name => name, :version => version})
+    end
+  end
 end

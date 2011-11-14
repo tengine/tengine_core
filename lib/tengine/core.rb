@@ -37,6 +37,7 @@ module Tengine::Core
   autoload :OptimisticLock      , 'tengine/core/optimistic_lock'
   autoload :Validation          , 'tengine/core/validation'
   autoload :EventExceptionReportable, 'tengine/core/event_exception_reportable'
+  autoload :FindByName          , 'tengine/core/find_by_name'
 
   class << self
     # Tengine::Coreの正常時の動きをアプリケーション運用者が確認できる内容を出力するロガー

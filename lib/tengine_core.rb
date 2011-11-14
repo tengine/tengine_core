@@ -3,6 +3,7 @@ require 'logger'
 
 module Tengine
   autoload :Core, 'tengine/core'
+  autoload :Errors, 'tengine/errors'
 
   class DslError < StandardError
   end

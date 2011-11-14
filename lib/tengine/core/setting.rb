@@ -2,6 +2,7 @@ require 'tengine/core'
 
 class Tengine::Core::Setting
   include Mongoid::Document
+  include Tengine::Core::FindByName
 
   field :name, :type => String
   field :value
