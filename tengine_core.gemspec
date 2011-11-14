@@ -8,10 +8,10 @@ Gem::Specification.new do |s|
   s.version = "0.3.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["t-akima"]
+  s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
   s.date = "2011-11-14"
   s.description = "tengine_core is a framework/engine to support distributed processing"
-  s.email = "akima@nautilus-technologies.com"
+  s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined"]
   s.extra_rdoc_files = [
     "README.md"
@@ -151,8 +151,8 @@ Gem::Specification.new do |s|
     "tmp/log/.gitignore",
     "tmp/tengined_status/.gitignore"
   ]
-  s.homepage = "http://github.com/akm/tengine_core"
-  s.licenses = ["MIT"]
+  s.homepage = "http://github.com/tengine/tengine_core"
+  s.licenses = ["MPL/LGPL"]
   s.require_paths = ["lib"]
   s.rubygems_version = "1.8.11"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
