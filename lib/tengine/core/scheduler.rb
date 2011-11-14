@@ -13,8 +13,9 @@ require 'tengine/mq'
 # explicit loading
 require_relative 'config'
 require_relative 'method_traceable'
+require_relative 'schedule'
 
-class Tengine::Core::HeartbeatWatcher
+class Tengine::Core::Scheduler
 
   def initialize argv
     @uuid = UUID.new.generate
@@ -27,60 +28,49 @@ class Tengine::Core::HeartbeatWatcher
   end
 
   def send_last_event
-    sender.fire "finished.process.hbw.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
+    sender.fire "finished.process.atd.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
   rescue Tengine::Event::Sender::RetryError
     retry # try again
   else
-    p = proc do
-      EM.next_tick do
-        if sender.pending_events.empty?
-          sender.mq_suite.connection.close do
-            EM.stop
-          end
-        else
-          p.call
-        end
-      end
-    end
-    p.call
+    EM.defer lambda { sleep 0.1 until sender.pending_events.empty? }, lambda {|a| EM.stop }
   end
 
   def send_periodic_event
-    sender.fire "hbw.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true
+    sender.fire "atd.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true
   rescue Tengine::Event::Sender::RetryError
     # see you next time
   end
 
-  def send_invalidate_event type, e0
-    obj = e0.as_document.to_hash.inject({}) {|r, (k, v)| r.update(k.to_sym => v) }
-    Tengine.logger.info "Heartbeat expiration detected! for #{e0.event_type_name} of #{e0.source_name}: last seen #{e0.occurred_at} (#{(Time.now - e0.occurred_at).to_f} secs before)"
-    obj.delete :_id
-    obj.delete :confirmed
-    obj.delete :updated_at
-    obj.delete :created_at
-    obj[:event_type_name] = type
-    e1 = Tengine::Event.new obj
-    sender.fire e1, :keep_connection => true
+  def send_scheduled_event sched
+    Tengine.logger.info "Scheduled time (#{sched.scheduled_at}) has come.  Now firing #{sched.event_type_name} for #{sched.source_name}"
+    sender.fire sched.event_type_name, :source_name => sched.source_name, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
   rescue Tengine::Event::Sender::RetryError
-    # see you next time
+    retry # try again
   end
 
-  def search_for_invalid_heartbeat
-    t = Time.now
-    a = @config[:heartbeat].each_pair.map do |e, h|
-      Tengine::Core::Event.where(
-                                 :event_type_name => "#{e}.heartbeat.tengine",
-                                 :occurred_at.lte => t - h[:expire]
-                                 )
-    end
-    a.flatten.each_next_tick do |i|
-      yield i if i
+  def mark_schedule_done sched
+    # 複数のマシンで複数のatdが複数動いている可能性があり、その場合には複数の
+    # atdが同時に同じエントリに更新をかける可能性はとても高い。そのような状況
+    # でもエラーになってはいけない。
+    Tengine::Core::Schedule.where(
+      :_id => sched.id,
+      :status => Tengine::Core::Schedule::SCHEDULED
+    ).update_all(
+      :status => Tengine::Core::Schedule::FIRED
+    )
+  end
+
+  def search_for_schedule
+    Tengine::Core::Schedule.where(
+      :scheduled_at.lte => Time.now,
+      :status => Tengine::Core::Schedule::SCHEDULED
+    ).each_next_tick do |i|
+      yield i
     end
   end
 
   def shutdown
     EM.run do
-      EM.cancel_timer @invalidate if @invalidate
       EM.cancel_timer @periodic if @periodic
       send_last_event
     end
@@ -99,13 +89,9 @@ class Tengine::Core::HeartbeatWatcher
         EM.run do
           sender.wait_for_connection do
             @invalidate = EM.add_periodic_timer 1 do # !!! MAGIC NUMBER
-              search_for_invalid_heartbeat do |obj|
-                type = case obj.event_type_name when /job|core|hbw/ then
-                         "expired.#$&.heartbeat.tengine"
-                       end
-                EM.next_tick do
-                  send_invalidate_event type, obj
-                end
+              search_for_schedule do |sched|
+                send_scheduled_event sched
+                mark_schedule_done sched
               end
             end
             int = @config[:heartbeat][:hbw][:interval]

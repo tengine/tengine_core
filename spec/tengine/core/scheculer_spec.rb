@@ -2,17 +2,17 @@
 require 'spec_helper'
 require 'amqp'
 
-require_relative '../../../lib/tengine/core/at'
+require_relative '../../../lib/tengine/core/scheduler'
 require 'tengine/mq/suite'
 
-describe Tengine::Core::At do
+describe Tengine::Core::Scheduler do
   before do
     Tengine::Core::Schedule.delete_all
     @uuid = UUID.new
   end
 
   subject do
-    Tengine::Core::At.new([])
+    Tengine::Core::Scheduler.new([])
   end
 
   describe "#search_for_schedule" do
@@ -26,12 +26,10 @@ describe Tengine::Core::At do
     end
 
     it "古いものを検索してくる" do
+      EM.stub(:next_tick).and_yield
       set = []
-      EM.run do
-        subject.search_for_schedule do |i|
-          set << i
-        end
-        EM.add_timer 0.1 do EM.stop end
+      subject.search_for_schedule do |i|
+        set << i
       end
 
       set.should include(@fixtures[0])
@@ -101,7 +99,7 @@ describe Tengine::Core::At do
       AMQP.stub(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
           :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(conn)
     end
-    subject { Tengine::Core::HeartbeatWatcher.new([]).sender }
+    subject { Tengine::Core::Scheduler.new([]).sender }
     it { should be_kind_of(Tengine::Event::Sender) }
   end
 
