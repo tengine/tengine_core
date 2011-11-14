@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.3.2"
+  s.version = "0.3.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
-  s.date = "2011-11-11"
+  s.date = "2011-11-14"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "akima@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -49,7 +49,6 @@ Gem::Specification.new do |s|
     "failure_examples/uc61_event_outside_of_handler.rb",
     "failure_examples/uc63_session_outside_of_driver.rb",
     "lib/tengine/core.rb",
-    "lib/tengine/core/at.rb",
     "lib/tengine/core/bootstrap.rb",
     "lib/tengine/core/collection_accessible.rb",
     "lib/tengine/core/config.rb",
@@ -69,6 +68,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/event/finder.rb",
     "lib/tengine/core/event_exception_reportable.rb",
     "lib/tengine/core/event_wrapper.rb",
+    "lib/tengine/core/find_by_name.rb",
     "lib/tengine/core/handler.rb",
     "lib/tengine/core/handler_path.rb",
     "lib/tengine/core/heartbeat_watcher.rb",
@@ -79,11 +79,13 @@ Gem::Specification.new do |s|
     "lib/tengine/core/optimistic_lock.rb",
     "lib/tengine/core/plugins.rb",
     "lib/tengine/core/schedule.rb",
+    "lib/tengine/core/scheduler.rb",
     "lib/tengine/core/selectable_attr.rb",
     "lib/tengine/core/session.rb",
     "lib/tengine/core/session_wrapper.rb",
     "lib/tengine/core/setting.rb",
     "lib/tengine/core/validation.rb",
+    "lib/tengine/errors.rb",
     "lib/tengine/rspec.rb",
     "lib/tengine/rspec/context_wrapper.rb",
     "lib/tengine/rspec/extension.rb",
@@ -95,7 +97,6 @@ Gem::Specification.new do |s|
     "spec/factories/tengine_core_sessions.rb",
     "spec/mongoid.yml",
     "spec/spec_helper.rb",
-    "spec/tengine/core/at_spec.rb",
     "spec/tengine/core/bootstrap_spec.rb",
     "spec/tengine/core/bugfix/bind_dsl_file_in_multi_byte_dir_spec.rb",
     "spec/tengine/core/bugfix/enabled_on_activation_spec.rb",
@@ -138,6 +139,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/heartbeat_watcher_spec.rb",
     "spec/tengine/core/io_to_logger_spec.rb",
     "spec/tengine/core/kernel_spec.rb",
+    "spec/tengine/core/scheculer_spec.rb",
     "spec/tengine/core/selectable_attr_spec.rb",
     "spec/tengine/core/session_spec.rb",
     "spec/tengine/core/setting_spec.rb",
