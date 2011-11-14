@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.3.3"
+  s.version = "0.3.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["t-akima"]
@@ -32,6 +32,7 @@ Gem::Specification.new do |s|
     "examples/uc02_fire_another_event.rb",
     "examples/uc03_2handlers_for_1event.rb",
     "examples/uc08_if_both_a_and_b_occurs.rb",
+    "examples/uc10_if_the_event_occurs_at_the_server.rb",
     "examples/uc50_commit_event_at_first.rb",
     "examples/uc51_commit_event_at_first_submit.rb",
     "examples/uc52_commit_event_after_all_handler_submit.rb",
@@ -118,6 +119,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/dsl_binding_context_spec.rb",
     "spec/tengine/core/dsl_loader_spec.rb",
     "spec/tengine/core/dsls/uc08_if_both_a_and_b_occurs_spec.rb",
+    "spec/tengine/core/dsls/uc10_if_the_event_occurs_at_the_server_spec.rb",
     "spec/tengine/core/dsls/uc50_commit_event_at_first_spec.rb",
     "spec/tengine/core/dsls/uc52_commit_event_after_all_handler_submit_spec.rb",
     "spec/tengine/core/dsls/uc52_never_commit_event_unless_all_handler_submit_spec.rb",
