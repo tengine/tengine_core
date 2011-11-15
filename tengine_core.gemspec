@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.3.5"
+  s.version = "0.3.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2011-11-14"
+  s.date = "2011-11-15"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -168,6 +168,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<bson_ext>, ["~> 1.4.0"])
       s.add_runtime_dependency(%q<mongo>, ["~> 1.4.0"])
       s.add_runtime_dependency(%q<mongoid>, ["~> 2.3.3"])
+      s.add_runtime_dependency(%q<tengine_support>, ["~> 0.3.0"])
       s.add_runtime_dependency(%q<tengine_event>, ["~> 0.3.0"])
       s.add_runtime_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_development_dependency(%q<rspec>, ["~> 2.6.0"])
@@ -187,6 +188,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
       s.add_dependency(%q<mongo>, ["~> 1.4.0"])
       s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
+      s.add_dependency(%q<tengine_support>, ["~> 0.3.0"])
       s.add_dependency(%q<tengine_event>, ["~> 0.3.0"])
       s.add_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_dependency(%q<rspec>, ["~> 2.6.0"])
@@ -207,6 +209,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
     s.add_dependency(%q<mongo>, ["~> 1.4.0"])
     s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
+    s.add_dependency(%q<tengine_support>, ["~> 0.3.0"])
     s.add_dependency(%q<tengine_event>, ["~> 0.3.0"])
     s.add_dependency(%q<daemons>, ["~> 1.1.4"])
     s.add_dependency(%q<rspec>, ["~> 2.6.0"])
