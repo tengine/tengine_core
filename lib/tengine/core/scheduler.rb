@@ -77,7 +77,7 @@ class Tengine::Core::Scheduler
   end
 
   def run __file__
-    pdir = File.expand_path @config[:tengined][:pid_dir]
+    pdir = File.expand_path @config[:process][:pid_dir]
     fname = File.basename __file__
     cwd = Dir.getwd
     Daemons.run_proc fname, :ARGV => ['run'], :multiple => true, :ontop => !@config[:tengined][:daemon], :dir_mode => :normal, :dir => pdir do

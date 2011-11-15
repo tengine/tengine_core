@@ -48,14 +48,17 @@ class Tengine::Core::Config
     :action => "start", # 設定ファイルには記述しない
     :config => nil,     # 設定ファイルには記述しない
 
-    :tengined => {
+    :process => {
       :daemon => false,
+      :pid_dir        => "./tmp/tengined_pids"       , # 本番環境での例 "/var/run/tengined_pids"
+    },
+
+    :tengined => {
       # :prevent_loader    => nil, # デフォルトなし。設定ファイルには記述しない
       # :prevent_enabler   => nil, # デフォルトなし。設定ファイルには記述しない
       # :prevent_activator => nil, # デフォルトなし。設定ファイルには記述しない
       :activation_timeout => 300,
       # :load_path => "/var/lib/tengine", # 必須
-      :pid_dir        => "./tmp/tengined_pids"       , # 本番環境での例 "/var/run/tengined_pids"
       :status_dir     => "./tmp/tengined_status"     , # 本番環境での例 "/var/run/tengined_status"
       :activation_dir => "./tmp/tengined_activations", # 本番環境での例 "/var/run/tengined_activations"
       :heartbeat_period => 0, # GRハートビートの送信周期。デフォルトではGRハートビートは無効

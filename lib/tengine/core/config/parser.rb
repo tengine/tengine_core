@@ -37,13 +37,18 @@ EOS
   o.separator ""
   o.separator "Process:"
   {
-    :load_path => ["-T", "[REQUIRED] path/to/file_or_dir. ignored with \"-k test\".", :hide_default => true],
     :daemon => ["-D", "ignored with \"-k test, -k load, -k enable\".", :hide_value => true],
+    :pid_dir  => "path/to/dir.",
+  }.each{|key, args| tengine_opt(:process, key, args)}
+
+  o.separator ""
+  o.separator "Tengined:"
+  {
+    :load_path => ["-T", "[REQUIRED] path/to/file_or_dir. ignored with \"-k test\".", :hide_default => true],
     :skip_load => ["doesn't load event handler when start. usually use with --daemon option. [only for command]", :hide_value => true],
     :skip_enablement => ["doesn't enable event handler when start. usually use with --daemon option. [only for command]", :hide_value => true],
     :wait_activation => ["wait activation when start. usually use with --daemon option [only for command]", :hide_value => true],
     :activation_timeout => "period to wait for making activation file.",
-    :pid_dir  => "path/to/dir.",
     :status_dir => "path/to/dir.",
     :activation_dir => "path/to/dir.",
     :heartbeat_period => ["-G", "the second of period which heartbeat event be fired. disable heartbeat if 0."],

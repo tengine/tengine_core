@@ -385,7 +385,7 @@ describe Tengine::Core::Config do
       subject.object_id.should_not == @source.object_id
       subject[:action].object_id.should_not == @source[:action].object_id
       subject[:tengined].object_id.should_not == @source[:tengined].object_id
-      subject[:tengined][:pid_dir].object_id.should_not == @source[:tengined][:pid_dir].object_id
+      subject[:process][:pid_dir].object_id.should_not == @source[:tengined][:pid_dir].object_id
       subject[:event_queue].object_id.should_not == @source[:event_queue].object_id
       subject[:event_queue][:connection].object_id.should_not == @source[:event_queue][:connection].object_id
       subject[:event_queue][:connection][:host].object_id.should_not == @source[:event_queue][:connection][:host].object_id

@@ -51,7 +51,6 @@ class Tengine::Core::Config
       self.class.copy_deeply(hash, @hash)
     end
     self.class.copy_deeply(original, @hash)
-    @dsl_load_path_type = :unknown
     x = (original[:tengined]||{})[:heartbeat_period]
     y = @hash[:heartbeat][:core][:interval]
     @hash[:heartbeat][:core][:interval] = x ? x.to_i : y
