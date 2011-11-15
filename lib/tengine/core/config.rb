@@ -4,6 +4,9 @@ require 'tengine/core'
 require 'logger'
 require 'pathname'
 
+require 'yaml'
+require 'tengine/support/yaml_with_erb'
+
 require 'active_support/core_ext/hash'
 require 'active_support/ordered_hash'
 require 'active_support/hash_with_indifferent_access'
