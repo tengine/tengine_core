@@ -396,8 +396,8 @@ class Tengine::Core::Kernel
 
   def send_last_event
     sender.fire "finished.process.core.tengine", HEARTBEAT_ATTRIBUTES.dup
-  rescue Tengine::Event::Sender::RetryError
-    retry # try again
+    # 他のデーモンと違ってfinishedをfireしたからといってsender.stopし
+    # てよいとは限らない(裏でまだイベント処理中かも)
   end
 
   # 自動でログ出力する

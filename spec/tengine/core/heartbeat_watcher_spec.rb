@@ -43,6 +43,7 @@ describe Tengine::Core::HeartbeatWatcher do
       sender = mock(:sender)
       subject.stub(:sender).and_return(sender)
       sender.should_receive(:fire).with("finished.process.hbw.tengine", an_instance_of(Hash))
+      sender.should_receive(:stop)
       subject.send_last_event
     end
   end
