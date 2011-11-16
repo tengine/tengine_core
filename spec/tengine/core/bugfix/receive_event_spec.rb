@@ -75,8 +75,7 @@ describe "receive_event" do
     EM.stub(:defer) {|x, y| x.call; y.call(nil) if y }
     EM.stub(:add_periodic_timer)
     mock_connection = mock(:connection)
-    AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-        :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+    AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
     mock_connection.should_receive(:on_tcp_connection_loss)
     mock_connection.should_receive(:after_recovery)
     mock_connection.should_receive(:on_closed)
