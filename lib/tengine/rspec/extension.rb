@@ -26,8 +26,12 @@ module Tengine::RSpec::Extension
     def driver(driver_name)
       before do
         @__driver__ = Tengine::Core::Driver.first(:conditions => {:name => driver_name})
-        session = @__driver__.session
-        @__session__ = Tengine::Core::SessionWrapper.new(session)
+        if @__driver__
+          session = @__driver__.session
+          @__session__ = Tengine::Core::SessionWrapper.new(session)
+        else
+          raise "No driver named ``#{driver_name}'' was found."
+        end
       end
     end
   end

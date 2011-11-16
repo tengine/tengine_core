@@ -4,6 +4,9 @@ require 'tengine/core'
 require 'logger'
 require 'pathname'
 
+require 'yaml'
+require 'tengine/support/yaml_with_erb'
+
 require 'active_support/core_ext/hash'
 require 'active_support/ordered_hash'
 require 'active_support/hash_with_indifferent_access'
@@ -49,6 +52,9 @@ class Tengine::Core::Config
     end
     self.class.copy_deeply(original, @hash)
     @dsl_load_path_type = :unknown
+    x = (original[:tengined]||{})[:heartbeat_period]
+    y = @hash[:heartbeat][:core][:interval]
+    @hash[:heartbeat][:core][:interval] = x ? x.to_i : y
   end
 
   def [](key)
@@ -73,6 +79,7 @@ class Tengine::Core::Config
       @dsl_file_paths = Dir.glob("#{@dsl_dir_path}/**/*.rb")
     elsif File.exist?(path)
       @dsl_dir_path = File.expand_path(File.dirname(path))
+      @dsl_dir_path.force_encoding(@dsl_dir_path.encoding)
       @dsl_file_paths = [dsl_load_path]
     else
       raise Tengine::Core::ConfigError, "file or directory doesn't exist. #{path}"

@@ -73,7 +73,7 @@ describe "uc64_safety_countup" do
     @kernel1.bind
     @kernel2.bind
     mock_headers = mock(:headers)
-    mock_headers.should_receive(:ack).exactly(5).times
+    mock_headers.should_receive(:ack).exactly(4).times
 
     test_session_wrapper_class = Class.new(Tengine::Core::SessionWrapper) do
       def __get_properties__(*args)
@@ -85,7 +85,7 @@ describe "uc64_safety_countup" do
 
     # @kernel1の経路で３回イベントがくる間、@kernel2は常に先を越されて、最初のイベントによる更新もできないケース
     f1 = Fiber.new{
-      4.times do
+      3.times do
         raw_event1 = Tengine::Event.new(:event_type_name => "event64")
         session_wrapper1 = test_session_wrapper_class.new(Tengine::Core::Session.find(session.id))
         @kernel1.context.should_receive(:session).and_return(session_wrapper1)
@@ -101,8 +101,10 @@ describe "uc64_safety_countup" do
       @kernel2.context.should_receive(:fire).with("event64.error.tengined",
       :properties => {
         :original_event => instance_of(String),
-        :error_class_name => "Mongo::OperationFailure",
-        :error_message => %[Database command 'findandmodify' failed: {"errmsg"=>"No matching object found", "ok"=>0.0}],
+        # :error_class_name => "Mongo::OperationFailure",
+        # :error_message => %[Database command 'findandmodify' failed: {"errmsg"=>"No matching object found", "ok"=>0.0}],
+        :error_class_name => "Tengine::Core::OptimisticLock::RetryOverError",
+        :error_message => %[retried 2 times but failed to update],
         :error_backtrace => instance_of(Array),
         :block_source_location => "#{@dsl_path}:8" # 8はブロックの行番号
       })
@@ -127,14 +129,6 @@ describe "uc64_safety_countup" do
     f1.resume
     session.reload
     session.properties.should == { 'foo' => 103}
-    f2.resume
-    session.reload
-    session.properties.should == { 'foo' => 103}
-
-    f1.resume
-    session.reload
-    session.properties.should == { 'foo' => 104}
-
   end
 
 end

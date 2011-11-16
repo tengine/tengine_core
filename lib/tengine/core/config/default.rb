@@ -135,6 +135,10 @@ class Tengine::Core::Config
         :interval => 30,
         :expire => 120,
       }.freeze,
+      :atd => {
+        :interval => 30,
+        :expire => 120,
+      }.freeze,
     }.freeze,
   }.freeze
 end

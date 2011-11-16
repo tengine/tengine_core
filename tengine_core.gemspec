@@ -5,13 +5,13 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.1.18"
+  s.version = "0.3.7"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["t-akima"]
-  s.date = "2011-11-04"
+  s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
+  s.date = "2011-11-16"
   s.description = "tengine_core is a framework/engine to support distributed processing"
-  s.email = "akima@nautilus-technologies.com"
+  s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined"]
   s.extra_rdoc_files = [
     "README.md"
@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     "README.md",
     "Rakefile",
     "VERSION",
+    "bin/tengine_atd",
     "bin/tengine_heartbeat_watchd",
     "bin/tengined",
     "examples/VERSION",
@@ -31,6 +32,7 @@ Gem::Specification.new do |s|
     "examples/uc02_fire_another_event.rb",
     "examples/uc03_2handlers_for_1event.rb",
     "examples/uc08_if_both_a_and_b_occurs.rb",
+    "examples/uc10_if_the_event_occurs_at_the_server.rb",
     "examples/uc50_commit_event_at_first.rb",
     "examples/uc51_commit_event_at_first_submit.rb",
     "examples/uc52_commit_event_after_all_handler_submit.rb",
@@ -67,6 +69,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/event/finder.rb",
     "lib/tengine/core/event_exception_reportable.rb",
     "lib/tengine/core/event_wrapper.rb",
+    "lib/tengine/core/find_by_name.rb",
     "lib/tengine/core/handler.rb",
     "lib/tengine/core/handler_path.rb",
     "lib/tengine/core/heartbeat_watcher.rb",
@@ -76,11 +79,14 @@ Gem::Specification.new do |s|
     "lib/tengine/core/method_traceable.rb",
     "lib/tengine/core/optimistic_lock.rb",
     "lib/tengine/core/plugins.rb",
+    "lib/tengine/core/schedule.rb",
+    "lib/tengine/core/scheduler.rb",
     "lib/tengine/core/selectable_attr.rb",
     "lib/tengine/core/session.rb",
     "lib/tengine/core/session_wrapper.rb",
     "lib/tengine/core/setting.rb",
     "lib/tengine/core/validation.rb",
+    "lib/tengine/errors.rb",
     "lib/tengine/rspec.rb",
     "lib/tengine/rspec/context_wrapper.rb",
     "lib/tengine/rspec/extension.rb",
@@ -113,6 +119,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/dsl_binding_context_spec.rb",
     "spec/tengine/core/dsl_loader_spec.rb",
     "spec/tengine/core/dsls/uc08_if_both_a_and_b_occurs_spec.rb",
+    "spec/tengine/core/dsls/uc10_if_the_event_occurs_at_the_server_spec.rb",
     "spec/tengine/core/dsls/uc50_commit_event_at_first_spec.rb",
     "spec/tengine/core/dsls/uc52_commit_event_after_all_handler_submit_spec.rb",
     "spec/tengine/core/dsls/uc52_never_commit_event_unless_all_handler_submit_spec.rb",
@@ -134,6 +141,8 @@ Gem::Specification.new do |s|
     "spec/tengine/core/heartbeat_watcher_spec.rb",
     "spec/tengine/core/io_to_logger_spec.rb",
     "spec/tengine/core/kernel_spec.rb",
+    "spec/tengine/core/scheculer_spec.rb",
+    "spec/tengine/core/selectable_attr_spec.rb",
     "spec/tengine/core/session_spec.rb",
     "spec/tengine/core/setting_spec.rb",
     "spec/tengine/core_spec.rb",
@@ -142,8 +151,8 @@ Gem::Specification.new do |s|
     "tmp/log/.gitignore",
     "tmp/tengined_status/.gitignore"
   ]
-  s.homepage = "http://github.com/akm/tengine_core"
-  s.licenses = ["MIT"]
+  s.homepage = "http://github.com/tengine/tengine_core"
+  s.licenses = ["MPL/LGPL"]
   s.require_paths = ["lib"]
   s.rubygems_version = "1.8.11"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
@@ -155,11 +164,12 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<activesupport>, ["~> 3.1.0"])
       s.add_runtime_dependency(%q<activemodel>, ["~> 3.1.0"])
       s.add_runtime_dependency(%q<selectable_attr>, ["~> 0.3.15"])
-      s.add_runtime_dependency(%q<bson>, ["~> 1.3.1"])
-      s.add_runtime_dependency(%q<bson_ext>, ["~> 1.3.1"])
-      s.add_runtime_dependency(%q<mongo>, ["~> 1.3.1"])
-      s.add_runtime_dependency(%q<mongoid>, ["~> 2.2.1"])
-      s.add_runtime_dependency(%q<tengine_event>, ["~> 0.2.8"])
+      s.add_runtime_dependency(%q<bson>, ["~> 1.4.0"])
+      s.add_runtime_dependency(%q<bson_ext>, ["~> 1.4.0"])
+      s.add_runtime_dependency(%q<mongo>, ["~> 1.4.0"])
+      s.add_runtime_dependency(%q<mongoid>, ["~> 2.3.3"])
+      s.add_runtime_dependency(%q<tengine_support>, ["~> 0.3.0"])
+      s.add_runtime_dependency(%q<tengine_event>, ["~> 0.3.2"])
       s.add_runtime_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_development_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_development_dependency(%q<factory_girl>, ["~> 2.1.2"])
@@ -174,11 +184,12 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<activesupport>, ["~> 3.1.0"])
       s.add_dependency(%q<activemodel>, ["~> 3.1.0"])
       s.add_dependency(%q<selectable_attr>, ["~> 0.3.15"])
-      s.add_dependency(%q<bson>, ["~> 1.3.1"])
-      s.add_dependency(%q<bson_ext>, ["~> 1.3.1"])
-      s.add_dependency(%q<mongo>, ["~> 1.3.1"])
-      s.add_dependency(%q<mongoid>, ["~> 2.2.1"])
-      s.add_dependency(%q<tengine_event>, ["~> 0.2.8"])
+      s.add_dependency(%q<bson>, ["~> 1.4.0"])
+      s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
+      s.add_dependency(%q<mongo>, ["~> 1.4.0"])
+      s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
+      s.add_dependency(%q<tengine_support>, ["~> 0.3.0"])
+      s.add_dependency(%q<tengine_event>, ["~> 0.3.2"])
       s.add_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_dependency(%q<factory_girl>, ["~> 2.1.2"])
@@ -194,11 +205,12 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<activesupport>, ["~> 3.1.0"])
     s.add_dependency(%q<activemodel>, ["~> 3.1.0"])
     s.add_dependency(%q<selectable_attr>, ["~> 0.3.15"])
-    s.add_dependency(%q<bson>, ["~> 1.3.1"])
-    s.add_dependency(%q<bson_ext>, ["~> 1.3.1"])
-    s.add_dependency(%q<mongo>, ["~> 1.3.1"])
-    s.add_dependency(%q<mongoid>, ["~> 2.2.1"])
-    s.add_dependency(%q<tengine_event>, ["~> 0.2.8"])
+    s.add_dependency(%q<bson>, ["~> 1.4.0"])
+    s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
+    s.add_dependency(%q<mongo>, ["~> 1.4.0"])
+    s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
+    s.add_dependency(%q<tengine_support>, ["~> 0.3.0"])
+    s.add_dependency(%q<tengine_event>, ["~> 0.3.2"])
     s.add_dependency(%q<daemons>, ["~> 1.1.4"])
     s.add_dependency(%q<rspec>, ["~> 2.6.0"])
     s.add_dependency(%q<factory_girl>, ["~> 2.1.2"])

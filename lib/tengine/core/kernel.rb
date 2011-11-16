@@ -88,16 +88,14 @@ class Tengine::Core::Kernel
 
   def activate
     EM.run do
-      mq.wait_for_connection do
-        setup_mq_connection
-        # queueへの接続までできたら稼働中
-        # self.status_key = :running if mq.queue
-        update_status(:running) if mq.queue
-        subscribe_queue
-        enable_heartbeat
-        yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
-        em_setup_blocks.each{|block| block.call }
-      end
+      setup_mq_connection
+      # queueへの接続までできたら稼働中
+      # self.status_key = :running if mq.queue
+      update_status(:running) if mq.queue
+      subscribe_queue
+      enable_heartbeat
+      yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
+      em_setup_blocks.each{|block| block.call }
     end
   end
 
@@ -124,6 +122,8 @@ class Tengine::Core::Kernel
                 save_heartbeat_ng(raw_event)
               when /heartbeat\.tengine$/ # when の順番に注意
                 save_heartbeat_beat(raw_event)
+              when /(alert|stop)\.execution\.job\.tengine$/
+                save_scheduling_event(raw_event)
               when /\.failed\.tengined$/
                 save_failed_event(raw_event)
               else
@@ -185,15 +185,13 @@ class Tengine::Core::Kernel
   def setup_mq_connection
     # see http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/ErrorHandling.textile#Recovering_from_network_connection_failures
     # mq.connection raiases AMQP::TCPConnectionFailed unless connects to MQ.
-    connection = mq.connection
-    connection.on_error do |conn, connection_close|
+    mq.add_hook :'connection.on_error' do |conn, connection_close|
       Tengine::Core.stderr_logger.error("mq.connection.on_error connection_close: " << connection_close.inspect)
     end
-    connection.on_tcp_connection_loss do |conn, settings|
+    mq.add_hook :'connection.on_tcp_connection_loss' do |conn, settings|
       Tengine::Core.stderr_logger.warn("mq.connection.on_tcp_connection_loss: now reconnecting #{mq.auto_reconnect_delay} second(s) later.")
-      conn.reconnect(false, mq.auto_reconnect_delay.to_i)
     end
-    connection.after_recovery do |session, settings|
+    mq.add_hook :'connection.after_recovery' do |session, settings|
       Tengine::Core.stderr_logger.info("mq.connection.after_recovery: recovered successfully.")
     end
     # on_open, on_closedに渡されたブロックは、何度再接続をしても最初の一度だけしか呼び出されないが、
@@ -201,17 +199,22 @@ class Tengine::Core::Kernel
     # connection.on_open{ Tengine::Core.stderr_logger.info "mq.connection.on_open first time" }
     # connection.on_closed{ Tengine::Core.stderr_logger.info  "mq.connection.on_closed first time" }
 
-    mq.channel.on_error do |ch, channel_close|
+    mq.add_hook :'channel.on_error' do |ch, channel_close|
       Tengine::Core.stderr_logger.error("mq.channel.on_error channel_close: " << channel_close.inspect)
       # raise channel_close.reply_text
       # channel_close.reuse # channel.on_error時にどのように振る舞うべき?
+    end
+
+    # debug
+    mq.add_hook :'everything' do |mid, argv|
+      Tengine::Core.stdout_logger.debug("EventMachine state changed: #{mid}")
     end
   end
 
   def parse_event(msg)
     begin
       raw_event = Tengine::Event.parse(msg)
-      Tengine.logger.debug("received a event #{raw_event.inspect}")
+      Tengine.logger.debug("received an event #{raw_event.inspect}")
       return raw_event
     rescue Exception => e
       Tengine.logger.error("failed to parse a message because of [#{e.class.name}] #{e.message}.\n#{msg}")
@@ -235,7 +238,7 @@ class Tengine::Core::Kernel
     # に fire が続いてしまうので NG.
     event = Tengine::Core::Event.create!(
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    Tengine.logger.debug("saved a event #{event.inspect}")
+    Tengine.logger.debug("saved an event #{event.inspect}")
     event
   rescue Mongo::OperationFailure => e
     Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
@@ -254,7 +257,7 @@ class Tengine::Core::Kernel
   def save_event(raw_event)
     event = Tengine::Core::Event.create!(
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    Tengine.logger.debug("saved a event #{event.inspect}")
+    Tengine.logger.debug("saved an event #{event.inspect}")
     event
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("same key's event has already stored. \n[#{e.class.name}] #{e.message}")
@@ -268,15 +271,30 @@ class Tengine::Core::Kernel
   end
 
   def upsert(ev, idx)
-    ev.collection.driver.update(idx, { "$set" => ev.to_hash }, upsert: true)
+    ev.collection.driver.update(idx, { "$set" => ev.to_hash }, upsert: true, safe: true, multiple: true)
+  end
+
+  def save_scheduling_event(raw_event)
+    event = Tengine::Core::Event.new(
+      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
+    hash = upsert(event, source_name: event.source_name, event_type_name: event.event_type_name)
+    Tengine.logger.debug("saved an event #{event.inspect}")
+    event unless hash["updatedExisting"]
+  rescue Mongo::OperationFailure => e
+    Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
+    fire_failed_event(raw_event)
+    return nil
+  rescue Exception => e
+    Tengine.logger.error("failed to save an event #{event.inspect}\n[#{e.class.name}] #{e.message}")
+    raise e
   end
 
   def save_heartbeat_beat(raw_event)
     event = Tengine::Core::Event.new(
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    upsert(event, key: event.key, event_type_name: event.event_type_name)
-    Tengine.logger.debug("saved a event #{event.inspect}")
-    event
+    hash = upsert(event, key: event.key, event_type_name: event.event_type_name)
+    Tengine.logger.debug("saved an event #{event.inspect}")
+    event unless hash["updatedExisting"]
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
     fire_failed_event(raw_event)
@@ -287,12 +305,16 @@ class Tengine::Core::Kernel
   end
 
   def save_heartbeat_ng(raw_event)
+    k = case raw_event.event_type_name when /^expired\.(.+?)\.heartbeat\.tengine$/ then
+          ["#$1.heartbeat.tengine", "finished.process.#$1.tengine"]
+        else
+          raise "unknown event #{raw_event.inspect}"
+        end
     event = Tengine::Core::Event.new(
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    upsert(event, key: event.key)
-    #event.collection.update({ key: event.key }, event, upsert: true)
-    Tengine.logger.debug("saved a event #{event.inspect}")
-    event
+    hash = upsert(event, key: event.key, event_type_name: { :"$in" => k })
+    Tengine.logger.debug("saved an event #{event.inspect}")
+    event unless hash["updatedExisting"]
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
     fire_failed_event(raw_event)
@@ -310,9 +332,9 @@ class Tengine::Core::Kernel
         end
     event = Tengine::Core::Event.new(
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    upsert(event, key: event.key, event_type_name: k)
-    Tengine.logger.debug("saved a event #{event.inspect}")
-    event
+    hash = upsert(event, key: event.key, event_type_name: k)
+    Tengine.logger.debug("saved an event #{event.inspect}")
+    event unless hash["updatedExisting"]
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
     fire_failed_event(raw_event)

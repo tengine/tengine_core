@@ -37,6 +37,10 @@ module Tengine::Core::DslBinder
 
   # @see Tengine::Core::DslLoader#driver
   def driver(name, options = {}, &block)
+    unless block_given?
+      # Tengine::Core::stdout.info("no block given at #{caller.first}")
+      return
+    end
     drivers = Tengine::Core::Driver.where(:name => name, :version => config.dsl_version)
     # 指定した version の driver が見つからなかった場合にはデプロイされていないのでエラー
     driver = drivers.first
@@ -50,6 +54,10 @@ module Tengine::Core::DslBinder
 
   # @see Tengine::Core::DslLoader#on
   def on(event_type_name, options = {}, &block)
+    unless block_given?
+      # Tengine::Core::stdout.info("no block given at #{caller.first}")
+      return
+    end
     filepath, lineno = *__source_location__(block)
     conditions = {
       :filepath => config.relative_path_from_dsl_dir(filepath),
