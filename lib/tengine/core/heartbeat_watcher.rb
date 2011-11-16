@@ -32,7 +32,7 @@ class Tengine::Core::HeartbeatWatcher
   end
 
   def send_periodic_event
-    sender.fire "hbw.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true
+    sender.fire "hbw.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true, :retry_count => 0
   end
 
   def send_invalidate_event type, e0

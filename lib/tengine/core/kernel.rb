@@ -153,7 +153,8 @@ class Tengine::Core::Kernel
     :key => UUID.new.generate,
     :level => Tengine::Event::LEVELS_INV[:info],
     :source_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid),
-    :sender_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid)
+    :sender_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid),
+    :retry_count => 0,
   }.freeze
 
   def enable_heartbeat

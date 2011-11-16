@@ -33,7 +33,7 @@ class Tengine::Core::Scheduler
   end
 
   def send_periodic_event
-    sender.fire "atd.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true
+    sender.fire "atd.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true, :retry_count => 0
   end
 
   def send_scheduled_event sched
