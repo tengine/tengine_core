@@ -151,7 +151,7 @@ class Tengine::Core::Kernel
   HEARTBEAT_EVENT_TYPE_NAME = "core.heartbeat.tengine".freeze
   HEARTBEAT_ATTRIBUTES = {
     :key => UUID.new.generate,
-    :level => Tengine::Event::LEVELS_INV[:info],
+    :level => Tengine::Event::LEVELS_INV[:debug],
     :source_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid),
     :sender_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid),
     :retry_count => 0,
@@ -396,7 +396,10 @@ class Tengine::Core::Kernel
   end
 
   def send_last_event
-    sender.fire "finished.process.core.tengine", HEARTBEAT_ATTRIBUTES.dup
+    argh = HEARTBEAT_ATTRIBUTES.dup
+    argh[:level] = Tengine::Event::LEVELS_INV[:info]
+    argh.delete :retry_count # use default
+    sender.fire "finished.process.core.tengine", argh
     # 他のデーモンと違ってfinishedをfireしたからといってsender.stopし
     # てよいとは限らない(裏でまだイベント処理中かも)
   end

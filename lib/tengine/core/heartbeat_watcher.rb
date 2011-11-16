@@ -43,6 +43,7 @@ class Tengine::Core::HeartbeatWatcher
     obj.delete :updated_at
     obj.delete :created_at
     obj[:event_type_name] = type
+    obj[:level] = Tengine::Event::LEVELS_INV[:error]
     e1 = Tengine::Event.new obj
     sender.fire e1, :keep_connection => true
   end
