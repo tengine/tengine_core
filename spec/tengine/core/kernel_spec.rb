@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'spec_helper'
 require 'amqp'
+require 'eventmachine'
 
 describe Tengine::Core::Kernel do
   before do
@@ -132,8 +133,7 @@ describe Tengine::Core::Kernel do
           # eventmachine と mq の mock を生成
           EM.should_receive(:run).and_yield
           mock_connection = mock(:connection)
-          AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-              :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+          AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
           mock_connection.should_receive(:on_tcp_connection_loss)
           mock_connection.should_receive(:after_recovery)
           mock_connection.should_receive(:on_closed)
@@ -182,8 +182,7 @@ describe Tengine::Core::Kernel do
           EM.should_receive(:run).and_yield
           EM.stub(:defer)
           mock_connection = mock(:connection)
-          AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-              :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+          AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
           mock_connection.should_receive(:on_tcp_connection_loss)
           mock_connection.should_receive(:after_recovery)
           mock_connection.should_receive(:on_closed)
@@ -248,8 +247,7 @@ describe Tengine::Core::Kernel do
           EM.should_receive(:run).and_yield
           EM.stub(:defer).and_yield
           mock_connection = mock(:connection)
-          AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-              :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+          AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
           mock_connection.should_receive(:on_tcp_connection_loss)
           mock_connection.should_receive(:after_recovery)
           mock_connection.should_receive(:on_closed)
@@ -294,8 +292,7 @@ describe Tengine::Core::Kernel do
         EM.should_receive(:run).and_yield
         EM.stub(:defer)
         mock_connection = mock(:connection)
-        AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-            :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+        AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
         mock_connection.should_receive(:on_closed)
@@ -543,32 +540,52 @@ describe Tengine::Core::Kernel do
 
       end
 
-      it "MQ接続時にエラーなどのイベントハンドリングを行います" do
+      if RUBY_VERSION >= "1.9.2"
+        it "MQ接続時にエラーなどのイベントハンドリングを行います" do
 
-        mock_connection = mock(:connection)
-        AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-            :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
-        mock_connection.should_receive(:on_tcp_connection_loss)
-        mock_connection.should_receive(:after_recovery)
-        mock_connection.should_receive(:on_closed)
+          require 'socket'
+          n = rand(32768)
+          t = nil
+          e = StandardError.new
+          begin
+            t = Thread.start do
+              begin
+                Socket.tcp_server_loop(nil, n) do |sock, addr|
+                  Thread.start(sock, addr) do |s, a|
+                    Thread.stop # stops forever
+                  end
+                end
+              rescue e
+                # end of server
+              end
+            end
+            t.abort_on_exception = true
+          rescue
+            n = rand(32768)
+            retry
+          end
 
-        mq = @kernel.send(:mq)
-        mq.should_receive(:connection).and_return(@mock_connection)
-        mq.should_receive(:channel).and_return(@mock_channel)
-        # ここではイベント発生時の振る舞いもチェックします
-        @mock_connection.should_receive(:on_error).and_yield("connection", "connection close reason object")
-        Tengine::Core.stderr_logger.should_receive(:error).with('mq.connection.on_error connection_close: "connection close reason object"')
-        mock_conn = mock(:temp_connection)
-        @mock_connection.should_receive(:on_tcp_connection_loss).and_yield(mock_conn, "settings")
-        mock_conn.should_receive(:reconnect).with(false, 1)
-        Tengine::Core.stderr_logger.should_receive(:warn).with('mq.connection.on_tcp_connection_loss: now reconnecting 1 second(s) later.')
-        @mock_connection.should_receive(:after_recovery).and_yield("connection", "settings")
-        Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
+          EM.run_block do
+            @kernel.config[:event_queue][:port] = n
+            mq = @kernel.mq
 
-        @mock_channel.should_receive(:on_error).and_yield("channel", "channel close reason object")
-        Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
+            @kernel.setup_mq_connection
 
-        @kernel.send(:setup_mq_connection)
+            # ここではイベント発生時の振る舞いもチェックします
+            Tengine::Core.stderr_logger.should_receive(:error).with('mq.connection.on_error connection_close: "connection close reason object"')
+            mq.connection.exec_callback_yielding_self(:error, "connection close reason object")
+
+            Tengine::Core.stderr_logger.should_receive(:warn).with('mq.connection.on_tcp_connection_loss: now reconnecting 1 second(s) later.')
+            mq.connection.tcp_connection_failed
+
+            Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
+            mq.connection.exec_callback_yielding_self(:after_recovery, "settings")
+
+            Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
+            mq.channel.exec_callback_once_yielding_self(:error, "channel close reason object")
+          end
+          t.raise(e)
+        end
       end
     end
   end
@@ -642,8 +659,7 @@ describe Tengine::Core::Kernel do
         EM.should_receive(:run).and_yield
         EM.stub(:defer)
         mock_connection = mock(:connection)
-        AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-            :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+        AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
         mock_connection.should_receive(:on_closed)
@@ -679,8 +695,7 @@ describe Tengine::Core::Kernel do
         EM.should_receive(:run).and_yield
         EM.stub(:defer)
         mock_connection = mock(:connection)
-        AMQP.should_receive(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-            :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(mock_connection)
+        AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
         mock_connection.should_receive(:on_tcp_connection_loss)
         mock_connection.should_receive(:after_recovery)
         mock_connection.should_receive(:on_closed)
