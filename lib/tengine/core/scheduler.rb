@@ -29,23 +29,16 @@ class Tengine::Core::Scheduler
 
   def send_last_event
     sender.fire "finished.process.atd.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
-  rescue Tengine::Event::Sender::RetryError
-    retry # try again
-  else
-    EM.defer lambda { sleep 0.1 until sender.pending_events.empty? }, lambda {|a| EM.stop }
+    sender.stop
   end
 
   def send_periodic_event
-    sender.fire "atd.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true
-  rescue Tengine::Event::Sender::RetryError
-    # see you next time
+    sender.fire "atd.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true, :retry_count => 0
   end
 
   def send_scheduled_event sched
     Tengine.logger.info "Scheduled time (#{sched.scheduled_at}) has come.  Now firing #{sched.event_type_name} for #{sched.source_name}"
     sender.fire sched.event_type_name, :source_name => sched.source_name, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
-  rescue Tengine::Event::Sender::RetryError
-    retry # try again
   end
 
   def mark_schedule_done sched

@@ -88,16 +88,14 @@ class Tengine::Core::Kernel
 
   def activate
     EM.run do
-      mq.wait_for_connection do
-        setup_mq_connection
-        # queueへの接続までできたら稼働中
-        # self.status_key = :running if mq.queue
-        update_status(:running) if mq.queue
-        subscribe_queue
-        enable_heartbeat
-        yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
-        em_setup_blocks.each{|block| block.call }
-      end
+      setup_mq_connection
+      # queueへの接続までできたら稼働中
+      # self.status_key = :running if mq.queue
+      update_status(:running) if mq.queue
+      subscribe_queue
+      enable_heartbeat
+      yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
+      em_setup_blocks.each{|block| block.call }
     end
   end
 
@@ -153,9 +151,10 @@ class Tengine::Core::Kernel
   HEARTBEAT_EVENT_TYPE_NAME = "core.heartbeat.tengine".freeze
   HEARTBEAT_ATTRIBUTES = {
     :key => UUID.new.generate,
-    :level => Tengine::Event::LEVELS_INV[:info],
+    :level => Tengine::Event::LEVELS_INV[:debug],
     :source_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid),
-    :sender_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid)
+    :sender_name => sprintf("process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid),
+    :retry_count => 0,
   }.freeze
 
   def enable_heartbeat
@@ -187,15 +186,13 @@ class Tengine::Core::Kernel
   def setup_mq_connection
     # see http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/ErrorHandling.textile#Recovering_from_network_connection_failures
     # mq.connection raiases AMQP::TCPConnectionFailed unless connects to MQ.
-    connection = mq.connection
-    connection.on_error do |conn, connection_close|
+    mq.add_hook :'connection.on_error' do |conn, connection_close|
       Tengine::Core.stderr_logger.error("mq.connection.on_error connection_close: " << connection_close.inspect)
     end
-    connection.on_tcp_connection_loss do |conn, settings|
+    mq.add_hook :'connection.on_tcp_connection_loss' do |conn, settings|
       Tengine::Core.stderr_logger.warn("mq.connection.on_tcp_connection_loss: now reconnecting #{mq.auto_reconnect_delay} second(s) later.")
-      conn.reconnect(false, mq.auto_reconnect_delay.to_i)
     end
-    connection.after_recovery do |session, settings|
+    mq.add_hook :'connection.after_recovery' do |session, settings|
       Tengine::Core.stderr_logger.info("mq.connection.after_recovery: recovered successfully.")
     end
     # on_open, on_closedに渡されたブロックは、何度再接続をしても最初の一度だけしか呼び出されないが、
@@ -203,10 +200,15 @@ class Tengine::Core::Kernel
     # connection.on_open{ Tengine::Core.stderr_logger.info "mq.connection.on_open first time" }
     # connection.on_closed{ Tengine::Core.stderr_logger.info  "mq.connection.on_closed first time" }
 
-    mq.channel.on_error do |ch, channel_close|
+    mq.add_hook :'channel.on_error' do |ch, channel_close|
       Tengine::Core.stderr_logger.error("mq.channel.on_error channel_close: " << channel_close.inspect)
       # raise channel_close.reply_text
       # channel_close.reuse # channel.on_error時にどのように振る舞うべき?
+    end
+
+    # debug
+    mq.add_hook :'everything' do |mid, argv|
+      Tengine::Core.stdout_logger.debug("EventMachine state changed: #{mid}")
     end
   end
 
@@ -394,9 +396,12 @@ class Tengine::Core::Kernel
   end
 
   def send_last_event
-    sender.fire "finished.process.core.tengine", HEARTBEAT_ATTRIBUTES.dup
-  rescue Tengine::Event::Sender::RetryError
-    retry # try again
+    argh = HEARTBEAT_ATTRIBUTES.dup
+    argh[:level] = Tengine::Event::LEVELS_INV[:info]
+    argh.delete :retry_count # use default
+    sender.fire "finished.process.core.tengine", argh
+    # 他のデーモンと違ってfinishedをfireしたからといってsender.stopし
+    # てよいとは限らない(裏でまだイベント処理中かも)
   end
 
   # 自動でログ出力する

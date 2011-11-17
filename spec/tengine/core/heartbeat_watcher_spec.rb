@@ -43,6 +43,7 @@ describe Tengine::Core::HeartbeatWatcher do
       sender = mock(:sender)
       subject.stub(:sender).and_return(sender)
       sender.should_receive(:fire).with("finished.process.hbw.tengine", an_instance_of(Hash))
+      sender.should_receive(:stop)
       subject.send_last_event
     end
   end
@@ -78,8 +79,7 @@ describe Tengine::Core::HeartbeatWatcher do
       conn.stub(:on_tcp_connection_loss)
       conn.stub(:after_recovery)
       conn.stub(:on_closed)
-      AMQP.stub(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-          :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(conn)
+      AMQP.stub(:connect).with(an_instance_of(Hash)).and_return(conn)
     end
     subject { Tengine::Core::HeartbeatWatcher.new([]).sender }
     it { should be_kind_of(Tengine::Event::Sender) }

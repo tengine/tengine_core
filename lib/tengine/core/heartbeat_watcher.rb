@@ -28,27 +28,11 @@ class Tengine::Core::HeartbeatWatcher
 
   def send_last_event
     sender.fire "finished.process.hbw.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
-  rescue Tengine::Event::Sender::RetryError
-    retry # try again
-  else
-    p = proc do
-      EM.next_tick do
-        if sender.pending_events.empty?
-          sender.mq_suite.connection.close do
-            EM.stop
-          end
-        else
-          p.call
-        end
-      end
-    end
-    p.call
+    sender.stop
   end
 
   def send_periodic_event
-    sender.fire "hbw.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true
-  rescue Tengine::Event::Sender::RetryError
-    # see you next time
+    sender.fire "hbw.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true, :retry_count => 0
   end
 
   def send_invalidate_event type, e0
@@ -59,10 +43,9 @@ class Tengine::Core::HeartbeatWatcher
     obj.delete :updated_at
     obj.delete :created_at
     obj[:event_type_name] = type
+    obj[:level] = Tengine::Event::LEVELS_INV[:error]
     e1 = Tengine::Event.new obj
     sender.fire e1, :keep_connection => true
-  rescue Tengine::Event::Sender::RetryError
-    # see you next time
   end
 
   def search_for_invalid_heartbeat
