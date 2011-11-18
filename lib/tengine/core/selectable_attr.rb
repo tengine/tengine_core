@@ -17,7 +17,7 @@ module Tengine::Core::SelectableAttr
       alias_method_chain :selectable_attr, :i18n_scope
 
       def multi_selectable_attr_with_i18n_scope(attr_name, *args, &block)
-        enum = selectable_attr_without_i18n_scope(attr_name, *args, &block)
+        enum = multi_selectable_attr_without_i18n_scope(attr_name, *args, &block)
         enum.i18n_scope('selectable_attrs', self.name.underscore, attr_name.to_s)
         enum
       end
