@@ -565,6 +565,8 @@ describe Tengine::Core::Kernel do
             retry
           end
 
+          sleep(0.1) # TODO 要調査。なぜか秋間の環境ではこのsleepを入れないと失敗します。
+
           EM.run_block do
             @kernel.config[:event_queue][:connection][:port] = n
             mq = @kernel.mq
@@ -575,8 +577,7 @@ describe Tengine::Core::Kernel do
             Tengine::Core.stderr_logger.should_receive(:error).with('mq.connection.on_error connection_close: "connection close reason object"')
             mq.connection.exec_callback_yielding_self(:error, "connection close reason object")
 
-            Tengine::Core.stderr_logger.should_receive(:warn).with(/mq.connection.on_tcp_connection_loss: now reconnecting 1 second(s) later./)
-            Tengine::Core.stderr_logger.should_receive(:warn)
+            Tengine::Core.stderr_logger.should_receive(:warn).with('mq.connection.on_tcp_connection_loss: now reconnecting 1 second(s) later.')
             mq.connection.tcp_connection_failed
 
             Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')

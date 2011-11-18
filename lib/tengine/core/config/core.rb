@@ -109,7 +109,7 @@ EOS
       })
 
     group(:event_queue, :hidden => true) do
-      add(:connection, Tengine::Support::Config::Amqp::Connection)
+      add(:connection, AmqpConnection)
       add(:exchange  , Tengine::Support::Config::Amqp::Exchange, :defaults => {:name => 'tengine_event_exchange'})
       add(:queue     , Tengine::Support::Config::Amqp::Queue   , :defaults => {:name => 'tengine_event_queue'})
     end
@@ -186,6 +186,15 @@ EOS
     field :activation_dir        , "path/to/dir.", :type => :directory, :default => "./tmp/tengined_activations"
     field :heartbeat_period      , "the second of period which heartbeat event be fired. disable heartbeat if 0.", :type => :integer, :default => 0
     field :confirmation_threshold, "the event which is this level or less will be made confirmed automatically. debug/info/warn/error/fatal. ", :type => :string, :default => 'info'
+  end
+
+  class AmqpConnection < Tengine::Support::Config::Amqp::Connection
+    field :vhost, :default => '/'
+    field :user , :default => 'guest'
+    field :pass , :default => 'guest'
+    field :logging, :type => :boolean, :default => false
+    field :insist, :type => :boolean, :default => false
+    field :auto_reconnect_delay, :type => :integer, :default => 1
   end
 
   class LoggerConfig < Tengine::Support::Config::Logger
