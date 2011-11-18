@@ -1,7 +1,9 @@
-tengined:
+process:
   daemon: true
-  load_path: "/var/lib/tengine/init.rb"
   pid_dir: "/var/run/tengined_pids"
+
+tengined:
+  load_path: "/var/lib/tengine/init.rb"
   status_dir: "/var/run/tengined_status"
   activation_dir: "/var/run/tengined_activations"
   heartbeat_period: 600

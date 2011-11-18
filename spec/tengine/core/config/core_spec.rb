@@ -3,26 +3,26 @@ require 'spec_helper'
 
 require 'tengine/event'
 
-describe Tengine::Core::Config do
+describe Tengine::Core::Config::Core do
 
   # log_configのテストは spec/models/tengine/core/config_spec/log_config_spec.rb にあります。
 
   describe :[] do
-    it "should convert a Hash to a Tengine::Core::Config" do
-      converted = Tengine::Core::Config[{ :tengined => { :daemon => true}}]
-      converted.should be_a(Tengine::Core::Config)
-      converted[:tengined][:daemon].should be_true
+    it "should convert a Hash to a Tengine::Core::Config::Core" do
+      converted = Tengine::Core::Config::Core[{ :process => { :daemon => true}}]
+      converted.should be_a(Tengine::Core::Config::Core)
+      converted[:process][:daemon].should be_true
     end
 
-    it "should return same Tengine::Core::Config" do
-      converted = Tengine::Core::Config.new(:tengined => { :daemon => true})
-      Tengine::Core::Config[converted].should == converted
+    it "should return same Tengine::Core::Config::Core" do
+      converted = Tengine::Core::Config::Core.new(:process => { :daemon => true})
+      Tengine::Core::Config::Core[converted].should == converted
     end
   end
 
   context "デフォルト" do
     subject do
-      Tengine::Core::Config.new
+      Tengine::Core::Config::Core.new
     end
     its(:status_dir){ should == "./tmp/tengined_status" }
     its(:activation_dir){ should == "./tmp/tengined_activations" }
@@ -51,8 +51,6 @@ describe Tengine::Core::Config do
       expect{ subject.dsl_version }.should raise_error(Tengine::Core::ConfigError, @error_message)
     end
   end
-
-
 
 
 
@@ -89,23 +87,26 @@ describe Tengine::Core::Config do
 
     context "のディレクトリを指定する設定ファイル" do
       subject do
-        Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_dir_relative_load_path.yml", File.dirname(__FILE__)))
+        Tengine::Core::Config::Core.new(:config => File.expand_path("../config_spec/config_with_dir_relative_load_path.yml", File.dirname(__FILE__)))
       end
       it "should allow to read value by using []" do
         expected = {
-          'daemon' => true,
-          "activation_timeout" => 300,
-          "load_path" => "tengine_dsls",
-          "pid_dir" => "tmp/tengined_pids",
-          "status_dir" => "tmp/tengined_status",
-          "activation_dir" => "tmp/tengined_activations",
-          "heartbeat_period" => 600,
-          "confirmation_threshold" => "warn",
+          # :daemon => true,
+          :activation_timeout => 300,
+          :load_path => "tengine_dsls",
+          # :pid_dir => "tmp/tengined_pids",
+          :status_dir => "tmp/tengined_status",
+          :activation_dir => "tmp/tengined_activations",
+          :heartbeat_period => 600,
+          :confirmation_threshold => "warn",
+          :skip_load=>nil,
+          :skip_enablement=>nil,
+          :wait_activation=>nil,
         }
-        subject[:tengined].should == expected
-        subject['tengined'].should == expected
-        subject[:tengined]['daemon'].should == true
-        subject[:tengined][:daemon].should == true
+        subject[:tengined].to_hash.should == expected
+        subject['tengined'].to_hash.should == expected
+        subject[:process]['daemon'].should == true
+        subject[:process][:daemon].should == true
         subject[:event_queue][:connection][:host].should == "localhost"
         subject['event_queue']['connection']['host'].should == "localhost"
         subject[:event_queue][:queue][:name].should == "tengine_event_queue2"
@@ -150,21 +151,24 @@ describe Tengine::Core::Config do
 
     context "のファイルを指定する設定ファイル" do
       subject do
-        Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_file_relative_load_path.yml", File.dirname(__FILE__)))
+        Tengine::Core::Config::Core.new(:config => File.expand_path("../config_spec/config_with_file_relative_load_path.yml", File.dirname(__FILE__)))
       end
       it "should allow to read value by using []" do
         expected = {
-          'daemon' => true,
-          "activation_timeout" => 300,
-          "load_path" => "tengine_dsls/init.rb",
-          "pid_dir" => "tmp/tengined_pids",
-          "status_dir" => "tmp/tengined_status",
-          "activation_dir" => "tmp/tengined_activations",
-          "heartbeat_period" => 600,
-          "confirmation_threshold" => "warn",
+          # :daemon => true,
+          :activation_timeout => 300,
+          :load_path => "tengine_dsls/init.rb",
+          # :pid_dir => "tmp/tengined_pids",
+          :status_dir => "tmp/tengined_status",
+          :activation_dir => "tmp/tengined_activations",
+          :heartbeat_period => 600,
+          :confirmation_threshold => "warn",
+          :skip_load=>nil,
+          :skip_enablement=>nil,
+          :wait_activation=>nil,
         }
-        subject[:tengined].should == expected
-        subject['tengined'].should == expected
+        subject[:tengined].to_hash.should == expected
+        subject['tengined'].to_hash.should == expected
         subject[:tengined]['load_path'].should == "tengine_dsls/init.rb"
         subject[:tengined][:load_path].should == "tengine_dsls/init.rb"
       end
@@ -246,23 +250,26 @@ describe Tengine::Core::Config do
 
     context "のディレクトリを指定する設定ファイル" do
       subject do
-        Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_dir_absolute_load_path.yml", File.dirname(__FILE__)))
+        Tengine::Core::Config::Core.new(:config => File.expand_path("../config_spec/config_with_dir_absolute_load_path.yml", File.dirname(__FILE__)))
       end
       it "should allow to read value by using []" do
         expected = {
-          'daemon' => true,
-          "activation_timeout" => 300,
-          "load_path" => "/var/lib/tengine",
-          "pid_dir" => "/var/run/tengined_pids",
-          "status_dir" => "/var/run/tengined_status",
-          "activation_dir" => "/var/run/tengined_activations",
-          "heartbeat_period" => 600,
-          "confirmation_threshold" => "warn",
+          # :daemon => true,
+          :activation_timeout => 300,
+          :load_path => "/var/lib/tengine",
+          # :pid_dir => "/var/run/tengined_pids",
+          :status_dir => "/var/run/tengined_status",
+          :activation_dir => "/var/run/tengined_activations",
+          :heartbeat_period => 600,
+          :confirmation_threshold => "warn",
+          :skip_load=>nil,
+          :skip_enablement=>nil,
+          :wait_activation=>nil,
         }
-        subject[:tengined].should == expected
-        subject['tengined'].should == expected
-        subject[:tengined]['daemon'].should == true
-        subject[:tengined][:daemon].should == true
+        subject[:tengined].to_hash.should == expected
+        subject['tengined'].to_hash.should == expected
+        subject[:process]['daemon'].should == true
+        subject[:process][:daemon].should == true
         subject[:event_queue][:connection][:host].should == "localhost"
         subject['event_queue']['connection']['host'].should == "localhost"
         subject[:event_queue][:queue][:name].should == "tengine_event_queue2"
@@ -316,21 +323,24 @@ describe Tengine::Core::Config do
 
     context "のファイルを指定する設定ファイル" do
       subject do
-        Tengine::Core::Config.new(:config => File.expand_path("config_spec/config_with_file_absolute_load_path.yml", File.dirname(__FILE__)))
+        Tengine::Core::Config::Core.new(:config => File.expand_path("../config_spec/config_with_file_absolute_load_path.yml", File.dirname(__FILE__)))
       end
       it "should allow to read value by using []" do
         expected = {
-          'daemon' => true,
-          "activation_timeout" => 300,
-          "load_path" => "/var/lib/tengine/init.rb",
-          "pid_dir" => "/var/run/tengined_pids",
-          "status_dir" => "/var/run/tengined_status",
-          "activation_dir" => "/var/run/tengined_activations",
-          "heartbeat_period" => 600,
-          "confirmation_threshold" => "warn",
+          # :daemon => true,
+          :activation_timeout => 300,
+          :load_path => "/var/lib/tengine/init.rb",
+          # :pid_dir => "/var/run/tengined_pids",
+          :status_dir => "/var/run/tengined_status",
+          :activation_dir => "/var/run/tengined_activations",
+          :heartbeat_period => 600,
+          :confirmation_threshold => "warn",
+          :skip_load=>nil,
+          :skip_enablement=>nil,
+          :wait_activation=>nil,
         }
-        subject[:tengined].should == expected
-        subject['tengined'].should == expected
+        subject[:tengined].to_hash.should == expected
+        subject['tengined'].to_hash.should == expected
         subject[:tengined]['load_path'].should == "/var/lib/tengine/init.rb"
         subject[:tengined][:load_path].should == "/var/lib/tengine/init.rb"
       end
@@ -366,96 +376,54 @@ describe Tengine::Core::Config do
 
   context "指定した設定ファイルが存在しない場合" do
     it "例外を生成します" do
-      config_path = File.expand_path("config_spec/unexist_config.yml", File.dirname(__FILE__))
+      config_path = File.expand_path("../config_spec/unexist_config.yml", File.dirname(__FILE__))
       expect{
-        Tengine::Core::Config.new(:config => config_path)
+        Tengine::Core::Config::Core.new(:config => config_path)
       }.to raise_error(Tengine::Core::ConfigError, /Exception occurred when loading configuration file: #{config_path}./)
     end
   end
 
-  describe :default_hash do
-    subject do
-      @source = Tengine::Core::Config::DEFAULT
-      Tengine::Core::Config.default_hash
-    end
-    it "must be copied deeply" do
-      YAML.dump(subject).should == YAML.dump(@source)
-    end
-    it "must be differenct object(s)" do
-      subject.object_id.should_not == @source.object_id
-      subject[:action].object_id.should_not == @source[:action].object_id
-      subject[:tengined].object_id.should_not == @source[:tengined].object_id
-      subject[:process][:pid_dir].object_id.should_not == @source[:tengined][:pid_dir].object_id
-      subject[:event_queue].object_id.should_not == @source[:event_queue].object_id
-      subject[:event_queue][:connection].object_id.should_not == @source[:event_queue][:connection].object_id
-      subject[:event_queue][:connection][:host].object_id.should_not == @source[:event_queue][:connection][:host].object_id
-      subject[:event_queue][:queue][:name].should_not == @source[:event_queue][:queue][:name].object_id
-    end
-  end
 
   context "[BUG] tengined起動時に-fオプションで設定ファイルを指定した際に、設定ファイルに記載したdb-portの設定が有効でない" do
     before do
-      @config_path = File.expand_path("config_spec/another_port.yml", File.dirname(__FILE__))
+      @config_path = File.expand_path("../config_spec/another_port.yml", File.dirname(__FILE__))
     end
 
     shared_examples_for "正しく読み込む" do
       it "DBについて" do
-        @config.should be_a(Tengine::Core::Config) if @config
+        @config.should be_a(Tengine::Core::Config::Core) if @config
         hash = @config || @hash
-        hash[:db][:port].should == 21039
-        hash[:db][:host].should == 'localhost'
-        hash[:db][:username].should == nil
-        hash[:db][:password].should == nil
-        hash[:db][:database].should == "tengine_production"
+        hash[:db]['port'].should == 21039
+        hash[:db]['host'].should == 'localhost'
+        hash[:db]['username'].should == nil
+        hash[:db]['password'].should == nil
+        hash[:db]['database'].should == "tengine_production"
       end
     end
 
     context "バグストーリーに添付された設定ファイルをロード" do
       # このテストは元々パスしてました
       before do
-        @config = Tengine::Core::Config.new(:config => @config_path)
+        @config = Tengine::Core::Config::Core.new(:config => @config_path)
       end
       it_should_behave_like "正しく読み込む"
     end
 
     context "起動コマンドの引数を解釈したConfig" do
       before do
-        @config = Tengine::Core::Config.parse(["-f", @config_path]) # bin/tenginedではARGVが渡されます
+        @config = Tengine::Core::Config::Core.parse(["-f", @config_path]) # bin/tenginedではARGVが渡されます
       end
       it_should_behave_like "正しく読み込む"
     end
 
     context "起動コマンドの引数を解釈したHash" do
       before do
-        @hash = Tengine::Core::Config.parse_to_hash(["-f", @config_path]) # bin/tenginedではARGVが渡されます
+        @hash = Tengine::Core::Config::Core.parse_to_hash(["-f", @config_path]) # bin/tenginedではARGVが渡されます
       end
       it ":configを除いてスケルトンとほとんど同じ" do
         @hash[:config].should == @config_path
         @hash[:config] = nil
-        @hash.should == Tengine::Core::Config.skelton_hash
-      end
-    end
-
-    describe 'Tengine::Core::Config.copy_deeply' do
-      context "Tengine::Core::Config#initialize内部での使用#1" do
-        before do
-          @hash = ActiveSupport::HashWithIndifferentAccess.new(Tengine::Core::Config.default_hash)
-          original_hash = Tengine::Core::Config.parse_to_hash(["-f", @config_path]) # bin/tenginedではARGVが渡されます
-          config_hash = YAML.load_file(@config_path)
-          Tengine::Core::Config.copy_deeply(config_hash, @hash)
-        end
-        it_should_behave_like "正しく読み込む"
-      end
-
-      context "Tengine::Core::Config#initialize内部での使用#2" do
-        before do
-          @hash = ActiveSupport::HashWithIndifferentAccess.new(Tengine::Core::Config.default_hash)
-          original_hash = Tengine::Core::Config.parse_to_hash(["-f", @config_path]) # bin/tenginedではARGVが渡されます
-          config_hash = YAML.load_file(@config_path)
-          Tengine::Core::Config.copy_deeply(config_hash, @hash)
-          Tengine::Core::Config.copy_deeply(original_hash, @hash)
-        end
-        it_should_behave_like "正しく読み込む"
+        @hash.should == Tengine::Core::Config::Core.skelton_hash
       end
     end
 

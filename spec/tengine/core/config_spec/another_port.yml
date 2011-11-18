@@ -1,9 +1,10 @@
-tengined:
+process:
   daemon: false
+  pid_dir:        "./tmp/tengined_pids"          # 本番環境での例 "/var/run/tengined_pids"
+
+tengined:
   activation_timeout: 300,
   load_path: "./spec_dsl/"
-  log_dir: "./"                                  # 本番環境での例 "/var/log/tengined"
-  pid_dir:        "./tmp/tengined_pids"          # 本番環境での例 "/var/run/tengined_pids"
   activation_dir: "./tmp/tengined_activations"   # 本番環境での例 "/var/run/tengined_activations"
 
 db:
