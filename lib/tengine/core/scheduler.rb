@@ -73,7 +73,7 @@ class Tengine::Core::Scheduler
     pdir = File.expand_path @config[:process][:pid_dir]
     fname = File.basename __file__
     cwd = Dir.getwd
-    Daemons.run_proc fname, :ARGV => ['run'], :multiple => true, :ontop => !@config[:tengined][:daemon], :dir_mode => :normal, :dir => pdir do
+    Daemons.run_proc fname, :ARGV => ['run'], :multiple => true, :ontop => !@config[:process][:daemon], :dir_mode => :normal, :dir => pdir do
       Dir.chdir cwd do
         @config.setup_loggers
         Tengine::Core::MethodTraceable.disabled = !@config[:verbose]

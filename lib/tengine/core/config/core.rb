@@ -101,12 +101,12 @@ EOS
     add(:process, Tengine::Core::Config::Core::Process)
     add(:tengined, Tengine::Core::Config::Core::Tengined)
     field(:db, "settings to connect to db", :type => :hash, :default => {
-        :host => 'localhost',
-        :port => 27017,
-        :username => nil,
-        :password => nil,
-        :database => 'tengine_production',
-      }.freeze)
+        'host' => 'localhost',
+        'port' => 27017,
+        'username' => nil,
+        'password' => nil,
+        'database' => 'tengine_production',
+      })
 
     group(:event_queue, :hidden => true) do
       add(:connection, Tengine::Support::Config::Amqp::Connection)
@@ -121,16 +121,16 @@ EOS
         :level         => 'info'     ,
       })
     add(:application_log, Tengine::Core::Config::Core::LoggerConfig,
-      :logger_name => "application",
+      :parameters => {:logger_name => "application"},
       :dependencies => { :process_config => :process, :log_common => :log_common,})
     add(:process_stdout_log, Tengine::Core::Config::Core::LoggerConfig,
-      :logger_name => "#{File.basename($PROGRAM_NAME)}_stdout",
+      :parameters => {:logger_name => "#{File.basename($PROGRAM_NAME)}_stdout"},
       :dependencies => { :process_config => :process, :log_common => :log_common,})
     add(:process_stderr_log, Tengine::Core::Config::Core::LoggerConfig,
-      :logger_name => "#{File.basename($PROGRAM_NAME)}_stderr",
+      :parameters => {:logger_name => "#{File.basename($PROGRAM_NAME)}_stderr"},
       :dependencies => { :process_config => :process, :log_common => :log_common,},
       :defaults => {
-        :output => "STDERR"})
+        :output => proc{ process_config.daemon ? "./log/#{logger_name}.log" : "STDERR" }})
 
     group(:heartbeat, :hidden => true) do
       add(:core     , Tengine::Core::Config::Core::Heartbeat)

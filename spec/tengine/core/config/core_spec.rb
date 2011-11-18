@@ -29,6 +29,24 @@ describe Tengine::Core::Config::Core do
 
     its(:confirmation_threshold){ should == Tengine::Event::LEVELS_INV[:info] }
     its(:heartbeat_enabled?){ should == false }
+
+    its(:db){ should == {
+        'host' => 'localhost',
+        'port' => 27017,
+        'username' => nil,
+        'password' => nil,
+        'database' => 'tengine_production',
+      }}
+
+    it do
+      subject.db.should == {
+        'host' => 'localhost',
+        'port' => 27017,
+        'username' => nil,
+        'password' => nil,
+        'database' => 'tengine_production',
+      }
+    end
   end
 
 
