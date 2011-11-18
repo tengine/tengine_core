@@ -13,7 +13,7 @@ describe Tengine::Core::Kernel do
   describe :start do
     describe :bind, "handlerのblockをメモリ上で保持" do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
@@ -50,7 +50,7 @@ describe Tengine::Core::Kernel do
 
     describe :wait_for_activation, "activate待ち" do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,
@@ -107,11 +107,11 @@ describe Tengine::Core::Kernel do
             :exchange     => "tengine_event_exchange",
           })
 
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => false,
-              :confirmation_threashold => 'info'
+              :confirmation_threshold => 'info'
             },
             :heartbeat => {
               :core => {
@@ -529,7 +529,7 @@ describe Tengine::Core::Kernel do
 
     describe :setup_mq_connection do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
@@ -566,7 +566,7 @@ describe Tengine::Core::Kernel do
           end
 
           EM.run_block do
-            @kernel.config[:event_queue][:port] = n
+            @kernel.config[:event_queue][:connection][:port] = n
             mq = @kernel.mq
 
             @kernel.setup_mq_connection
@@ -575,7 +575,8 @@ describe Tengine::Core::Kernel do
             Tengine::Core.stderr_logger.should_receive(:error).with('mq.connection.on_error connection_close: "connection close reason object"')
             mq.connection.exec_callback_yielding_self(:error, "connection close reason object")
 
-            Tengine::Core.stderr_logger.should_receive(:warn).with('mq.connection.on_tcp_connection_loss: now reconnecting 1 second(s) later.')
+            Tengine::Core.stderr_logger.should_receive(:warn).with(/mq.connection.on_tcp_connection_loss: now reconnecting 1 second(s) later./)
+            Tengine::Core.stderr_logger.should_receive(:warn)
             mq.connection.tcp_connection_failed
 
             Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
@@ -593,7 +594,7 @@ describe Tengine::Core::Kernel do
   describe :status do
     describe :starting do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
@@ -623,7 +624,7 @@ describe Tengine::Core::Kernel do
 
     describe :waiting_for_activation do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,
@@ -646,7 +647,7 @@ describe Tengine::Core::Kernel do
 
     describe :running do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
@@ -684,7 +685,7 @@ describe Tengine::Core::Kernel do
       end
 
       it "停止要求を受け取った直後では「停止中」および「停止済」の状態を返す(稼働中)" do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
@@ -717,7 +718,7 @@ describe Tengine::Core::Kernel do
       end
 
       it "停止要求を受け取った直後では「停止中」および「停止済」の状態を返す(稼働要求待ち)" do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,
@@ -736,7 +737,7 @@ describe Tengine::Core::Kernel do
       end
 
       it "heartbeatの停止" do
-        kernel = Tengine::Core::Kernel.new(Tengine::Core::Config.new({
+        kernel = Tengine::Core::Kernel.new(Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,

@@ -6,7 +6,7 @@ describe "uc80_raise_io_error" do
     Tengine::Core::Driver.delete_all
     Tengine::Core::Session.delete_all
     @dsl_path = File.expand_path('../../../../examples/uc80_raise_io_error.rb', File.dirname(__FILE__))
-    @config = Tengine::Core::Config.new({
+    @config = Tengine::Core::Config::Core.new({
         :tengined => {
           :load_path => @dsl_path,
         },

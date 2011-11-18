@@ -7,7 +7,7 @@ describe Tengine::Core::Config do
     it "should create new Logger" do
       logdev = mock(:logdev)
       Logger::LogDevice.should_receive(:new).and_return(logdev)
-      @config.new_logger(log_type_name)
+      @config.send(log_type_name).new_logger
     end
   end
 
@@ -17,58 +17,51 @@ describe Tengine::Core::Config do
       false => "非デーモン起動",
     }.each do |daemon_process, context_name|
       context(context_name) do
-        before{ @config = Tengine::Core::Config.new(:tengined => {:daemon => daemon_process})}
+        before{ @config = Tengine::Core::Config::Core.new(:process => {:daemon => daemon_process})}
 
         context "正しい設定の場合" do
+
           context :application_log do
-            subject{ @config.log_config(:application_log)}
             it do
-              subject.should == {
-                :output        => daemon_process ? "./log/application.log" : "STDOUT",
-                :rotation      => 3,
-                :rotation_size => 1024 * 1024,
-                :level         => "info",
-              }
+              @config[:process][:daemon].should == daemon_process
+
+              mock_logger = mock(:logger)
+              Logger.should_receive(:new).
+                with(daemon_process ? "./log/application.log" : STDOUT, 3, 1024 * 1024).
+                and_return(mock_logger)
+              mock_logger.should_receive(:level=).with(Logger::INFO)
+              @config.application_log.new_logger
             end
-            it_should_behave_like "new_logger", :application_log
           end
 
           context :process_stdout_log do
-            subject{ @config.log_config(:process_stdout_log)}
             it do
-              if daemon_process
-                subject[:output].should =~ %r{^\./log/.*_stdout\.log}
-              else
-                subject[:output].should == "STDOUT"
-              end
-              subject[:rotation] .should == 3
-              subject[:rotation_size].should == 1024 * 1024
-              subject[:level].should == "info"
+              mock_logger = mock(:logger)
+              Logger.should_receive(:new).
+                with(daemon_process ? %r{^\./log/.*_stdout\.log} : STDOUT, 3, 1024 * 1024).
+                and_return(mock_logger)
+              mock_logger.should_receive(:level=).with(Logger::INFO)
+              @config.process_stdout_log.new_logger
             end
-            it_should_behave_like "new_logger", :process_stdout_log
           end
 
           context :process_stderr_log do
-            subject{ @config.log_config(:process_stderr_log)}
             it do
-              if daemon_process
-                subject[:output].should =~ %r{^\./log/.*_stderr\.log}
-              else
-                subject[:output].should == "STDERR"
-              end
-              subject[:rotation] .should == 3
-              subject[:rotation_size].should == 1024 * 1024
-              subject[:level].should == "info"
+              mock_logger = mock(:logger)
+              Logger.should_receive(:new).
+                with(daemon_process ? %r{^\./log/.*_stderr\.log} : STDERR, 3, 1024 * 1024).
+                and_return(mock_logger)
+              mock_logger.should_receive(:level=).with(Logger::INFO)
+              @config.process_stderr_log.new_logger
             end
-            it_should_behave_like "new_logger", :process_stderr_log
           end
         end
 
         context :invalid_log_type_name do
           it "should raise ArgumentError"do
             expect{
-              @config.log_config(:invalid_log_type_name)
-            }.to raise_error(ArgumentError, "Unsupported log_type_name: :invalid_log_type_name")
+              @config.invalid_log_type_name
+            }.to raise_error(NoMethodError)
           end
         end
 
@@ -84,8 +77,8 @@ describe Tengine::Core::Config do
     }.each do |daemon_process, context_name|
       context(context_name) do
         before do
-          @config = Tengine::Core::Config.new({
-              :tengined => {:daemon => daemon_process},
+          @config = Tengine::Core::Config::Core.new({
+              :process => {:daemon => daemon_process},
               :application_log => {
                 :output        => "/var/log/tengined/application.log",
                 :rotation      => "daily",
@@ -105,39 +98,36 @@ describe Tengine::Core::Config do
         end
 
         context :application_log do
-          subject{ @config.log_config(:application_log)}
           it do
-            subject.should == {
-              :output        => "/var/log/tengined/application.log",
-              :rotation      => "daily",
-              :level         => "error",
-            }
+            mock_logger = mock(:logger)
+            Logger.should_receive(:new).
+              with("/var/log/tengined/application.log", "daily", 1048576).
+              and_return(mock_logger)
+            mock_logger.should_receive(:level=).with(Logger::ERROR)
+            @config.application_log.new_logger
           end
-          it_should_behave_like "new_logger", :application_log
         end
 
         context :process_stdout_log do
-          subject{ @config.log_config(:process_stdout_log)}
           it do
-            subject.should == {
-              :output        => "/var/log/tengined/process_stdout.log",
-              :rotation      => "weekly",
-              :level         => "info",
-            }
+            mock_logger = mock(:logger)
+            Logger.should_receive(:new).
+              with("/var/log/tengined/process_stdout.log", "weekly", 1048576).
+              and_return(mock_logger)
+            mock_logger.should_receive(:level=).with(Logger::INFO)
+            @config.process_stdout_log.new_logger
           end
-          it_should_behave_like "new_logger", :process_stdout_log
         end
 
         context :process_stderr_log do
-          subject{ @config.log_config(:process_stderr_log)}
           it do
-            subject.should == {
-              :output        => "/var/log/tengined/process_stderr.log",
-              :rotation      => "monthly",
-              :level         => "info",
-            }
+            mock_logger = mock(:logger)
+            Logger.should_receive(:new).
+              with("/var/log/tengined/process_stderr.log", "monthly", 1048576).
+              and_return(mock_logger)
+            mock_logger.should_receive(:level=).with(Logger::INFO)
+            @config.process_stderr_log.new_logger
           end
-          it_should_behave_like "new_logger", :process_stderr_log
         end
 
       end
@@ -151,8 +141,8 @@ describe Tengine::Core::Config do
     }.each do |daemon_process, context_name|
       context(context_name) do
         before do
-          @config = Tengine::Core::Config.new({
-              :tengined => {:daemon => daemon_process},
+          @config = Tengine::Core::Config::Core.new({
+              :process => {:daemon => daemon_process},
               :log_common => {
                 :rotation      => "daily",
                 :level         => "info",
@@ -171,35 +161,35 @@ describe Tengine::Core::Config do
         end
 
         context :application_log do
-          subject{ @config.log_config(:application_log)}
           it do
-            subject.should == {
-              :output        => "/var/log/tengined/application.log",
-              :rotation      => "daily",
-              :level         => "info",
-            }
+            mock_logger = mock(:logger)
+            Logger.should_receive(:new).
+              with("/var/log/tengined/application.log", "daily", 1048576).
+              and_return(mock_logger)
+            mock_logger.should_receive(:level=).with(Logger::INFO)
+            @config.application_log.new_logger
           end
         end
 
         context :process_stdout_log do
-          subject{ @config.log_config(:process_stdout_log)}
           it do
-            subject.should == {
-              :output        => "/var/log/tengined/process_stdout.log",
-              :rotation      => "daily",
-              :level         => "info",
-            }
+            mock_logger = mock(:logger)
+            Logger.should_receive(:new).
+              with("/var/log/tengined/process_stdout.log", "daily", 1048576).
+              and_return(mock_logger)
+            mock_logger.should_receive(:level=).with(Logger::INFO)
+            @config.process_stdout_log.new_logger
           end
         end
 
         context :process_stderr_log do
-          subject{ @config.log_config(:process_stderr_log)}
           it do
-            subject.should == {
-              :output        => "/var/log/tengined/process_stderr.log",
-              :rotation      => "monthly",
-              :level         => "info",
-            }
+            mock_logger = mock(:logger)
+            Logger.should_receive(:new).
+              with("/var/log/tengined/process_stderr.log", "monthly", 1048576).
+              and_return(mock_logger)
+            mock_logger.should_receive(:level=).with(Logger::INFO)
+            @config.process_stderr_log.new_logger
           end
         end
 

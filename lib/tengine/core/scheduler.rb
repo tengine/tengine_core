@@ -19,7 +19,7 @@ class Tengine::Core::Scheduler
 
   def initialize argv
     @uuid = UUID.new.generate
-    @config = Tengine::Core::Config.parse argv
+    @config = Tengine::Core::Config::Core.parse argv
     @pid = sprintf "process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid
   end
 

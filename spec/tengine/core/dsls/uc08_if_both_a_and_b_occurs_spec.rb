@@ -5,7 +5,7 @@ describe "uc08_if_both_a_and_b_occurs" do
   before do
     Tengine::Core::Driver.delete_all
     Tengine::Core::Session.delete_all
-    config = Tengine::Core::Config.new({
+    config = Tengine::Core::Config::Core.new({
         :tengined => {
           :load_path => File.expand_path('../../../../examples/uc08_if_both_a_and_b_occurs.rb', File.dirname(__FILE__)),
         },

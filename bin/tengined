@@ -8,7 +8,7 @@ require 'fileutils'
 $LOAD_PATH << File.expand_path('../lib', File.dirname(__FILE__))
 require 'tengine_core'
 
-@__config__ = Tengine::Core::Config.parse(ARGV)
+@__config__ = Tengine::Core::Config::Core.parse(ARGV)
 Signal.trap(:INT) {puts ":INT"; @__bootstrap__.stop_kernel}
 
 # 必要なディレクトリの生成

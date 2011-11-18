@@ -11,7 +11,7 @@ class Tengine::Core::Bootstrap
   attr_accessor :kernel
 
   def initialize(hash)
-    @config = Tengine::Core::Config[hash]
+    @config = Tengine::Core::Config::Core[hash]
     prepare_trap
   end
 

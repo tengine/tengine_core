@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
 require 'tengine/core/config'
 
+require 'yaml'
 require 'optparse'
 require 'active_support/memoizable'
+
+require 'tengine/support/yaml_with_erb'
+
+Tengine::Support::Config::Definition::Group.module_eval do
+  def symbolize_keys
+    to_hash
+  end
+end
 
 class Tengine::Core::Config::Core < Tengine::Support::Config::Definition::Suite
   # memoize については http://wota.jp/ac/?date=20081025#p11 などを参照してください
@@ -91,7 +100,13 @@ EOS
 
     add(:process, Tengine::Core::Config::Core::Process)
     add(:tengined, Tengine::Core::Config::Core::Tengined)
-    field(:db, "settings to connect to db", :type => :hash)
+    field(:db, "settings to connect to db", :type => :hash, :default => {
+        :host => 'localhost',
+        :port => 27017,
+        :username => nil,
+        :password => nil,
+        :database => 'tengine_production',
+      }.freeze)
 
     group(:event_queue, :hidden => true) do
       add(:connection, Tengine::Support::Config::Amqp::Connection)
@@ -113,7 +128,9 @@ EOS
       :dependencies => { :process_config => :process, :log_common => :log_common,})
     add(:process_stderr_log, Tengine::Core::Config::Core::LoggerConfig,
       :logger_name => "#{File.basename($PROGRAM_NAME)}_stderr",
-      :dependencies => { :process_config => :process, :log_common => :log_common,})
+      :dependencies => { :process_config => :process, :log_common => :log_common,},
+      :defaults => {
+        :output => "STDERR"})
 
     group(:heartbeat, :hidden => true) do
       add(:core     , Tengine::Core::Config::Core::Heartbeat)

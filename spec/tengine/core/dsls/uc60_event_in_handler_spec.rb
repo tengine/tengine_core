@@ -5,7 +5,7 @@ describe "uc62_session_in_driver" do
   before do
     Tengine::Core::Driver.delete_all
     Tengine::Core::Session.delete_all
-    config = Tengine::Core::Config.new({
+    config = Tengine::Core::Config::Core.new({
         :tengined => {
           :load_path => File.expand_path('../../../../examples/uc60_event_in_handler.rb', File.dirname(__FILE__)),
         },

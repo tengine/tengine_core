@@ -12,7 +12,7 @@ describe Tengine::Core::DslLoader do
     context "DSLのファイルを指定する場合" do
       context "Driverを有効化して登録(シングルプロセスモード)" do
         before do
-          config = Tengine::Core::Config.new({
+          config = Tengine::Core::Config::Core.new({
               :tengined => {
                 :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__))
               }
@@ -42,7 +42,7 @@ describe Tengine::Core::DslLoader do
 
       context "Driverを無効化して登録(マルチプロセスモード)" do
         before do
-          config = Tengine::Core::Config.new({
+          config = Tengine::Core::Config::Core.new({
               :tengined => {
                 :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
                 :skip_enablement => true
@@ -72,7 +72,7 @@ describe Tengine::Core::DslLoader do
 
     context "DSLのファイルを指定しない場合" do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples', File.dirname(__FILE__))
             }
@@ -136,7 +136,7 @@ describe Tengine::Core::DslLoader do
 
     context "Driverを有効化して登録(シングルプロセスモード)" do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc08_if_both_a_and_b_occurs.rb', File.dirname(__FILE__))
             }

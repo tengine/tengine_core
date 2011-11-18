@@ -12,7 +12,7 @@ describe "load_dsl" do
 
     context "enabled_on_activation" do
       it "defaultではイベントドライバが有効になる" do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             }
@@ -38,7 +38,7 @@ describe "load_dsl" do
       end
 
       it "マルチプロセス起動時のデフォルト時はイベントドライバが無効になる" do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :skip_enablement => true
@@ -66,7 +66,7 @@ describe "load_dsl" do
       end
 
       it "DSL内の定義でイベントドライバが無効としている" do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../../examples/uc71_driver_disabled_on_activation.rb', File.dirname(__FILE__)),
             }
@@ -92,7 +92,7 @@ describe "load_dsl" do
       end
 
       it "DSL内の定義でイベントドライバが無効としている" do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../../examples/uc71_driver_disabled_on_activation.rb', File.dirname(__FILE__)),
               :skip_enablement => true,
