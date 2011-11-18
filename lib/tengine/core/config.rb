@@ -15,6 +15,9 @@ require 'active_support/memoizable'
 require 'tengine/core/config/default' # DEFAULT定数と関係するメソッドを定義
 
 class Tengine::Core::Config
+  autoload :Core, 'tengine/core/config/core'
+
+
   autoload :Parser, 'tengine/core/config/parser'
 
   # memoize については http://wota.jp/ac/?date=20081025#p11 などを参照してください
