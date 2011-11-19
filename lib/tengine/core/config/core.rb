@@ -106,15 +106,21 @@ EOS
       })
     add(:application_log, Tengine::Core::Config::Core::LoggerConfig,
       :parameters => {:logger_name => "application"},
-      :dependencies => { :process_config => :process, :log_common => :log_common,})
+      :dependencies => { :process_config => :process, :log_common => :log_common,}){
+      self.formatter = lambda{|level, t, prog, msg| "#{t.iso8601} #{level} #{@process_identifier} #{msg}\n"}
+    }
     add(:process_stdout_log, Tengine::Core::Config::Core::LoggerConfig,
-      :parameters => {:logger_name => "#{File.basename($PROGRAM_NAME)}_stdout"},
-      :dependencies => { :process_config => :process, :log_common => :log_common,})
+      :parameters => {:logger_name => "#{File.basename($PROGRAM_NAME)}_#{::Process.pid}_stdout"},
+      :dependencies => { :process_config => :process, :log_common => :log_common,}){
+      self.formatter = lambda{|level, t, prog, msg| "#{t.iso8601} STDOUT #{@process_identifier} #{msg}\n"}
+    }
     add(:process_stderr_log, Tengine::Core::Config::Core::LoggerConfig,
-      :parameters => {:logger_name => "#{File.basename($PROGRAM_NAME)}_stderr"},
+      :parameters => {:logger_name => "#{File.basename($PROGRAM_NAME)}_#{::Process.pid}_stderr"},
       :dependencies => { :process_config => :process, :log_common => :log_common,},
       :defaults => {
-        :output => proc{ process_config.daemon ? "./log/#{logger_name}.log" : "STDERR" }})
+        :output => proc{ process_config.daemon ? "./log/#{logger_name}.log" : "STDERR" }}){
+      self.formatter = lambda{|level, t, prog, msg| "#{t.iso8601} STDERR #{@process_identifier} #{msg}\n"}
+    }
 
     group(:heartbeat, :hidden => true) do
       add(:core     , Tengine::Core::Config::Core::Heartbeat)
@@ -281,6 +287,23 @@ EOS
 
   def heartbeat_enabled?
     heartbeat_period > 0
+  end
+
+  def setup_loggers
+    Tengine.logger = application_log.new_logger
+
+    stdout_path = process_stdout_log.output
+    $stdout = File.open(stdout_path, "w") unless stdout_path =~ /^STDOUT$|^STDERR$|^NULL$/
+    Tengine::Core::stdout_logger = process_stdout_log.new_logger(:output => $stdout)
+
+    stderr_path = process_stderr_log.output
+    $stderr = File.open(stderr_path, "w") unless stderr_path =~ /^STDOUT$|^STDERR$|^NULL$/
+    Tengine::Core::stderr_logger = process_stderr_log.new_logger(:output => $stderr)
+
+    Tengine::Core::stdout_logger.info("#{self.class.name}#setup_loggers complete")
+  rescue Exception
+    Tengine::Core::stderr_logger.info("#{self.class.name}#setup_loggers failure")
+    raise
   end
 
 end

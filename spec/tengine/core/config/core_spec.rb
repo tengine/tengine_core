@@ -221,26 +221,6 @@ describe Tengine::Core::Config::Core do
   end
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   context "load_pathに絶対パス" do
 
     shared_examples_for "絶対パス指定時のパスの振る舞い" do
