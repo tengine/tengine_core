@@ -12,7 +12,7 @@ module Tengine::RSpec::Extension
         Tengine::Core::Driver.delete_all
         Tengine::Core::Session.delete_all
         @__dsl_path__ = dsl_path
-        @__config__ = Tengine::Core::Config.new({
+        @__config__ = Tengine::Core::Config::Core.new({
             :tengined => { :load_path => @__dsl_path__ },
           })
         @__bootstrap__ = Tengine::Core::Bootstrap.new(@__config__)
