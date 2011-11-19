@@ -54,8 +54,6 @@ Gem::Specification.new do |s|
     "lib/tengine/core/collection_accessible.rb",
     "lib/tengine/core/config.rb",
     "lib/tengine/core/config/core.rb",
-    "lib/tengine/core/config/default.rb",
-    "lib/tengine/core/config/parser.rb",
     "lib/tengine/core/connection_test/.gitignore",
     "lib/tengine/core/connection_test/fire_bar_on_foo.rb",
     "lib/tengine/core/driver.rb",
@@ -169,7 +167,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<bson_ext>, ["~> 1.4.0"])
       s.add_runtime_dependency(%q<mongo>, ["~> 1.4.0"])
       s.add_runtime_dependency(%q<mongoid>, ["~> 2.3.3"])
-      s.add_runtime_dependency(%q<tengine_support>, ["~> 0.3.9"])
+      s.add_runtime_dependency(%q<tengine_support>, ["~> 0.3.12"])
       s.add_runtime_dependency(%q<tengine_event>, ["~> 0.3.3"])
       s.add_runtime_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_development_dependency(%q<rspec>, ["~> 2.6.0"])
@@ -189,7 +187,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
       s.add_dependency(%q<mongo>, ["~> 1.4.0"])
       s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
-      s.add_dependency(%q<tengine_support>, ["~> 0.3.9"])
+      s.add_dependency(%q<tengine_support>, ["~> 0.3.12"])
       s.add_dependency(%q<tengine_event>, ["~> 0.3.3"])
       s.add_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_dependency(%q<rspec>, ["~> 2.6.0"])
@@ -210,7 +208,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
     s.add_dependency(%q<mongo>, ["~> 1.4.0"])
     s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
-    s.add_dependency(%q<tengine_support>, ["~> 0.3.9"])
+    s.add_dependency(%q<tengine_support>, ["~> 0.3.12"])
     s.add_dependency(%q<tengine_event>, ["~> 0.3.3"])
     s.add_dependency(%q<daemons>, ["~> 1.1.4"])
     s.add_dependency(%q<rspec>, ["~> 2.6.0"])
