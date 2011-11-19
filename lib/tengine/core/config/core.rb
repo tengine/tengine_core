@@ -50,22 +50,6 @@ class Tengine::Core::Config::Core < Tengine::Support::Config::Definition::Suite
       config
     end
 
-    def copy_deeply(source, dest, copy_if_nil = false)
-      source.each do |key, value|
-        case value
-        when NilClass then
-          dest[key] = nil if copy_if_nil
-        when TrueClass, FalseClass, Numeric, Symbol then
-          dest[key] = value
-        when Hash then
-          dest[key] = copy_deeply(value, dest[key] || {}, copy_if_nil)
-        else
-          dest[key] = value.dup
-        end
-      end
-      dest
-    end
-
   end
 
   def initialize(hash_or_filepath = nil)

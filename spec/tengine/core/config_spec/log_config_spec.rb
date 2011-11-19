@@ -1,15 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'spec_helper'
 
-describe Tengine::Core::Config do
-
-  shared_examples_for "new_logger" do |log_type_name|
-    it "should create new Logger" do
-      logdev = mock(:logdev)
-      Logger::LogDevice.should_receive(:new).and_return(logdev)
-      @config.send(log_type_name).new_logger
-    end
-  end
+describe Tengine::Core::Config::Core do
 
   context "ログの設定なし" do
     {
