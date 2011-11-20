@@ -12,7 +12,7 @@ require 'tengine_core'
 Signal.trap(:INT) {puts ":INT"; @__bootstrap__.stop_kernel}
 
 # 必要なディレクトリの生成
-FileUtils.mkdir_p(File.expand_path(@__config__[:tengined][:pid_dir]))
+FileUtils.mkdir_p(File.expand_path(@__config__[:process][:pid_dir]))
 FileUtils.mkdir_p(File.expand_path(@__config__[:tengined][:status_dir]))
 FileUtils.mkdir_p(File.expand_path(@__config__[:tengined][:activation_dir]))
 
@@ -38,7 +38,7 @@ end
 verbose "define stop_process" do
   def stop_process(signal)
     verbose("stop_process") do
-      pids = Dir.glob(File.expand_path(@__config__[:tengined][:pid_dir] + "/*")).map do |pid_path|
+      pids = Dir.glob(File.expand_path(@__config__[:process][:pid_dir] + "/*")).map do |pid_path|
         File.open(pid_path, "r"){|f| f.gets.chomp.to_i}
       end
       results = pids.map{|pid| Process.kill(signal, pid)}
@@ -67,9 +67,9 @@ verbose "define run_daemons" do
     verbose("run_daemons") do
       daemonize_options = {
         :ARGV => ['start'],
-        :ontop => !@__config__[:tengined][:daemon],
+        :ontop => !@__config__[:process][:daemon],
         :dir_mode => :normal,
-        :dir => File.expand_path(@__config__[:tengined][:pid_dir]),
+        :dir => File.expand_path(@__config__[:process][:pid_dir]),
         # :log_dir => File.expand_path("../#{@__config__[:tengined][:log_dir]}", File.dirname(__FILE__)),
         # :log_output => false
       }
@@ -102,7 +102,7 @@ end
 verbose "define make_activations" do
   def make_activations
     verbose("make_activations") do
-      Dir.glob(File.expand_path(@__config__[:tengined][:pid_dir] + "/tengined.*.pid")).each do |pid_path|
+      Dir.glob(File.expand_path(@__config__[:process][:pid_dir] + "/tengined.*.pid")).each do |pid_path|
         pid = File.open(pid_path, "r"){|f| f.gets.chomp}
         File.new(File.expand_path(@__config__[:tengined][:activation_dir] + "/tengined_#{pid}.activation"), "w").close
       end
