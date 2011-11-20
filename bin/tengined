@@ -147,7 +147,7 @@ run do
 
   config = nil
   begin
-    config = @__config__.dup
+    config = @__config__
     config.setup_loggers
   rescue Exception
     puts "[#{$!.class.name}] #{$!.message}\n  " << $!.backtrace.join("\n  ")
