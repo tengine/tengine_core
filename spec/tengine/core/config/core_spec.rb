@@ -377,7 +377,7 @@ describe Tengine::Core::Config::Core do
       config_path = File.expand_path("../config_spec/unexist_config.yml", File.dirname(__FILE__))
       expect{
         Tengine::Core::Config::Core.new(:config => config_path)
-      }.to raise_error(Tengine::Core::ConfigError, /Exception occurred when loading configuration file: #{config_path}./)
+      }.to raise_error(Tengine::Core::ConfigError, /No such file or directory - #{config_path}/)
     end
   end
 
@@ -424,7 +424,51 @@ describe Tengine::Core::Config::Core do
         @hash.should == Tengine::Core::Config::Core.skelton_hash
       end
     end
+  end
 
+  context "tenginedの設定ファイルが不正でエラーになった場合原因が分からないので、不正な箇所が解るようにする" do
+    it "erbの式の中に間違ったrubyのコードがある設定ファイル" do
+      path = File.expand_path("../config/syntax_error_in_erb.yml.erb", File.dirname(__FILE__))
+      begin
+        Tengine::Core::Config::Core.parse(["-f", path])
+        fail
+      rescue Tengine::Core::ConfigError => e
+        e.message.should =~ /syntax_error_in_erb.yml.erb:9: syntax error/
+        e.message.should include(path)
+      end
+    end
+
+    it "YAMLとして間違っている設定ファイル" do
+      path = File.expand_path("../config/wrong_yaml.yml.erb", File.dirname(__FILE__))
+      begin
+        Tengine::Core::Config::Core.parse(["-f", path])
+        fail
+      rescue Tengine::Core::ConfigError => e
+        e.message.should == "couldn't parse YAML at line 7 column 1 in #{path}"
+      end
+    end
+
+    it "項目名が間違っている設定ファイル" do
+      path = File.expand_path("../config/wrong_field_name.yml.erb", File.dirname(__FILE__))
+      begin
+        Tengine::Core::Config::Core.parse(["-f", path])
+        fail
+      rescue Tengine::Core::ConfigError => e
+        e.message.should =~ /undefined method `load_path='/
+        e.message.should include(path)
+      end
+    end
+
+    it "カテゴリ名が間違っている設定ファイル" do
+      path = File.expand_path("../config/wrong_category_name.yml.erb", File.dirname(__FILE__))
+      begin
+        Tengine::Core::Config::Core.parse(["-f", path])
+        fail
+      rescue Tengine::Core::ConfigError => e
+        e.message.should =~ /child not found for \"process_configs\"/
+        e.message.should include(path)
+      end
+    end
   end
 
 end

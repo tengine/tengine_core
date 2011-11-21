@@ -68,7 +68,11 @@ class Tengine::Core::Config::Core < Tengine::Support::Config::Definition::Suite
   def load_file(filepath)
     super
   rescue Exception => e
-    raise Tengine::Core::ConfigError, "Exception occurred when loading configuration file: #{filepath}."
+    msg = e.message
+    unless msg.include?(filepath)
+      msg = "#{msg} in #{filepath}"
+    end
+    raise Tengine::Core::ConfigError, msg
   end
 
 
