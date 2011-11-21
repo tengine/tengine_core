@@ -444,7 +444,8 @@ describe Tengine::Core::Config::Core do
         Tengine::Core::Config::Core.parse(["-f", path])
         fail
       rescue Tengine::Core::ConfigError => e
-        e.message.should == "couldn't parse YAML at line 7 column 1 in #{path}"
+        e.message.should =~ /couldn't parse YAML at line \d+ column \d+/
+        e.message.should include(path)
       end
     end
 
