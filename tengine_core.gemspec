@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.4.0"
+  s.version = "0.4.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2011-11-20"
+  s.date = "2011-11-21"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -107,6 +107,10 @@ Gem::Specification.new do |s|
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/source_location_encoding.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/非ASCIIのファイル名_dsl.rb",
     "spec/tengine/core/config/core_spec.rb",
+    "spec/tengine/core/config/syntax_error_in_erb.yml.erb",
+    "spec/tengine/core/config/wrong_category_name.yml.erb",
+    "spec/tengine/core/config/wrong_field_name.yml.erb",
+    "spec/tengine/core/config/wrong_yaml.yml.erb",
     "spec/tengine/core/config_spec/another_port.yml",
     "spec/tengine/core/config_spec/config_with_dir_absolute_load_path.yml",
     "spec/tengine/core/config_spec/config_with_dir_relative_load_path.yml",
@@ -153,7 +157,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/tengine/tengine_core"
   s.licenses = ["MPL/LGPL"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.10"
+  s.rubygems_version = "1.8.11"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
