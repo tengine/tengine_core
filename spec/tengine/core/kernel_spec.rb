@@ -574,6 +574,9 @@ describe Tengine::Core::Kernel do
             @kernel.setup_mq_connection
 
             # ここではイベント発生時の振る舞いもチェックします
+            Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
+            mq.channel.exec_callback_once_yielding_self(:error, "channel close reason object")
+
             Tengine::Core.stderr_logger.should_receive(:error).with('mq.connection.on_error connection_close: "connection close reason object"')
             mq.connection.exec_callback_yielding_self(:error, "connection close reason object")
 
@@ -582,9 +585,6 @@ describe Tengine::Core::Kernel do
 
             Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
             mq.connection.exec_callback_yielding_self(:after_recovery, "settings")
-
-            Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
-            mq.channel.exec_callback_once_yielding_self(:error, "channel close reason object")
           end
           t.raise(e)
         end
