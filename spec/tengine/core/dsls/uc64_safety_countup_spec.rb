@@ -98,17 +98,9 @@ describe "uc64_safety_countup" do
       raw_event2 = Tengine::Event.new(:event_type_name => "event64")
       session_wrapper2 = test_session_wrapper_class.new(Tengine::Core::Session.find(session.id))
       @kernel2.context.should_receive(:session).and_return(session_wrapper2)
-      @kernel2.context.should_receive(:fire).with("event64.error.tengined",
-      :properties => {
-        :original_event => instance_of(String),
-        # :error_class_name => "Mongo::OperationFailure",
-        # :error_message => %[Database command 'findandmodify' failed: {"errmsg"=>"No matching object found", "ok"=>0.0}],
-        :error_class_name => "Tengine::Core::OptimisticLock::RetryOverError",
-        :error_message => %[retried 2 times but failed to update],
-        :error_backtrace => instance_of(Array),
-        :block_source_location => "#{@dsl_path}:8" # 8はブロックの行番号
-      })
-      @kernel2.process_message(mock_headers, raw_event2.to_json)
+      expect{
+        @kernel2.process_message(mock_headers, raw_event2.to_json)
+      }.to raise_error(Tengine::Core::OptimisticLock::RetryOverError)
     }
     f2.resume
 

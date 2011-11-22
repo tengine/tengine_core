@@ -41,9 +41,11 @@ describe "uc80_raise_io_error" do
         :error_backtrace => instance_of(Array),
         :block_source_location => "#{@dsl_path}:6" # 6はブロックの行番号
       })
-    expect{
-      @kernel.process_message(mock_headers, raw_event.to_json)
-    }.to_not raise_error
+    Tengine::Core::Kernel.temp_exception_reporter(:except_test) do
+      expect{
+        @kernel.process_message(mock_headers, raw_event.to_json)
+      }.to_not raise_error
+    end
     @buffer.rewind
     @buffer.string.should =~ /\[IOError\] by driver80/
   end

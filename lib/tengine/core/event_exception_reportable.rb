@@ -3,7 +3,7 @@ require 'tengine/core'
 module Tengine::Core::EventExceptionReportable
   extend ActiveSupport::Concern
 
-  FIRE_ON_ALL_EXCEPTION = lambda do |kernel, dsl_context, event, exception, block|
+  FIRE_ALL = lambda do |kernel, dsl_context, event, exception, block|
     dsl_context.fire("#{event.event_type_name}.error.tengined",
       :properties => {
         :original_event => event.to_json,
@@ -18,29 +18,57 @@ module Tengine::Core::EventExceptionReportable
     if exception.class.name =~ /^Test::|^MiniTest::|^RSpec::|^Spec::/
       raise exception
     else
-      FIRE_ON_ALL_EXCEPTION.call(kernel, dsl_context, event, exception, block)
+      FIRE_ALL.call(kernel, dsl_context, event, exception, block)
     end
   end
 
+  RAISE_ALL = lambda do |kernel, dsl_context, event, exception, block|
+    raise exception
+  end
+
   EVENT_EXCEPTION_REPORTERS = {
-    :all => FIRE_ON_ALL_EXCEPTION,
+    :fire_all => FIRE_ALL,
+    :raise_all => RAISE_ALL,
     :except_test => FIRE_EXCEPT_TESTING_ERROR,
   }.freeze
+
+  class << self
+    def to_reporter(reporter)
+      if reporter.is_a?(Symbol)
+        result = EVENT_EXCEPTION_REPORTERS[reporter]
+        raise NameError, "Unknown reporter: #{reporter.inspect}" unless result
+        result
+      elsif reporter.respond_to?(:call)
+        reporter
+      else
+        raise ArgumentError, "Invalid reporter: #{reporter.inspect}"
+      end
+    end
+  end
 
   module ClassMethods
     def event_exception_reporter
       unless defined?(@event_exception_reporter)
-        @event_exception_reporter = FIRE_ON_ALL_EXCEPTION
+        @event_exception_reporter = FIRE_ALL
       end
       @event_exception_reporter
     end
 
     def event_exception_reporter=(reporter)
-      if reporter.is_a?(Symbol)
-        reporter = EVENT_EXCEPTION_REPORTERS[reporter]
-      end
-      @event_exception_reporter = reporter
+      @event_exception_reporter =
+        Tengine::Core::EventExceptionReportable.to_reporter(reporter)
     end
+
+    def temp_exception_reporter(reporter)
+      backup = self.event_exception_reporter
+      begin
+        self.event_exception_reporter = reporter
+        yield if block_given?
+      ensure
+        self.event_exception_reporter = backup
+      end
+    end
+
   end
 
   module InstanceMethods
