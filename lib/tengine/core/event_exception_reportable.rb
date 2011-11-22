@@ -48,7 +48,7 @@ module Tengine::Core::EventExceptionReportable
       begin
         yield
       rescue Exception => e
-        Tengine.logger.debug("[#{e.class.name}] #{e.message}\n  " << e.backtrace.join("\n  "))
+        Tengine.logger.error("[#{e.class.name}] #{e.message}\n  " << e.backtrace.join("\n  "))
         if reporter = Tengine::Core::Kernel.event_exception_reporter
           reporter.call(self, dsl_context, event, e, block)
         end
