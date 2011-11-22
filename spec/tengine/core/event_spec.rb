@@ -38,7 +38,7 @@ describe Tengine::Core::Event do
       rescue Mongo::OperationFailure => e
         e.message.should =~ /E11000/
         e.message.should =~ /duplicate key error/
-        e.message.should =~ /tengine_core_test.tengine_core_events/
+        e.message.should =~ /tengine_core_test\.tengine_core_events/
         e.message.should =~ /some_unique_key1/
       end
     end
