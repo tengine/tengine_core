@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.4.2"
+  s.version = "0.4.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2011-11-21"
+  s.date = "2011-11-22"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -137,6 +137,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/dsls/uc72_setup_eventmachine_spec.rb",
     "spec/tengine/core/dsls/uc80_raise_io_error_spec.rb",
     "spec/tengine/core/dsls/uc81_raise_runtime_error_spec.rb",
+    "spec/tengine/core/event_exception_reportable_spec.rb",
     "spec/tengine/core/event_spec.rb",
     "spec/tengine/core/event_wrapper_spec.rb",
     "spec/tengine/core/handler_path_spec.rb",
