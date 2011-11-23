@@ -158,7 +158,7 @@ class Tengine::Core::Kernel
   }.freeze
 
   def enable_heartbeat
-    n = config[:heartbeat][:core][:interval]
+    n = config[:heartbeat][:core][:interval].to_i
     if n and n > 0
       EM.defer do
         @heartbeat_timer = EM.add_periodic_timer(n) do
