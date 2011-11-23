@@ -126,7 +126,7 @@ EOS
       self.formatter = lambda{|level, t, prog, msg| "#{t.iso8601} STDERR #{@process_identifier} #{msg}\n"}
     }
 
-    group(:heartbeat, :hidden => true) do
+    group(:heartbeat) do
       add(:core     , Tengine::Core::Config::Core::Heartbeat)
       add(:job      , Tengine::Core::Config::Core::Heartbeat, :defaults => {:interval => 5, :expire => 20})
       add(:hbw      , Tengine::Core::Config::Core::Heartbeat)
@@ -145,7 +145,7 @@ EOS
         [:config] => :f,
         [:tengined, :daemon] => :D,
         [:tengined, :load_path] => :T,
-        [:tengined, :heartbeat_period] => :G,
+        # [:tengined, :heartbeat_period] => :G,
         [:tengined, :confirmation_threshold] => :C,
 
         [:event_queue, :connection, :host] => :o,
@@ -154,6 +154,8 @@ EOS
         [:event_queue, :connection, :pass] => :s,
         [:event_queue, :exchange  , :name] => :e,
         [:event_queue, :queue     , :name] => :q,
+
+        [:heartbeat, :core, :interval] => :G,
 
         [:verbose] => :V,
         [:version] => :v,
@@ -178,7 +180,7 @@ EOS
     field :activation_timeout    , "period to wait for making activation file.", :type => :integer, :default => 300
     field :status_dir            , "path/to/dir.", :type => :directory, :default => "./tmp/tengined_status"
     field :activation_dir        , "path/to/dir.", :type => :directory, :default => "./tmp/tengined_activations"
-    field :heartbeat_period      , "the second of period which heartbeat event be fired. disable heartbeat if 0.", :type => :integer, :default => 0
+    # field :heartbeat_period      , "the second of period which heartbeat event be fired. disable heartbeat if 0.", :type => :integer, :default => 0
     field :confirmation_threshold, "the event which is this level or less will be made confirmed automatically. debug/info/warn/error/fatal. ", :type => :string, :default => 'info'
   end
 
@@ -213,7 +215,7 @@ EOS
 
   class Heartbeat
     include Tengine::Support::Config::Definition
-    field :interval, "heartbeat interval seconds", :type => :integer, :default => 30
+    field :interval, "heartbeat interval seconds. usually about 30 seconds", :type => :integer, :default => 0
     field :expire  , "heartbeat expire seconds"  , :type => :integer, :default => 120
   end
 
@@ -286,7 +288,8 @@ EOS
   memoize :confirmation_threshold
 
   def heartbeat_period
-    self[:tengined][:heartbeat_period].to_i
+    # [:][:heartbeat_period].to_i
+    heartbeat.core.interval.to_i
   end
 
   def heartbeat_enabled?
