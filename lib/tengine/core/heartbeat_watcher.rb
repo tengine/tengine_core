@@ -91,7 +91,7 @@ class Tengine::Core::HeartbeatWatcher
                 end
               end
             end
-            int = @config[:heartbeat][:hbw][:interval]
+            int = @config[:heartbeat][:hbw][:interval].to_i
             if int and int > 0
               @periodic = EM.add_periodic_timer int do
                 send_periodic_event

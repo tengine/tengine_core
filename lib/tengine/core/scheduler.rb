@@ -87,7 +87,7 @@ class Tengine::Core::Scheduler
                 mark_schedule_done sched
               end
             end
-            int = @config[:heartbeat][:hbw][:interval]
+            int = @config[:heartbeat][:atd][:interval].to_i
             if int and int > 0
               @periodic = EM.add_periodic_timer int do
                 send_periodic_event

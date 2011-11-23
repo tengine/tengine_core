@@ -12,7 +12,7 @@ describe Tengine::Core::Scheduler do
   end
 
   subject do
-    Tengine::Core::Scheduler.new([])
+    Tengine::Core::Scheduler.new(%w[--heartbeat-atd-interval=30])
   end
 
   describe "#search_for_schedule" do
