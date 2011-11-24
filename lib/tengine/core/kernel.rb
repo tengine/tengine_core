@@ -315,7 +315,7 @@ class Tengine::Core::Kernel
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
     hash = upsert(event, key: event.key, event_type_name: { :"$in" => k })
     Tengine.logger.debug("saved an event #{event.inspect}")
-    event unless hash["updatedExisting"]
+    event if hash["updatedExisting"]
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
     fire_failed_event(raw_event)
@@ -335,7 +335,7 @@ class Tengine::Core::Kernel
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
     hash = upsert(event, key: event.key, event_type_name: k)
     Tengine.logger.debug("saved an event #{event.inspect}")
-    event unless hash["updatedExisting"]
+    event if hash["updatedExisting"]
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
     fire_failed_event(raw_event)
