@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.4.6"
+  s.version = "0.4.7"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
@@ -137,6 +137,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/dsls/uc72_setup_eventmachine_spec.rb",
     "spec/tengine/core/dsls/uc80_raise_io_error_spec.rb",
     "spec/tengine/core/dsls/uc81_raise_runtime_error_spec.rb",
+    "spec/tengine/core/event/finder_spec.rb",
     "spec/tengine/core/event_exception_reportable_spec.rb",
     "spec/tengine/core/event_spec.rb",
     "spec/tengine/core/event_wrapper_spec.rb",
