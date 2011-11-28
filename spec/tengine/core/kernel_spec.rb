@@ -224,6 +224,17 @@ describe Tengine::Core::Kernel do
       end
 
       context "イベントストアへの登録有無" do
+        it "不正なフォーマットのメッセージの場合、イベントストアへ登録を行わずACKを返却" do
+          @header.should_receive(:ack)
+          @kernel.process_message(@header, "invalid format message").should == nil
+        end
+
+        it "keyがnilのイベント場合、イベントストアへ登録を行わずACKを返却" do
+          raw_event = Tengine::Event.new(:key => "", :sender_name => "another_host", :event_type_name => "event1")
+          @header.should_receive(:ack)
+          @kernel.process_message(@header, raw_event.to_json).should == nil
+        end
+
         it "keyが同じ、sender_nameが異なる場合は、イベントストアへ登録を行わずACKを返却" do
           @header.should_receive(:ack)
           raw_event = Tengine::Event.new(:key => "uuid1", :sender_name => "another_host", :event_type_name => "event1")
