@@ -113,6 +113,11 @@ class Tengine::Core::Kernel
         headers.ack
         return
       end
+      if raw_event.key.blank?
+        Tengine.logger.warn("invalid event which has blank key: #{raw_event.inspect}")
+        headers.ack
+        return
+      end
 
       # ハートビートは *保存より前に* 特別扱いが必要
       event = case raw_event.event_type_name
