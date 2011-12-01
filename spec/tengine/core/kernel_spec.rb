@@ -368,6 +368,30 @@ describe Tengine::Core::Kernel do
 
         shared_examples "generic heartbeats" do
           context "正常系" do
+            context "初回" do
+              before do
+                @u = @uuid.generate
+                Tengine::Core::Event.where(key: @u).delete_all
+              end
+              it "beatは保存される" do
+                @kernel.process_message(@header, Tengine::Event.new(key: @u, event_type_name: "#{kind}.heartbeat.tengine").to_json).should be_true
+                Tengine::Core::Event.where(key: @u).count.should == 1
+                Tengine::Core::Event.where(key: @u).first.event_type_name.should =~ /^#{kind}/
+              end
+
+              it "finishedは保存される" do
+                @kernel.process_message(@header, Tengine::Event.new(key: @u, event_type_name: "finished.process.#{kind}.tengine").to_json).should be_true
+                Tengine::Core::Event.where(key: @u).count.should == 1
+                Tengine::Core::Event.where(key: @u).first.event_type_name.should =~ /^finished/
+              end
+
+              it "expiredは保存される" do
+                @kernel.process_message(@header, Tengine::Event.new(key: @u, event_type_name: "expired.#{kind}.heartbeat.tengine").to_json).should be_true
+                Tengine::Core::Event.where(key: @u).count.should == 1
+                Tengine::Core::Event.where(key: @u).first.event_type_name.should =~ /^expired/
+              end
+            end
+
             it "beat -> beat -> beat" do
               e = Tengine::Event.new key: @uuid.generate, event_type_name: "#{kind}.heartbeat.tengine"
 

@@ -111,7 +111,7 @@ class Tengine::Core::Kernel
       raw_event = parse_event(msg)
       if raw_event.nil?
         headers.ack
-        return
+        return false
       end
 
       # ハートビートは *保存より前に* 特別扱いが必要
@@ -131,7 +131,7 @@ class Tengine::Core::Kernel
               end
       unless event
         headers.ack
-        return
+        return false
       end
 
       ack_policy = ack_policy_for(event)
@@ -144,6 +144,7 @@ class Tengine::Core::Kernel
         end
       end
       close_if_shutting_down
+      true
     end
   end
 
