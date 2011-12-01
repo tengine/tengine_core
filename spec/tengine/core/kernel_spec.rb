@@ -479,7 +479,7 @@ describe Tengine::Core::Kernel do
                 end
 
                 it "その他の場合、例外を外に伝播" do
-                  @kernel.stub(:upsert).and_raise StandardError
+                  Tengine::Core::Event.stub(:find_or_create_by_key_then_update_with_block).and_raise StandardError
 
                   expect do
                     @kernel.process_message @header, Tengine::Event.new(key: @uuid.generate, event_type_name: eval(name)).to_json
