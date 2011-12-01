@@ -12,6 +12,7 @@ class Tengine::Core::Event
   include Tengine::Core::SelectableAttr
   include Tengine::Core::CollectionAccessible
 
+  field :lock_version   , :type => Integer, :default => -(2**63)
   field :event_type_name, :type => String
   field :key            , :type => String
   field :source_name    , :type => String
@@ -47,14 +48,80 @@ class Tengine::Core::Event
   end
 
   def to_hash
-    [:event_type_name,
-     :key,
-     :source_name,
-     :occurred_at,   
-     :level,   
-     :confirmed,
-     :sender_name,
-     :properties
-    ].inject({}) {|r, i| r.update i => send(i) }
+    ret = attributes.dup # <- dup ?
+    ret.delete "_id"
+    ret
+  end
+
+  # TODO: Tengine::Core::OptimisticLockを拡張して、ここでも使えるよう
+  # にする。現状は同じようなコードが複数箇所にあってよくない。
+
+  # @yield                      [event]                Yields the (possibly new) event.
+  # @yieldparam  [Tengine::Core::Event] event          The event in question.
+  # @yieldreturn              [Boolean]                Return false, and it will just break the execution.  Otherwise, it tries to update the event.
+  # @param                     [String] key            The key to identify the event.
+  # @param                    [Numeric] retry_max (0)  Maximum number of retry attempts to save the event.
+  # @return      [Tengine::Core::Event]                The event in question if update succeeded, false if retry_max reached, or nil if the block exited with false.
+  # @raise    [Mongo::OperationFailure]                Any exceptions that happened inside will be propagated outside.
+  def self.find_or_create_by_key_then_update_with_block the_key, retry_max = 0
+    # * とある条件を満たすイベントがあれば、それを上書きしたい。
+    # * なければ、新規作成したい。
+    # * でもアトミックにやりたい。
+    # * ないとおもって新規作成しようとしたら裏でイベントが生えていたら、上書きモードでやり直したい。
+    # * あるとおもって上書きしようとしたら裏でイベントが消えていたら、新規作成モードでやり直したい。
+    # * という要求をできるだけ高速に処理したい。
+
+    # あればとってくる
+    the_event = where(:key => the_key).first || new(:key => the_key)
+
+    retries = -1
+    results = nil
+    while true do
+      if retries >= retry_max # retryしすぎ
+        return false
+      else
+
+        retries += 1
+        unless the_event.new_record?
+          the_event.reload
+        end
+
+        if not yield(the_event) # ユザーによる意図的な中断
+          return nil
+        else
+
+          hash = the_event.as_document.dup # <- dup ?
+          hash.delete "_id"
+          hash['lock_version'] = the_event.lock_version + 1
+          hash['created_at'] ||= Time.now
+          hash['updated_at'] = Time.now
+
+          begin
+            results = collection.driver.update(
+              { :key => the_event.key, :lock_version => the_event.lock_version },
+              { "$set" => hash },
+              { :upsert => true, :safe => true, :multiple => false }
+            )
+          rescue Mongo::OperationFailure => e
+            # upsert = trueだがindexのunique制約があるので重複したkeyは
+            # 作成不可、lock_versionの更新失敗はこちらに来る。これは意
+            # 図した動作なのでraiseしない。
+            Tengine.logger.debug "retrying due to mongodb error #{e}"
+          else
+            if results["error"]
+              raise Mongo::OperationFailure, results["error"]
+            elsif results["upserted"]
+              # *hack* _idを消してupsertしたので、このとき_idは新しくなっている
+              the_event.write_attributes "_id" => results["upserted"]
+              the_event.reload
+              return the_event
+            else
+              the_event.reload
+              return the_event
+            end
+          end
+        end
+      end
+    end
   end
 end
