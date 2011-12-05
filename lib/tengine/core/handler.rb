@@ -69,6 +69,11 @@ class Tengine::Core::Handler
 
   def process_event(event)
     case self.target_instantiation_key
+    when :instance_method then
+      klass = driver.target_class_name.constantize
+      inst = klass.new
+      m = inst.method(target_method_name)
+      m.arity == 0 ? m.call : m.call(event)
     when :binding then
       block = event.kernel.dsl_context.__block_for__(self)
       @caller = eval("self", block.binding)

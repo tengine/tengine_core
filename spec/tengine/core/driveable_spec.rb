@@ -12,13 +12,13 @@ describe Tengine::Core::Driveable do
     def define_uc01_execute_processing_for_event
       @@index ||= 0
       @@index += 1
-      klass = Class.new
-      Object.const_set(:"Uc01ExecuteProcessingForEvent#{@@index}", klass)
-      klass.module_eval do
+      @klass = Class.new
+      Object.const_set(:"Uc01ExecuteProcessingForEvent#{@@index}", @klass)
+      @klass.module_eval do
         include Tengine::Core::Driveable
         on:event01
-        def foo
-          puts "#{self.class.name}#foo"
+        def foo # 引数なしでもOK
+          STDOUT.puts "#{self.class.name}#foo"
         end
       end
     end
@@ -51,6 +51,18 @@ describe Tengine::Core::Driveable do
         its(:target_method_name){ should == 'foo' }
       end
 
+      context "イベントハンドリングの際" do
+        subject{ Tengine::Core::Driver.first.handlers.first }
+        before do
+          @event = mock(:event)
+        end
+        it "インスタンスが生成される" do
+          instance = @klass.new
+          @klass.should_receive(:new).with(no_args).and_return(instance)
+          STDOUT.should_receive(:puts)
+          subject.process_event(@event)
+        end
+      end
     end
 
   end
