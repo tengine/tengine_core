@@ -114,6 +114,9 @@ class Tengine::Core::Kernel
         return false
       end
 
+      delay = ((ENV['TENGINED_EVENT_DEBUG_DELAY'] || '0').to_f || 0.0)
+      sleep delay
+
       # ハートビートは *保存より前に* 特別扱いが必要
       event = case raw_event.event_type_name
               when /finished\.process\.([^.]+)\.tengine$/
