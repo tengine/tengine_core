@@ -9,11 +9,11 @@ describe Tengine::Core::Driveable do
       Tengine::Core::HandlerPath.delete_all
     end
 
-    def define_uc01_execute_processing_for_event
+    def define_driveable_test_class
       @@index ||= 0
       @@index += 1
       @klass = Class.new
-      Object.const_set(:"Uc01ExecuteProcessingForEvent#{@@index}", @klass)
+      Object.const_set(:"DriveableTestClass#{@@index}", @klass)
       @klass.module_eval do
         include Tengine::Core::Driveable
         on:event01
@@ -26,24 +26,24 @@ describe Tengine::Core::Driveable do
     it "クラスを定義するファイルをloadするとドライバが登録されます" do
       expect{
         expect{
-          # load(File.expand_path('driveable_spec/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)))
-          define_uc01_execute_processing_for_event
+          # load(File.expand_path('driveable_spec/driveable_test_class.rb', File.dirname(__FILE__)))
+          define_driveable_test_class
         }.to change(Tengine::Core::Driver, :count).by(1)
       }.to change(Tengine::Core::HandlerPath, :count).by(1)
     end
 
     context "ロードされたドライバ" do
       before do
-        # load(File.expand_path('driveable_spec/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)))
-        define_uc01_execute_processing_for_event
+        # load(File.expand_path('driveable_spec/driveable_test_class.rb', File.dirname(__FILE__)))
+        define_driveable_test_class
       end
 
       subject{ Tengine::Core::Driver.first }
-      its(:name){ should =~ /\AUc01ExecuteProcessingForEvent/ }
+      its(:name){ should =~ /\ADriveableTestClass/ }
       its(:version){ should_not == nil }
       its(:enabled){ should == nil }
       its(:enabled_on_activation){ should == true }
-      its(:target_class_name){ should =~ /\AUc01ExecuteProcessingForEvent/ }
+      its(:target_class_name){ should =~ /\ADriveableTestClass/ }
 
       context "handler" do
         subject{ Tengine::Core::Driver.first.handlers.first }
