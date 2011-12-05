@@ -96,7 +96,7 @@ describe "receive_event" do
       'sender_name' => "server2",
       :properties => {:bar => "ABC", :baz => 999}
       )
-    @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true).and_yield(@header, @raw_event.to_json)
+    @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)).and_yield(@header, @raw_event.to_json)
     @header.should_receive(:ack)
 
     count = lambda{ Tengine::Core::Event.where(:event_type_name => :event01, :confirmed => true).count }
