@@ -138,6 +138,7 @@ class Tengine::Core::Kernel
         headers.ack
         return
       end
+      event.kernel = self
 
       ack_policy = ack_policy_for(event)
       safety_processing_headers(headers, event, ack_policy) do
@@ -361,9 +362,12 @@ class Tengine::Core::Kernel
     before_delegate.call if before_delegate.respond_to?(:call)
     handlers.each do |handler|
       safety_handler(handler) do
-        block = dsl_context.__block_for__(handler)
-        report_on_exception(dsl_context, event, block) do
-          handler.process_event(event, &block)
+        # block = dsl_context.__block_for__(handler)
+        report_on_exception(dsl_context, event) do
+          # handler.process_event(event, &block)
+          if handler.match?(event)
+            handler.process_event(event)
+          end
         end
       end
     end

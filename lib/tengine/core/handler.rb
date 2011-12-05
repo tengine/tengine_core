@@ -38,20 +38,37 @@ class Tengine::Core::Handler
     end
   end
 
-  def process_event(event, &block)
-    @caller = eval("self", block.binding)
-    matched = match?(event)
-    Tengine.logger.debug("match?(...) => #{matched} #{block.source_location.inspect}")
-    if matched
-      # ハンドラの実行
-      @caller.__safety_driver__(self.driver) do
-        @caller.__safety_event__(event) do
-          @caller.instance_eval(&block)
+#   def process_event(event, &block)
+#     @caller = eval("self", block.binding)
+#     matched = match?(event)
+#     if matched
+#       # ハンドラの実行
+#       @caller.__safety_driver__(self.driver) do
+#         @caller.__safety_event__(event) do
+#           @caller.instance_eval(&block)
+#         end
+#       end
+#     end
+#   ensure
+#     @caller = nil
+#   end
+
+  def process_event(event)
+    case driver.target_instantiation_key
+    when :binding then
+      block = event.kernel.dsl_context.__block_for__(self)
+      @caller = eval("self", block.binding)
+      begin
+        # ハンドラの実行
+        @caller.__safety_driver__(self.driver) do
+          @caller.__safety_event__(event) do
+            @caller.instance_eval(&block)
+          end
         end
+      ensure
+        @caller = nil
       end
     end
-  ensure
-    @caller = nil
   end
 
   def fire(event_type_name)
@@ -59,7 +76,9 @@ class Tengine::Core::Handler
   end
 
   def match?(event)
-    filter.blank? ? true : Visitor.new(filter, event, driver.session).visit
+    result = filter.blank? ? true : Visitor.new(filter, event, driver.session).visit
+    Tengine.logger.debug("match?(#{event.event_type_name.inspect}) => #{result.inspect}")
+    result
   end
 
   # HashとArrayで入れ子になったfilterのツリーをルートから各Leafの方向に辿っていくVisitorです。

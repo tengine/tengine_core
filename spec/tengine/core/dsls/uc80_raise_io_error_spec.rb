@@ -39,7 +39,7 @@ describe "uc80_raise_io_error" do
         :error_class_name => "IOError",
         :error_message => "by driver80",
         :error_backtrace => instance_of(Array),
-        :block_source_location => "#{@dsl_path}:6" # 6はブロックの行番号
+        # :block_source_location => "#{@dsl_path}:6" # 6はブロックの行番号
       })
     Tengine::Core::Kernel.temp_exception_reporter(:except_test) do
       expect{

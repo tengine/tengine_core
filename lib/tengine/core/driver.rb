@@ -15,6 +15,7 @@ class Tengine::Core::Driver
   include Mongoid::Timestamps
   include Tengine::Core::Validation
   include Tengine::Core::FindByName
+  include Tengine::Core::SelectableAttr
 
   # @attribute 名前
   field :name, :type => String
@@ -27,6 +28,19 @@ class Tengine::Core::Driver
 
   # @attribute 実行時有効／無効
   field :enabled_on_activation, :type => Boolean, :default => true
+
+  # @attribute 対象クラス名
+  field :target_class_name, :type => String
+
+  # @attribute 対象の取得方法
+  field :target_instantiation_cd, :type => String, :default => '01'
+
+  selectable_attr :target_instantiation_cd do
+    entry '01', :binding        , "binding"
+    # entry '02', :class_method   , "class_method"
+    # entry '03', :instance_method, "isntance_method"
+  end
+
 
   validates(:name, :presence => true,
     :uniqueness => {:scope => :version, :message => "is already taken in same version"},

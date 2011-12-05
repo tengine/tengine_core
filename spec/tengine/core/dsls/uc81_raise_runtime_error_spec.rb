@@ -27,7 +27,7 @@ describe "uc81_raise_runtime_error" do
         :error_class_name => "RuntimeError",
         :error_message => "by driver81",
         :error_backtrace => instance_of(Array),
-        :block_source_location => "#{@dsl_path}:6" # 6はブロックの行番号
+        # :block_source_location => "#{@dsl_path}:6" # 6はブロックの行番号
       })
     Tengine::Core::Kernel.temp_exception_reporter(:except_test) do
       expect{

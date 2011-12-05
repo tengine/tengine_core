@@ -46,6 +46,8 @@ class Tengine::Core::Event
     entry 5, :fatal       , "fatal"
   end
 
+  attr_accessor :kernel # tengined実行時に処理しているカーネルのインスタンスを保持します
+
   def to_hash
     [:event_type_name,
      :key,

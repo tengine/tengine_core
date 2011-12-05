@@ -25,31 +25,26 @@ describe Tengine::Core::Handler do
 
   context :process_event do
     before do
-      @handler = Tengine::Core::Handler.new
+      @driver = Tengine::Core::Driver.new
+      @handler = Tengine::Core::Handler.new(:driver => @driver)
     end
 
-    it "should call block if match" do
+    it "マッチするかどうかと関係なくブロックが呼び出されます" do
+      mock_dsl_context = mock(:dsl_context)
+      mock_kernel = mock(:kernel)
       mock_event = mock(:event)
-      mock_event.stub!(:key).and_return("uuid")
-      @handler.stub!(:match?).with(mock_event).and_return(true)
       mock_caller = mock(:caller)
       mock_block = nil
       mock_caller.instance_eval do
         mock_block = lambda{}
       end
+      mock_event.stub(:kernel).and_return(mock_kernel)
+      mock_kernel.stub(:dsl_context).and_return(mock_dsl_context)
+      mock_dsl_context.stub(:__block_for__).and_return(mock_block)
       # @handler.should_receive(:instance_eval).with(&mock_block)
       mock_caller.should_receive(:__safety_driver__).and_yield
       mock_caller.should_receive(:__safety_event__).and_yield
       mock_caller.should_receive(:instance_eval)
-      @handler.process_event(mock_event, &mock_block)
-    end
-
-    it "should not call block unless match" do
-      mock_event = mock(:event)
-      mock_event.stub!(:key).and_return("uuid")
-      @handler.stub!(:match?).with(mock_event).and_return(false)
-      mock_block = lambda{}
-      @handler.should_not_receive(:instance_eval).with(&mock_block)
       @handler.process_event(mock_event, &mock_block)
     end
   end
