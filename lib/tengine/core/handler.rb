@@ -32,7 +32,7 @@ class Tengine::Core::Handler
 
   selectable_attr :target_instantiation_cd do
     entry '01', :binding        , "binding"
-    entry '02', :class_method   , "class_method"
+    entry '02', :static         , "static"
     entry '03', :instance_method, "isntance_method"
   end
 
@@ -73,6 +73,10 @@ class Tengine::Core::Handler
       klass = driver.target_class_name.constantize
       inst = klass.new
       m = inst.method(target_method_name)
+      m.arity == 0 ? m.call : m.call(event)
+    when :static then
+      klass = driver.target_class_name.constantize
+      m = klass.method(target_method_name)
       m.arity == 0 ? m.call : m.call(event)
     when :binding then
       block = event.kernel.dsl_context.__block_for__(self)
