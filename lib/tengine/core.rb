@@ -7,6 +7,7 @@ module Tengine::Core
   autoload :Bootstrap        , 'tengine/core/bootstrap'
   autoload :Config           , 'tengine/core/config'
   autoload :Kernel           , 'tengine/core/kernel'
+  autoload :Driveable        , 'tengine/core/driveable'
   autoload :KernelRuntime    , 'tengine/core/kernel_runtime'
   autoload :DslEvaluator     , 'tengine/core/dsl_evaluator'
   autoload :DslLoader        , 'tengine/core/dsl_loader'

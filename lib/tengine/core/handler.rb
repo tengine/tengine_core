@@ -11,6 +11,7 @@ class Tengine::Core::Handler
   include Mongoid::Document
   include Mongoid::Timestamps
   include Tengine::Core::CollectionAccessible
+  include Tengine::Core::SelectableAttr
 
   # @attribute 実行するRubyのブロックが定義されているファイル名
   field :filepath, :type => String
@@ -25,6 +26,19 @@ class Tengine::Core::Handler
   # @attribute イベントが対象かどうかを判断するためのフィルタ定義
   field :filter, :type => Hash, :default => {}
   map_yaml_accessor :filter
+
+  # @attribute 実行対象の取得方法
+  field :target_instantiation_cd, :type => String, :default => '01'
+
+  selectable_attr :target_instantiation_cd do
+    entry '01', :binding        , "binding"
+    entry '02', :class_method   , "class_method"
+    entry '03', :instance_method, "isntance_method"
+  end
+
+  # @attribute 実行対象となるメソッドの名前
+  field :target_method_name, :type => String
+
 
   validates :filepath, :presence => true
   validates :lineno  , :presence => true
@@ -54,7 +68,7 @@ class Tengine::Core::Handler
 #   end
 
   def process_event(event)
-    case driver.target_instantiation_key
+    case self.target_instantiation_key
     when :binding then
       block = event.kernel.dsl_context.__block_for__(self)
       @caller = eval("self", block.binding)
