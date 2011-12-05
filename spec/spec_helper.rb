@@ -27,8 +27,7 @@ Tengine::Core.stdout_logger.level = Logger::DEBUG
 Tengine::Core.stderr_logger = Logger.new(log_path)
 Tengine::Core.stderr_logger.level = Logger::DEBUG
 
-Tengine::Core::Kernel.event_exception_reporter
-Tengine::Core::Kernel.event_exception_reporter = :except_test
+Tengine::Core::Kernel.event_exception_reporter = :raise_all
 
 RSpec.configure do |config|
   config.include Factory::Syntax::Methods

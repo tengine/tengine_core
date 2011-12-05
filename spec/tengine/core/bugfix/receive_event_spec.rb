@@ -9,11 +9,11 @@ describe "receive_event" do
     Tengine::Core::Session.delete_all
 
     # DSLのloadからbindまで
-    @config = Tengine::Core::Config.new({
+    @config = Tengine::Core::Config::Core.new({
         :tengined => {
           :load_path => File.expand_path('./use_event_in_handler_dsl.rb', File.dirname(__FILE__)),
           :wait_activation => false,
-          :confirmation_threashold => 'info'
+          :confirmation_threshold => 'info'
         },
       })
     @config.dsl_version.should_not be_blank

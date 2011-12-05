@@ -13,7 +13,7 @@ describe Tengine::Core::Kernel do
   describe :start do
     describe :bind, "handlerのblockをメモリ上で保持" do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
@@ -50,7 +50,7 @@ describe Tengine::Core::Kernel do
 
     describe :wait_for_activation, "activate待ち" do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,
@@ -107,11 +107,11 @@ describe Tengine::Core::Kernel do
             :exchange     => "tengine_event_exchange",
           })
 
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => false,
-              :confirmation_threashold => 'info'
+              :confirmation_threshold => 'info'
             },
             :heartbeat => {
               :core => {
@@ -224,6 +224,17 @@ describe Tengine::Core::Kernel do
       end
 
       context "イベントストアへの登録有無" do
+        it "不正なフォーマットのメッセージの場合、イベントストアへ登録を行わずACKを返却" do
+          @header.should_receive(:ack)
+          @kernel.process_message(@header, "invalid format message").should == nil
+        end
+
+        it "keyがnilのイベント場合、イベントストアへ登録を行わずACKを返却" do
+          raw_event = Tengine::Event.new(:key => "", :sender_name => "another_host", :event_type_name => "event1")
+          @header.should_receive(:ack)
+          @kernel.process_message(@header, raw_event.to_json).should == nil
+        end
+
         it "keyが同じ、sender_nameが異なる場合は、イベントストアへ登録を行わずACKを返却" do
           @header.should_receive(:ack)
           raw_event = Tengine::Event.new(:key => "uuid1", :sender_name => "another_host", :event_type_name => "event1")
@@ -553,7 +564,7 @@ describe Tengine::Core::Kernel do
 
     describe :setup_mq_connection do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
@@ -589,8 +600,10 @@ describe Tengine::Core::Kernel do
             retry
           end
 
+          sleep(0.1) # TODO 要調査。なぜか秋間の環境ではこのsleepを入れないと失敗します。
+
           EM.run_block do
-            @kernel.config[:event_queue][:port] = n
+            @kernel.config[:event_queue][:connection][:port] = n
             mq = @kernel.mq
 
             @kernel.setup_mq_connection
@@ -617,7 +630,7 @@ describe Tengine::Core::Kernel do
   describe :status do
     describe :starting do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
@@ -647,7 +660,7 @@ describe Tengine::Core::Kernel do
 
     describe :waiting_for_activation do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,
@@ -670,7 +683,7 @@ describe Tengine::Core::Kernel do
 
     describe :running do
       before do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
@@ -708,7 +721,7 @@ describe Tengine::Core::Kernel do
       end
 
       it "停止要求を受け取った直後では「停止中」および「停止済」の状態を返す(稼働中)" do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             },
@@ -741,7 +754,7 @@ describe Tengine::Core::Kernel do
       end
 
       it "停止要求を受け取った直後では「停止中」および「停止済」の状態を返す(稼働要求待ち)" do
-        config = Tengine::Core::Config.new({
+        config = Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,
@@ -760,7 +773,7 @@ describe Tengine::Core::Kernel do
       end
 
       it "heartbeatの停止" do
-        kernel = Tengine::Core::Kernel.new(Tengine::Core::Config.new({
+        kernel = Tengine::Core::Kernel.new(Tengine::Core::Config::Core.new({
             :tengined => {
               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
               :wait_activation => true,

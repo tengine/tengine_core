@@ -6,7 +6,7 @@ describe "uc10_if_the_eent_occures_at_the_server" do
     Tengine::Core::Driver.delete_all
     Tengine::Core::Session.delete_all
     @dsl_path = File.expand_path('../../../../examples/uc10_if_the_event_occurs_at_the_server.rb', File.dirname(__FILE__))
-    @config = Tengine::Core::Config.new({
+    @config = Tengine::Core::Config::Core.new({
         :tengined => {
           :load_path => @dsl_path,
         },

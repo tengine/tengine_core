@@ -113,6 +113,11 @@ class Tengine::Core::Kernel
         headers.ack
         return false
       end
+      if raw_event.key.blank?
+        Tengine.logger.warn("invalid event which has blank key: #{raw_event.inspect}")
+        headers.ack
+        return
+      end
 
       delay = ((ENV['TENGINED_EVENT_DEBUG_DELAY'] || '0').to_f || 0.0)
       sleep delay
@@ -162,7 +167,7 @@ class Tengine::Core::Kernel
   }.freeze
 
   def enable_heartbeat
-    n = config[:heartbeat][:core][:interval]
+    n = config[:heartbeat][:core][:interval].to_i
     if n and n > 0
       EM.defer do
         @heartbeat_timer = EM.add_periodic_timer(n) do

@@ -19,7 +19,7 @@ class Tengine::Core::Scheduler
 
   def initialize argv
     @uuid = UUID.new.generate
-    @config = Tengine::Core::Config.parse argv
+    @config = Tengine::Core::Config::Core.parse argv
     @pid = sprintf "process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid
   end
 
@@ -70,10 +70,10 @@ class Tengine::Core::Scheduler
   end
 
   def run __file__
-    pdir = File.expand_path @config[:tengined][:pid_dir]
+    pdir = File.expand_path @config[:process][:pid_dir]
     fname = File.basename __file__
     cwd = Dir.getwd
-    Daemons.run_proc fname, :ARGV => ['run'], :multiple => true, :ontop => !@config[:tengined][:daemon], :dir_mode => :normal, :dir => pdir do
+    Daemons.run_proc fname, :ARGV => ['run'], :multiple => true, :ontop => !@config[:process][:daemon], :dir_mode => :normal, :dir => pdir do
       Dir.chdir cwd do
         @config.setup_loggers
         Tengine::Core::MethodTraceable.disabled = !@config[:verbose]
@@ -87,7 +87,7 @@ class Tengine::Core::Scheduler
                 mark_schedule_done sched
               end
             end
-            int = @config[:heartbeat][:hbw][:interval]
+            int = @config[:heartbeat][:atd][:interval].to_i
             if int and int > 0
               @periodic = EM.add_periodic_timer int do
                 send_periodic_event

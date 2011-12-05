@@ -32,9 +32,15 @@ describe Tengine::Core::Event do
     end
 
     it "同じ名前で登録されているものが存在する場合エラー、しかしunique indexによるエラーが発生します" do
-      expect{
+      begin
         Tengine::Core::Event.create!(valid_attributes1)
-      }.to raise_error(Mongo::OperationFailure, '11000: E11000 duplicate key error index: tengine_core_test.tengine_core_events.$key_1  dup key: { : "some_unique_key1" }')
+        fail
+      rescue Mongo::OperationFailure => e
+        e.message.should =~ /E11000/
+        e.message.should =~ /duplicate key error/
+        e.message.should =~ /tengine_core_events/
+        e.message.should =~ /some_unique_key1/
+      end
     end
   end
 

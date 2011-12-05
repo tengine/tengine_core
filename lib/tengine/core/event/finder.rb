@@ -25,7 +25,7 @@ class Tengine::Core::Event::Finder
 
   def initialize(attrs = {})
     attrs = {
-      level_ids: default_level_ids
+      :level_ids => default_level_ids
     }.update(attrs || {})
     attrs.each do |attr, v|
       send("#{attr}=", v) unless v.blank?
@@ -45,24 +45,37 @@ class Tengine::Core::Event::Finder
     return result
   end
 
-  def paginate(page)
-    scope(Tengine::Core::Event).page(page)
+  def paginate(page = nil)
+    result = scope(Tengine::Core::Event)
+    if page || result.respond_to?(:page)
+      result = result.page(page)
+    end
+    result
   end
 
   def scope(criteria)
     result = criteria
-    result = result.where(event_type_name: event_type_name) if event_type_name
-    result = result.where(key: key)  if key
-    result = result.where(source_name: source_name) if source_name
+    result = result.where(:event_type_name => str_or_regexp(event_type_name)) if event_type_name
+    result = result.where(:key => key)  if key
+    result = result.where(:source_name => str_or_regexp(source_name)) if source_name
     result = result.where(:occurred_at.gte => occurred_at_start) if occurred_at_start
     result = result.where(:occurred_at.lte =>  occurred_at_end) if occurred_at_end
-    result = result.any_in(level: level_ids) if level_ids
-    result = result.where(confirmed: confirmed) if confirmed
-    result = result.where(sender_name: sender_name) if sender_name
-    result = result.where(properties: properties) if properties
+    result = result.any_in(:level => level_ids) if level_ids
+    result = result.where(:confirmed => confirmed) if confirmed
+    result = result.where(:sender_name => str_or_regexp(sender_name)) if sender_name
+    result = result.where(:properties => properties) if properties
     # ソート
     result = result.desc(:_id)
     result
+  end
+
+  private
+  def str_or_regexp(val)
+    if val =~ %r{\A\/(.+)\/\Z}
+      /#{$1}/
+    else
+      /\A#{Regexp.escape(val)}/
+    end
   end
 
 end

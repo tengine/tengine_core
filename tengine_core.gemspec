@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.3.7"
+  s.version = "0.4.7"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2011-11-16"
+  s.date = "2011-11-28"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -53,8 +53,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/bootstrap.rb",
     "lib/tengine/core/collection_accessible.rb",
     "lib/tengine/core/config.rb",
-    "lib/tengine/core/config/default.rb",
-    "lib/tengine/core/config/parser.rb",
+    "lib/tengine/core/config/core.rb",
     "lib/tengine/core/connection_test/.gitignore",
     "lib/tengine/core/connection_test/fire_bar_on_foo.rb",
     "lib/tengine/core/driver.rb",
@@ -107,7 +106,11 @@ Gem::Specification.new do |s|
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/非ASCIIのファイル名_dsl.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/source_location_encoding.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/非ASCIIのファイル名_dsl.rb",
-    "spec/tengine/core/config_spec.rb",
+    "spec/tengine/core/config/core_spec.rb",
+    "spec/tengine/core/config/syntax_error_in_erb.yml.erb",
+    "spec/tengine/core/config/wrong_category_name.yml.erb",
+    "spec/tengine/core/config/wrong_field_name.yml.erb",
+    "spec/tengine/core/config/wrong_yaml.yml.erb",
     "spec/tengine/core/config_spec/another_port.yml",
     "spec/tengine/core/config_spec/config_with_dir_absolute_load_path.yml",
     "spec/tengine/core/config_spec/config_with_dir_relative_load_path.yml",
@@ -134,6 +137,8 @@ Gem::Specification.new do |s|
     "spec/tengine/core/dsls/uc72_setup_eventmachine_spec.rb",
     "spec/tengine/core/dsls/uc80_raise_io_error_spec.rb",
     "spec/tengine/core/dsls/uc81_raise_runtime_error_spec.rb",
+    "spec/tengine/core/event/finder_spec.rb",
+    "spec/tengine/core/event_exception_reportable_spec.rb",
     "spec/tengine/core/event_spec.rb",
     "spec/tengine/core/event_wrapper_spec.rb",
     "spec/tengine/core/handler_path_spec.rb",
@@ -168,8 +173,8 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<bson_ext>, ["~> 1.4.0"])
       s.add_runtime_dependency(%q<mongo>, ["~> 1.4.0"])
       s.add_runtime_dependency(%q<mongoid>, ["~> 2.3.3"])
-      s.add_runtime_dependency(%q<tengine_support>, ["~> 0.3.0"])
-      s.add_runtime_dependency(%q<tengine_event>, ["~> 0.3.2"])
+      s.add_runtime_dependency(%q<tengine_support>, ["~> 0.3.12"])
+      s.add_runtime_dependency(%q<tengine_event>, ["~> 0.3.3"])
       s.add_runtime_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_development_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_development_dependency(%q<factory_girl>, ["~> 2.1.2"])
@@ -188,8 +193,8 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
       s.add_dependency(%q<mongo>, ["~> 1.4.0"])
       s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
-      s.add_dependency(%q<tengine_support>, ["~> 0.3.0"])
-      s.add_dependency(%q<tengine_event>, ["~> 0.3.2"])
+      s.add_dependency(%q<tengine_support>, ["~> 0.3.12"])
+      s.add_dependency(%q<tengine_event>, ["~> 0.3.3"])
       s.add_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_dependency(%q<factory_girl>, ["~> 2.1.2"])
@@ -209,8 +214,8 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
     s.add_dependency(%q<mongo>, ["~> 1.4.0"])
     s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
-    s.add_dependency(%q<tengine_support>, ["~> 0.3.0"])
-    s.add_dependency(%q<tengine_event>, ["~> 0.3.2"])
+    s.add_dependency(%q<tengine_support>, ["~> 0.3.12"])
+    s.add_dependency(%q<tengine_event>, ["~> 0.3.3"])
     s.add_dependency(%q<daemons>, ["~> 1.1.4"])
     s.add_dependency(%q<rspec>, ["~> 2.6.0"])
     s.add_dependency(%q<factory_girl>, ["~> 2.1.2"])

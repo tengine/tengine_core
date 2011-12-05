@@ -12,7 +12,7 @@ describe Tengine::Core::HeartbeatWatcher do
   end
 
   subject do
-    Tengine::Core::HeartbeatWatcher.new([])
+    Tengine::Core::HeartbeatWatcher.new(%w[--heartbeat-hbw-interval=30])
   end
 
   describe "#search_for_invalid_heartbeat" do
