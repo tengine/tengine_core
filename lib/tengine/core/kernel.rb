@@ -32,15 +32,18 @@ class Tengine::Core::Kernel
   end
 
   def stop(force = false)
+    cb = proc do |*|
+      EM.cancel_timer(@heartbeat_timer) if @heartbeat_timer
+      send_last_event do
+        close_if_shutting_down
+      end
+    end
     if self.status == :running
       update_status(:shutting_down)
-      if @heartbeat_timer
-        EM.cancel_timer(@heartbeat_timer)
-        send_last_event
-      end
       if mq.queue.default_consumer
-        mq.queue.unsubscribe
-        close_if_shutting_down if !@processing_event || force
+        mq.queue.unsubscribe :nowait => false, &cb
+      else
+        cb.call
       end
     else
       update_status(:shutting_down)
@@ -101,7 +104,7 @@ class Tengine::Core::Kernel
 
   # subscribe to messages in the queue
   def subscribe_queue
-    mq.queue.subscribe(:ack => true, :nowait => true) do |headers, msg|
+    mq.queue.subscribe(:ack => true, :nowait => false, :confirm => proc {|*| @initial_connection = true }) do |headers, msg|
       process_message(headers, msg)
     end
   end
@@ -168,7 +171,9 @@ class Tengine::Core::Kernel
       EM.defer do
         @heartbeat_timer = EM.add_periodic_timer(n) do
           Tengine::Core.stdout_logger.debug("sending heartbeat") if config[:verbose]
-          sender.fire(HEARTBEAT_EVENT_TYPE_NAME, HEARTBEAT_ATTRIBUTES.dup)
+          sender.fire(HEARTBEAT_EVENT_TYPE_NAME, HEARTBEAT_ATTRIBUTES.dup) do
+            @initial_connection = true
+          end
         end
       end
     end
@@ -189,6 +194,15 @@ class Tengine::Core::Kernel
   private
 
   def setup_mq_connection
+    @initial_connection = false
+    mq.add_hook :'connection.on_tcp_connection_failure' do |set|
+      raise "It seems MQ broker is missing (misconfiguration?)." unless @initial_connection
+      case @status when :terminated, :shutting_down then
+        raise "Could not properly shut down; MQ broker is missing."
+        # EM.stop
+      end
+    end
+    
     # see http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/ErrorHandling.textile#Recovering_from_network_connection_failures
     # mq.connection raiases AMQP::TCPConnectionFailed unless connects to MQ.
     mq.add_hook :'connection.on_error' do |conn, connection_close|
@@ -373,9 +387,10 @@ class Tengine::Core::Kernel
   def close_if_shutting_down
     # unsubscribed されている場合は安全な停止を行う
     # return if mq.queue.default_consumer
-    return unless status == :shutting_down
-    Tengine::Core.stdout_logger.warn("connection closing...")
-    mq.connection.close{ EM.stop_event_loop }
+    case status when :shutting_down, :terminated then
+      Tengine::Core.stdout_logger.warn("connection closing...")
+      mq.stop
+    end
   end
 
   STATUS_LIST = [
@@ -404,9 +419,11 @@ class Tengine::Core::Kernel
     argh = HEARTBEAT_ATTRIBUTES.dup
     argh[:level] = Tengine::Event::LEVELS_INV[:info]
     argh.delete :retry_count # use default
-    sender.fire "finished.process.core.tengine", argh
-    # 他のデーモンと違ってfinishedをfireしたからといってsender.stopし
-    # てよいとは限らない(裏でまだイベント処理中かも)
+    sender.fire "finished.process.core.tengine", argh do
+      # 他のデーモンと違ってfinishedをfireしたからといってsender.stopし
+      # てよいとは限らない(裏でまだイベント処理中かも)
+      yield
+    end
   end
 
   # 自動でログ出力する
