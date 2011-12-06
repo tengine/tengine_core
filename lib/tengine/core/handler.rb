@@ -33,7 +33,7 @@ class Tengine::Core::Handler
   selectable_attr :target_instantiation_cd do
     entry '01', :binding        , "binding"
     entry '02', :static         , "static"
-    entry '03', :instance_method, "isntance_method"
+    entry '03', :instance_method, "instance_method"
   end
 
   # @attribute 実行対象となるメソッドの名前

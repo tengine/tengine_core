@@ -106,16 +106,32 @@ module Tengine::Core::Driveable
       if block
         filepath, lineno = *block.source_location
         filepath = context.config.relative_path_from_dsl_dir(filepath)
+        options.update(:filepath => filepath, :lineno => lineno)
         filter_def = nil
+        handler = nil
         if event_type_names.length == 1 && event_type_names.first.is_a?(Tengine::Core::DslFilterDef)
           filter_def = event_type_names.first
+          options[:filter] = filter_def.filter
           event_type_names = filter_def.event_type_names
+          base_method_name = event_type_names.map(&:to_s).join("_")
+          driver = context.driver
+          driver.reload
+          handler = driver.handlers.new({
+              :event_type_names => event_type_names,
+              :target_instantiation_key => :instance_method,
+            }.update(options))
+          # フィルタ付きの場合は単純なイベントハンドラ名だけではメソッド名として表現できないので
+          # handler自身のIDをメソッド名に含めます。
+          method_name = "#{base_method_name}_#{handler.id.to_s}"
+          handler.target_method_name = method_name.to_s
+          handler.save!
+          event_type_names.each do |event_type_name|
+            driver.handler_paths.create!(:event_type_name => event_type_name, :handler_id => handler.id)
+          end
+        else
+          method_name = event_type_names.map(&:to_s).join("_")
+          context.__on_args__ = event_type_names.map(&:to_s) + [options]
         end
-        options.update(
-          :filepath => filepath, :lineno => lineno,
-          :filter => filter_def ? filter_def.filter : nil)
-        method_name = event_type_names.map(&:to_s).join("_")
-        context.__on_args__ = event_type_names.map(&:to_s) + [options]
         case block.arity
         when 1 then
           define_method(method_name, &block)
@@ -135,7 +151,7 @@ module Tengine::Core::Driveable
         else
           raise Tengine::Core::DslError, "#{block.artity} aritties block given"
         end
-
+        # handler.save! if handler
       else
         filepath, lineno = *caller.first.sub(/:in.+\Z/, '').split(/:/, 2)
         options.update(:filepath => filepath, :lineno => lineno)
