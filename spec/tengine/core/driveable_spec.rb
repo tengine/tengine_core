@@ -9,6 +9,10 @@ describe Tengine::Core::Driveable do
       Tengine::Core::HandlerPath.delete_all
     end
 
+    def driveable_test_class_index
+      @@index ||= 0
+    end
+
     def define_driveable_test_class
       @@index ||= 0
       @@index += 1
@@ -48,6 +52,35 @@ describe Tengine::Core::Driveable do
           define_driveable_test_class
         }.to change(Tengine::Core::Driver, :count).by(1)
       }.to change(Tengine::Core::HandlerPath, :count).by(6)
+    end
+
+    context "すでにロードされている場合" do
+      before do
+        driver = Tengine::Core::Driver.new(
+          :name => "DriveableTestClass#{driveable_test_class_index + 1}",
+          :version => Tengine::Core::Setting.dsl_version,
+          :target_class_name => "DriveableTestClass#{driveable_test_class_index + 1}"
+          )
+        options = {:filepath => __FILE__, :lineno => __LINE__}
+        handler1 = driver.handlers.new({:target_method_name => 'foo' , :target_instantiation_key => :instance_method, :event_type_names => ['event01']}.update(options))
+        handler2 = driver.handlers.new({:target_method_name => 'bar' , :target_instantiation_key => :instance_method, :event_type_names => ['event02', 'event03']}.update(options))
+        handler3 = driver.handlers.new({:target_method_name => 'baz' , :target_instantiation_key => :static         , :event_type_names => ['event04']}.update(options))
+        handler4 = driver.handlers.new({:target_method_name => 'hoge', :target_instantiation_key => :static         , :event_type_names => ['event05', 'event06']}.update(options))
+        driver.save!
+        driver.handler_paths.create!(:handler_id => handler1.id, :event_type_name => "event01")
+        driver.handler_paths.create!(:handler_id => handler2.id, :event_type_name => "event02")
+        driver.handler_paths.create!(:handler_id => handler2.id, :event_type_name => "event03")
+        driver.handler_paths.create!(:handler_id => handler3.id, :event_type_name => "event04")
+        driver.handler_paths.create!(:handler_id => handler4.id, :event_type_name => "event05")
+        driver.handler_paths.create!(:handler_id => handler4.id, :event_type_name => "event06")
+      end
+      it "ドライバの件数は増えない" do
+        expect{
+          expect{
+            define_driveable_test_class
+          }.to_not change(Tengine::Core::Driver, :count)
+        }.to_not change(Tengine::Core::HandlerPath, :count)
+      end
     end
 
     context "ロードされたドライバ" do

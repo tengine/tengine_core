@@ -18,17 +18,22 @@ module Tengine::Core::Driveable
       def __on_args__=(val); @__on_args__ = val; end
     end
 
-    @__context__.driver = Tengine::Core::Driver.create!(
+    driver_attrs = {
       :name => self.name.gsub(/:/, 'Colon'),
-      :target_class_name => self.name,
       :version => Tengine::Core::Setting.dsl_version
-      )
+    }
+    if Tengine::Core::Driver.count(:conditions => driver_attrs) <= 0
+      @__context__.driver = Tengine::Core::Driver.create!({
+          :target_class_name => self.name,
+        }.update(driver_attrs))
+    end
 
     def self.method_added(method_name)
       return unless @__context__.__on_args__
       args = @__context__.__on_args__
       @__context__.__on_args__ = nil
       driver = @__context__.driver
+      return unless driver
       driver.reload
       options = args.extract_options!
       handler = driver.handlers.create!({
@@ -53,6 +58,7 @@ module Tengine::Core::Driveable
       args = context.__on_args__
       context.__on_args__ = nil
       driver = context.driver
+      return unless driver
       driver.reload
       options = args.extract_options!
       handler = driver.handlers.create!({
