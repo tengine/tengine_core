@@ -143,7 +143,7 @@ describe Tengine::Core::Kernel do
           @mock_mq.stub(:queue).twice.and_return(@mock_queue)
           @mock_mq.stub(:wait_for_connection).and_yield
           # subscribe されていることを検証
-          @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true)
+          @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc))
         end
 
         it "heartbeatは有効にならない" do
@@ -191,7 +191,7 @@ describe Tengine::Core::Kernel do
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
           mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
           mock_mq.stub(:wait_for_connection).and_yield
-          @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true).and_yield(@header, :message)
+          @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)).and_yield(@header, :message)
 
           # subscribe してみる
           @mock_raw_event = mock(:row_event)
@@ -266,7 +266,7 @@ describe Tengine::Core::Kernel do
           mock_sub_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
           Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_sub_mq)
           mock_sub_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
-          @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true).and_yield(@header, :message)
+          @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)).and_yield(@header, :message)
 
           # subscribe してみる
           @raw_event = Tengine::Event.new(:key => "uuid1", :sender_name => "localhost", :event_type_name => "event1")
@@ -312,7 +312,7 @@ describe Tengine::Core::Kernel do
         Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
         mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
         mock_mq.stub(:wait_for_connection).and_yield
-        @mock_queue.stub(:subscribe).with(:ack => true, :nowait => true).and_yield(@header, :message)
+        @mock_queue.stub(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)).and_yield(@header, :message)
 
         # subscribe してみる
         mock_raw_event = mock(:row_event)
@@ -537,67 +537,118 @@ describe Tengine::Core::Kernel do
         end
       end
     end
+  end
 
-    describe :setup_mq_connection do
+  describe :setup_mq_connection do
+    if RUBY_VERSION >= "1.9.2"
       before do
+        EM.instance_eval do
+          @timers.each {|i| EM.stop_timer i } if @timers
+          @next_tick_queue = nil
+        end
+        trigger
         config = Tengine::Core::Config::Core.new({
-            :tengined => {
-              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
-            },
-          })
+          :tengined => {
+            :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+          },
+          :event_queue => { :connection => { :port => @port } } 
+        })
         @kernel = Tengine::Core::Kernel.new(config)
         @mock_connection = mock(:connection)
         @mock_channel = mock(:channel)
-
       end
 
-      if RUBY_VERSION >= "1.9.2"
-        it "MQ接続時にエラーなどのイベントハンドリングを行います" do
+      let(:rabbitmq) do
+        ret = nil
+        ENV["PATH"].split(/:/).find do |dir|
+          Dir.glob("#{dir}/rabbitmq-server") do |path|
+            if File.executable?(path)
+              ret = path
+              break
+            end
+          end
+        end
 
-          require 'socket'
-          n = rand(32768)
-          t = nil
-          e = StandardError.new
+        pending "rabbitmq が見つかりません" unless ret
+        ret
+      end
+
+      def trigger port = rand(32768)
+        require 'tmpdir'
+        @dir = Dir.mktmpdir
+        # 指定したポートはもう使われているかもしれないので、その際は
+        # rabbitmqが起動に失敗するので、何回かポートを変えて試す。
+        n = 0
+        begin
+          envp = {
+            "RABBITMQ_NODENAME"        => "rspec",
+            "RABBITMQ_NODE_PORT"       => port.to_s,
+            "RABBITMQ_NODE_IP_ADDRESS" => "auto",
+            "RABBITMQ_MNESIA_BASE"     => @dir.to_s,
+            "RABBITMQ_LOG_BASE"        => @dir.to_s,
+          }
+          @pid = Process.spawn(envp, rabbitmq, :chdir => @dir, :in => :close)
+          256.times do |i| # まあこんくらい待てばいいでしょ
+            sleep 0.1
+            Process.waitpid2(@pid, Process::WNOHANG)
+            Process.kill 0, @pid
+          end
+          @port = port
+        rescue Errno::ECHILD, Errno::ESRCH
+          pending "10 attempts to invoke rabbitmq failed." if (n += 1) > 10
+          port = rand(32768)
+          retry
+        end
+      end
+
+      def finish
+        if @pid
           begin
-            t = Thread.start do
-              begin
-                Socket.tcp_server_loop(nil, n) do |sock, addr|
-                  Thread.start(sock, addr) do |s, a|
-                    Thread.stop # stops forever
+            Process.kill "INT", @pid
+            Process.waitpid @pid
+          rescue Errno::ECHILD, Errno::ESRCH
+          ensure
+            require 'fileutils'
+            FileUtils.remove_entry_secure @dir, :force
+          end
+        end
+      end
+
+      after do
+        finish
+      end
+
+      it "MQ接続時にエラーなどのイベントハンドリングを行います" do
+        EM.run do
+          mq = @kernel.mq
+
+          @kernel.setup_mq_connection
+
+          # ここではイベント発生時の振る舞いもチェックします
+          EM.defer(
+            lambda { @kernel.subscribe_queue; sleep 0.1 until @kernel.instance_eval { @initial_connection } },
+            lambda do |a|
+              Tengine::Core.stderr_logger.should_receive(:warn).with('mq.connection.on_tcp_connection_loss: now reconnecting 1 second(s) later.').at_least(1).times
+              finish
+              EM.add_timer(1) do
+                Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
+                EM.defer(
+                  lambda { trigger @port; true },
+                  lambda do |a|
+                    Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
+                    mq.channel.exec_callback_once_yielding_self(:error, "channel close reason object")
+
+                    Tengine::Core.stderr_logger.should_receive(:error).with('mq.connection.on_error connection_close: "connection close reason object"')
+                    mq.connection.exec_callback_yielding_self(:error, "connection close reason object")
+
+                    EM.next_tick do
+                      mq.stop
+                    end
                   end
-                end
-              rescue e
-                # end of server
+                 )
               end
             end
-            t.abort_on_exception = true
-          rescue
-            n = rand(32768)
-            retry
-          end
-
-          sleep(0.1) # TODO 要調査。なぜか秋間の環境ではこのsleepを入れないと失敗します。
-
-          EM.run_block do
-            @kernel.config[:event_queue][:connection][:port] = n
-            mq = @kernel.mq
-
-            @kernel.setup_mq_connection
-
-            # ここではイベント発生時の振る舞いもチェックします
-            Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
-            mq.channel.exec_callback_once_yielding_self(:error, "channel close reason object")
-
-            Tengine::Core.stderr_logger.should_receive(:error).with('mq.connection.on_error connection_close: "connection close reason object"')
-            mq.connection.exec_callback_yielding_self(:error, "connection close reason object")
-
-            Tengine::Core.stderr_logger.should_receive(:warn).with('mq.connection.on_tcp_connection_loss: now reconnecting 1 second(s) later.')
-            mq.connection.tcp_connection_failed
-
-            Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
-            mq.connection.exec_callback_yielding_self(:after_recovery, "settings")
-          end
-          t.raise(e)
+          )
         end
       end
     end
@@ -682,7 +733,7 @@ describe Tengine::Core::Kernel do
         mock_queue = mock(:queue)
         mq.should_receive(:queue).twice.and_return(mock_queue)
         mq.stub(:wait_for_connection).and_yield
-        mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true)
+        mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc))
 
         @kernel.should_receive(:setup_mq_connection)
         @kernel.start
@@ -717,7 +768,7 @@ describe Tengine::Core::Kernel do
         Tengine::Mq::Suite.should_receive(:new).with(kernel.config[:event_queue]).and_return(mq)
         mq.should_receive(:queue).exactly(3).times.and_return(@mock_queue)
         mq.stub(:wait_for_connection).and_yield
-        @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true)
+        @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc))
 
         kernel.should_receive(:setup_mq_connection)
         kernel.start
