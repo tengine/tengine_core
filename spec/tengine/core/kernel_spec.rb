@@ -632,6 +632,7 @@ describe Tengine::Core::Kernel do
               finish
               EM.add_timer(1) do
                 Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
+                Tengine::Core.stderr_logger.should_receive(:info).with('mq.channel.qos OK')
                 EM.defer(
                   lambda { trigger @port; true },
                   lambda do |a|
