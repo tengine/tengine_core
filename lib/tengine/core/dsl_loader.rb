@@ -52,6 +52,7 @@ module Tengine::Core::DslLoader
     klass.module_eval do
       include Tengine::Core::Driveable::ByDsl
       self.singleton_class.config = c
+      self.singleton_class.options = options
       include Tengine::Core::Driveable
     end
     klass.module_eval(&block)
