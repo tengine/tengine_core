@@ -38,7 +38,9 @@ describe "uc64_safety_countup" do
     f1 = Fiber.new{
       raw_event1 = Tengine::Event.new(:event_type_name => "event64")
       session_wrapper1 = test_session_wrapper_class.new(Tengine::Core::Session.find(session.id))
-      @kernel1.context.should_receive(:session).and_return(session_wrapper1)
+      klass = driver64.target_class_name.constantize
+      klass.should_receive(:session).and_return(session_wrapper1)
+      # @kernel1.context.should_receive(:session).and_return(session_wrapper1)
       @kernel1.process_message(mock_headers, raw_event1.to_json)
     }
     f1.resume
@@ -46,7 +48,9 @@ describe "uc64_safety_countup" do
     f2 = Fiber.new{
       raw_event2 = Tengine::Event.new(:event_type_name => "event64")
       session_wrapper2 = test_session_wrapper_class.new(Tengine::Core::Session.find(session.id))
-      @kernel2.context.should_receive(:session).and_return(session_wrapper2)
+      klass = driver64.target_class_name.constantize
+      klass.should_receive(:session).and_return(session_wrapper2)
+      # @kernel2.context.should_receive(:session).and_return(session_wrapper2)
       @kernel2.process_message(mock_headers, raw_event2.to_json)
     }
     f2.resume
@@ -88,7 +92,9 @@ describe "uc64_safety_countup" do
       3.times do
         raw_event1 = Tengine::Event.new(:event_type_name => "event64")
         session_wrapper1 = test_session_wrapper_class.new(Tengine::Core::Session.find(session.id))
-        @kernel1.context.should_receive(:session).and_return(session_wrapper1)
+        klass = driver64.target_class_name.constantize
+        klass.should_receive(:session).and_return(session_wrapper1)
+        # @kernel1.context.should_receive(:session).and_return(session_wrapper1)
         @kernel1.process_message(mock_headers, raw_event1.to_json)
       end
     }
@@ -97,7 +103,9 @@ describe "uc64_safety_countup" do
     f2 = Fiber.new{
       raw_event2 = Tengine::Event.new(:event_type_name => "event64")
       session_wrapper2 = test_session_wrapper_class.new(Tengine::Core::Session.find(session.id))
-      @kernel2.context.should_receive(:session).and_return(session_wrapper2)
+      klass = driver64.target_class_name.constantize
+      klass.should_receive(:session).and_return(session_wrapper2)
+      # @kernel2.context.should_receive(:session).and_return(session_wrapper2)
       expect{
         @kernel2.process_message(mock_headers, raw_event2.to_json)
       }.to raise_error(Tengine::Core::OptimisticLock::RetryOverError)
