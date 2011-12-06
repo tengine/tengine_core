@@ -79,18 +79,9 @@ class Tengine::Core::Handler
       m = klass.method(target_method_name)
       m.arity == 0 ? m.call : m.call(event)
     when :binding then
-      block = event.kernel.dsl_context.__block_for__(self)
-      @caller = eval("self", block.binding)
-      begin
-        # ハンドラの実行
-        @caller.__safety_driver__(self.driver) do
-          @caller.__safety_event__(event) do
-            @caller.instance_eval(&block)
-          end
-        end
-      ensure
-        @caller = nil
-      end
+      # do nothing
+    else
+      raise Tengine::Core::KernelError, "Unsupported target_instantiation_key: #{self.target_instantiation_key.inspect}"
     end
   end
 

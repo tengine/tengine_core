@@ -59,9 +59,9 @@ class Tengine::Core::Kernel
   alias_method :context, :dsl_context
 
   def bind
-    dsl_context.__evaluate__
-    Tengine::Core::stdout_logger.debug("Hanlder bindings:\n" << dsl_context.to_a.inspect)
-    Tengine::Core::HandlerPath.default_driver_version = config.dsl_version
+    # dsl_context.__evaluate__
+    # Tengine::Core::stdout_logger.debug("Hanlder bindings:\n" << dsl_context.to_a.inspect)
+    # Tengine::Core::HandlerPath.default_driver_version = config.dsl_version
   end
 
   def wait_for_activation(&block)
