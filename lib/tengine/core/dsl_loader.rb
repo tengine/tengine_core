@@ -42,12 +42,17 @@ module Tengine::Core::DslLoader
     else
       Tengine::Core::Setting.create!(:name => "dsl_version", :value => config.dsl_version)
     end
-
+    c = config
     klass = Class.new
-    Object.const_set(name.to_s.camelize, klass)
+    const_name = name.to_s.camelize
+#     if Object.constants.include?(const_name) || defined?(const_name)
+#       puts "#{const_name} is already defined\n  " << caller.join("\n  ")
+#     end
+    Object.const_set(const_name, klass)
     klass.module_eval do
       include Tengine::Core::Driveable::ByDsl
       include Tengine::Core::Driveable
+      self.singleton_class.config = c
     end
     klass.module_eval(&block)
   end

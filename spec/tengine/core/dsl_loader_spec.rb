@@ -31,6 +31,7 @@ describe Tengine::Core::DslLoader do
           driver01.should_not be_nil
           driver01.name.should == "driver01"
           driver01.version.should == "20110902213500"
+          driver01.enabled.should == true
           driver01.handlers.count.should == 1
           handler1 = driver01.handlers.first
           handler1.event_type_names.should == %w[event01]
@@ -39,6 +40,7 @@ describe Tengine::Core::DslLoader do
           Tengine::Core::HandlerPath.find_handlers("event01").count.should == 1
         end
       end
+
 
       context "Driverを無効化して登録(マルチプロセスモード)" do
         before do

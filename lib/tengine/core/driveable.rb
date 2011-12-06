@@ -11,6 +11,9 @@ module Tengine::Core::Driveable
     @__context__ = self.singleton_class
     @__context__.extend(ClassMethods)
     @__context__.instance_eval do
+      def config; @config; end
+      def config=(val); @config = val; end
+
       def driver; @driver; end
       def driver=(val); @driver = val; end
 
@@ -69,6 +72,7 @@ module Tengine::Core::Driveable
           :target_instantiation_key => :static,
           :target_method_name => method_name.to_s
         }.update(options))
+      # puts "handler: #{handler.inspect}\n#{args.inspect}"
       args.each do |event_type_name|
         driver.handler_paths.create!(:event_type_name => event_type_name, :handler_id => handler.id)
       end
@@ -76,13 +80,33 @@ module Tengine::Core::Driveable
   end
 
   module ClassMethods
-    def on(*args)
+    def on(*args, &block)
       context = @__context__ || self
       options = args.extract_options!
       event_type_names = args
-      filepath, lineno = *caller.first.sub(/:in.+\Z/, '').split(/:/, 2)
-      options.update(:filepath => filepath, :lineno => lineno)
-      context.__on_args__ = ( args + [options] )
+      if block
+        filepath, lineno = *block.source_location
+        filepath = context.config.relative_path_from_dsl_dir(filepath)
+        filter_def = nil
+        if event_type_names.length == 1 && event_type_names.first.is_a?(Tengine::Core::DslFilterDef)
+          filter_def = event_type_names.first
+          event_type_names = filter_def.event_type_names
+        end
+        options.update(
+          :filepath => filepath, :lineno => lineno,
+          :filter => filter_def ? filter_def.filter : nil)
+        method_name = event_type_names.map(&:to_s).join("_")
+        context.__on_args__ = event_type_names.map(&:to_s) + [options]
+        self.instance_eval do
+          define_method(method_name) do |event|
+            block.call
+          end
+        end
+      else
+        filepath, lineno = *caller.first.sub(/:in.+\Z/, '').split(/:/, 2)
+        options.update(:filepath => filepath, :lineno => lineno)
+        context.__on_args__ = ( args + [options] )
+      end
     end
   end
 
