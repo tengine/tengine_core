@@ -18,21 +18,19 @@ module Tengine::Core::Driveable
       def __on_args__=(val); @__on_args__ = val; end
     end
 
-    driver_name = (self < Tengine::Core::Driveable::ByDsl) ?
-      self.name.underscore : self.name
-
-    driver_attrs = {
-      :name => driver_name, # self.name.gsub(/:/, 'Colon'),
-      :version => Tengine::Core::Setting.dsl_version
-    }
-    if Tengine::Core::Driver.count(:conditions => driver_attrs) <= 0
+    if self.driver.nil?
       config = @__context__.respond_to?(:config) ? @__context__.config : nil
       options = @__context__.respond_to?(:options) ? @__context__.options : {}
-      @__context__.driver = Tengine::Core::Driver.create!({
+      driver = Tengine::Core::Driver.new({
+          :name => self.driver_name, # self.name.gsub(/:/, 'Colon'),
+          :version => Tengine::Core::Setting.dsl_version,
           :enabled => config ? !config[:tengined][:skip_enablement] : true,   # driverを有効化して登録するかのオプション
           :enabled_on_activation => options[:enabled_on_activation].nil? || options[:enabled_on_activation],  # DSLに記述されているオプション
           :target_class_name => self.name,
-        }.update(driver_attrs))
+        })
+      driver.create_session
+      driver.save!
+      @__context__.driver = driver
     end
 
     def self.method_added(method_name)
@@ -81,6 +79,26 @@ module Tengine::Core::Driveable
   end
 
   module ClassMethods
+    def driver_name
+      return nil if self.name.nil?
+      (self < Tengine::Core::Driveable::ByDsl) ? self.name.underscore : self.name
+    end
+
+    def driver
+      unless @driver
+        driver_attrs = {
+          :name => self.driver_name, # self.name.gsub(/:/, 'Colon'),
+          :version => Tengine::Core::Setting.dsl_version
+        }
+        @driver = Tengine::Core::Driver.first(:conditions => driver_attrs)
+      end
+      @driver
+    end
+
+    def session
+      @__session_wrapper__ ||= Tengine::Core::SessionWrapper.new(driver.session)
+    end
+
     def on(*args, &block)
       context = @__context__ || self
       options = args.extract_options!
@@ -126,6 +144,11 @@ module Tengine::Core::Driveable
     end
   end
 
+  def session
+    self.class.session
+  end
+
+
   module ByDsl
     extend ActiveSupport::Concern
 
@@ -143,7 +166,6 @@ module Tengine::Core::Driveable
     def event
       @__event__
     end
-
 
   end
 
