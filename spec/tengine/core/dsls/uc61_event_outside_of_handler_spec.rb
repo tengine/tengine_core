@@ -18,7 +18,8 @@ describe "uc61_event_outside_of_handler" do
     expect{
       expect{
         @bootstrap.load_dsl
-      }.to raise_error(Tengine::Core::DslError, "event is not available outside of event handler block.")
+      # }.to raise_error(Tengine::Core::DslError, "event is not available outside of event handler block.")
+      }.to raise_error(NameError, "undefined local variable or method `event' for Driver61:Class")
     }.to_not change(Tengine::Core::Driver, :count)
   end
 
