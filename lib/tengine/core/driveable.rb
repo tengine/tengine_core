@@ -98,11 +98,26 @@ module Tengine::Core::Driveable
           :filter => filter_def ? filter_def.filter : nil)
         method_name = event_type_names.map(&:to_s).join("_")
         context.__on_args__ = event_type_names.map(&:to_s) + [options]
-        self.instance_eval do
-          define_method(method_name) do |event|
-            block.call
+        case block.arity
+        when 1 then
+          define_method(method_name, &block)
+        when 0 then
+          impl_method_name = "__#{method_name}_impl__"
+          self.instance_eval do
+            define_method(method_name) do |event|
+              @__event__ = event
+              begin
+                send(impl_method_name)
+              ensure
+                @__event__ = nil
+              end
+            end
+            define_method(impl_method_name, &block)
           end
+        else
+          raise Tengine::Core::DslError, "#{block.artity} aritties block given"
         end
+
       else
         filepath, lineno = *caller.first.sub(/:in.+\Z/, '').split(/:/, 2)
         options.update(:filepath => filepath, :lineno => lineno)
@@ -124,6 +139,11 @@ module Tengine::Core::Driveable
         def options=(val); @options = val; end
       end
     end
+
+    def event
+      @__event__
+    end
+
 
   end
 
