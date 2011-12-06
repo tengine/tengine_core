@@ -18,8 +18,11 @@ module Tengine::Core::Driveable
       def __on_args__=(val); @__on_args__ = val; end
     end
 
+    driver_name = (self < Tengine::Core::Driveable::ByDsl) ?
+      self.name.underscore : self.name
+
     driver_attrs = {
-      :name => self.name.gsub(/:/, 'Colon'),
+      :name => driver_name, # self.name.gsub(/:/, 'Colon'),
       :version => Tengine::Core::Setting.dsl_version
     }
     if Tengine::Core::Driver.count(:conditions => driver_attrs) <= 0
@@ -81,8 +84,9 @@ module Tengine::Core::Driveable
       options.update(:filepath => filepath, :lineno => lineno)
       context.__on_args__ = ( args + [options] )
     end
-
   end
 
+  module ByDsl
+  end
 
 end

@@ -35,24 +35,21 @@ module Tengine::Core::DslLoader
       # Tengine::Core::stdout.info("no block given at #{caller.first}")
       return
     end
-    drivers = Tengine::Core::Driver.where(:name => name.to_s, :version => config.dsl_version)
-    # 指定した version の driver が見つかった場合にはデプロイ済みなので以降の処理は行わず処理を終了する
-    driver = drivers.first
-    if driver
-      Tengine::Core::stdout_logger.warn("driver#{name.to_s.dump}は既に登録されています")
-      # @__driver__ = driver # ここでインスタンス変数に入れてもブロックを評価しないので使われません。
+
+    if dsl_version_document = Tengine::Core::Setting.first(:conditions => {:name => "dsl_version"})
+      dsl_version_document.value = config.dsl_version
+      dsl_version_document.save!
     else
-      driver = Tengine::Core::Driver.new(options.update({
-          :name => name,
-          :version => config.dsl_version,
-          :enabled => !config[:tengined][:skip_enablement],   # driverを有効化して登録するかのオプション
-          :enabled_on_activation => options[:enabled_on_activation].nil? || options[:enabled_on_activation],  # DSLに記述されているオプション
-          }))
-      driver.create_session
-      __safety_driver__(driver, &block)
-      driver.save!
+      Tengine::Core::Setting.create!(:name => "dsl_version", :value => config.dsl_version)
     end
-    driver
+
+    klass = Class.new
+    Object.const_set(name.to_s.camelize, klass)
+    klass.module_eval do
+      include Tengine::Core::Driveable::ByDsl
+      include Tengine::Core::Driveable
+    end
+    klass.module_eval(&block)
   end
 
   # イベントドライバにイベントハンドラを登録します。
