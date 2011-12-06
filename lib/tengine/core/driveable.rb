@@ -11,9 +11,6 @@ module Tengine::Core::Driveable
     @__context__ = self.singleton_class
     @__context__.extend(ClassMethods)
     @__context__.instance_eval do
-      def config; @config; end
-      def config=(val); @config = val; end
-
       def driver; @driver; end
       def driver=(val); @driver = val; end
 
@@ -29,7 +26,10 @@ module Tengine::Core::Driveable
       :version => Tengine::Core::Setting.dsl_version
     }
     if Tengine::Core::Driver.count(:conditions => driver_attrs) <= 0
+      config = @__context__.respond_to?(:config) ? @__context__.config : nil
       @__context__.driver = Tengine::Core::Driver.create!({
+          :enabled => config ? !config[:tengined][:skip_enablement] : true,   # driverを有効化して登録するかのオプション
+          # :enabled_on_activation => options[:enabled_on_activation].nil? || options[:enabled_on_activation],  # DSLに記述されているオプション
           :target_class_name => self.name,
         }.update(driver_attrs))
     end
@@ -111,6 +111,15 @@ module Tengine::Core::Driveable
   end
 
   module ByDsl
+    extend ActiveSupport::Concern
+
+    included do
+      @__context__ = self.singleton_class
+      @__context__.instance_eval do
+        def config; @config; end
+        def config=(val); @config = val; end
+      end
+    end
   end
 
 end

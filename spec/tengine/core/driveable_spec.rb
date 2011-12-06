@@ -92,7 +92,7 @@ describe Tengine::Core::Driveable do
       subject{ Tengine::Core::Driver.first }
       its(:name){ should =~ /\ADriveableTestClass/ }
       its(:version){ should_not == nil }
-      its(:enabled){ should == nil }
+      its(:enabled){ should == true }
       its(:enabled_on_activation){ should == true }
       its(:target_class_name){ should =~ /\ADriveableTestClass/ }
 
