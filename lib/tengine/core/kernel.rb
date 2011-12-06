@@ -225,6 +225,12 @@ class Tengine::Core::Kernel
       # channel_close.reuse # channel.on_error時にどのように振る舞うべき?
     end
 
+    mq.add_hook :'channel.after_recovery' do |ch|
+      ch.prefetch(1) do
+        Tengine::Core.stderr_logger.info("mq.channel.qos OK")
+      end
+    end
+
     # debug
     mq.add_hook :'everything' do |mid, argv|
       Tengine::Core.stdout_logger.debug("EventMachine state changed: #{mid}")
