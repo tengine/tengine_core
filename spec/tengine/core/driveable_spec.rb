@@ -5,6 +5,8 @@ describe Tengine::Core::Driveable do
 
   describe :handling_by_instance_method do
     before do
+      Tengine::Core::Setting.delete_all
+      Tengine::Core::Setting.create!(:name => "dsl_version", :value => "123")
       Tengine::Core::Driver.delete_all
       Tengine::Core::HandlerPath.delete_all
     end
