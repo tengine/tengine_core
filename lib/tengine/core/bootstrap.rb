@@ -8,7 +8,7 @@ require 'eventmachine'
 class Tengine::Core::Bootstrap
 
   attr_accessor :config
-  attr_accessor :kernel
+  attr_writer :kernel
 
   def initialize(hash)
     @config = Tengine::Core::Config::Core[hash]
@@ -35,7 +35,7 @@ class Tengine::Core::Bootstrap
 
   def load_dsl
     Tengine.plugins.notify(self, :load_dsl) do
-      obj = Tengine::Core::DslLoadingContext.new
+      obj = Tengine::Core::DslLoadingContext.new(kernel)
       obj.config = config
       obj.__evaluate__
     end
@@ -47,9 +47,15 @@ class Tengine::Core::Bootstrap
     end
   end
 
+  private
+  def kernel
+    @kernel ||= Tengine::Core::Kernel.new(config)
+  end
+
+  public
+
   def start_kernel(&block)
     Tengine.plugins.notify(self, :start_kernel) do
-      @kernel = Tengine::Core::Kernel.new(config)
       kernel.start(&block)
     end
   end

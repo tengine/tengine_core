@@ -17,7 +17,8 @@ describe "load_dsl" do
               :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             }
           })
-        loader = Tengine::Core::DslLoadingContext.new
+        kernel = Tengine::Core::Kernel.new(config)
+        loader = Tengine::Core::DslLoadingContext.new(kernel)
         loader.extend(Tengine::Core::DslLoader)
         loader.config = config
 
@@ -44,7 +45,8 @@ describe "load_dsl" do
               :skip_enablement => true
             }
           })
-        loader = Tengine::Core::DslLoadingContext.new
+        kernel = Tengine::Core::Kernel.new(config)
+        loader = Tengine::Core::DslLoadingContext.new(kernel)
         loader.extend(Tengine::Core::DslLoader)
         loader.config = config
 
@@ -71,7 +73,8 @@ describe "load_dsl" do
               :load_path => File.expand_path('../../../../examples/uc71_driver_disabled_on_activation.rb', File.dirname(__FILE__)),
             }
           })
-        loader = Tengine::Core::DslLoadingContext.new
+        kernel = Tengine::Core::Kernel.new(config)
+        loader = Tengine::Core::DslLoadingContext.new(kernel)
         loader.extend(Tengine::Core::DslLoader)
         loader.config = config
 
@@ -97,8 +100,9 @@ describe "load_dsl" do
               :load_path => File.expand_path('../../../../examples/uc71_driver_disabled_on_activation.rb', File.dirname(__FILE__)),
               :skip_enablement => true,
             }
-          })
-        loader = Tengine::Core::DslLoadingContext.new
+          }) 
+        kernel = Tengine::Core::Kernel.new(config)
+        loader = Tengine::Core::DslLoadingContext.new(kernel)
         loader.extend(Tengine::Core::DslLoader)
         loader.config = config
 

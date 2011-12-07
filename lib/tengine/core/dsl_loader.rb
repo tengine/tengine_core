@@ -4,13 +4,36 @@ require 'pathname'
 module Tengine::Core::DslLoader
   include Tengine::Core::DslEvaluator
 
-  # @see Tengine::Core::DslBinder#ack_policy
-  def ack_policy(*args)
-    # DBにack_policyを登録する訳ではないのでここでは何もしません
+  def initialize(kernel)
+    @__kernel__ = kernel
   end
 
-  # @see Tengine::Core::DslBinder#setup_eventmachine
+  # どのようなポリシーでackを返すのかをイベント種別名毎に指定できます。
+  #
+  # @param [Symbol] policy ackポリシー
+  # @param [[Symbol/String]] args イベント種別名の配列
+  #
+  # 例:
+  # {include:file:examples/uc50_commit_event_at_first.rb}
+  #
+  # 例:
+  # {include:file:examples/uc51_commit_event_at_first_submit.rb}
+  #
+  # 例:
+  # {include:file:examples/uc52_commit_event_after_all_handler_submit.rb}
+  #
+  def ack_policy(policy, *args)
+    args.each{|arg| @__kernel__.add_ack_policy(arg, policy)}
+  end
+
+  # このメソッドにブロックを渡すことで、Tengineコアが使用するEventMachineの初期化を行うために設定を行うことができます。
+  #
+  # 例:
+  # {include:file:examples/uc72_setup_eventmachine.rb}
+  #
   def setup_eventmachine(&block)
+    return unless block
+    @__kernel__.em_setup_blocks << block
   end
 
   # イベントドライバを登録します。
