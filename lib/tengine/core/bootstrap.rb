@@ -34,16 +34,15 @@ class Tengine::Core::Bootstrap
   end
 
   def load_dsl
-    Tengine.plugins.notify(self, :load_dsl) do
-      obj = Tengine::Core::DslLoadingContext.new(kernel)
-      obj.config = config
-      obj.__evaluate__
-    end
     if dsl_version_document = Tengine::Core::Setting.first(:conditions => {:name => "dsl_version"})
       dsl_version_document.value = config.dsl_version
       dsl_version_document.save!
     else
       Tengine::Core::Setting.create!(:name => "dsl_version", :value => config.dsl_version)
+    end
+    Tengine.plugins.notify(self, :load_dsl) do
+      context = kernel.dsl_context
+      context.__evaluate__
     end
   end
 

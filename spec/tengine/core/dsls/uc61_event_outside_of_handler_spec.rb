@@ -19,6 +19,7 @@ describe "uc61_event_outside_of_handler" do
       expect{
         @bootstrap.load_dsl
       # }.to raise_error(Tengine::Core::DslError, "event is not available outside of event handler block.")
+      # 仕様変更しました。使うことができないメソッドはRubyで普通にメソッドがない場合と同じように振る舞います
       }.to raise_error(NameError, "undefined local variable or method `event' for Driver61:Class")
     }.to_not change(Tengine::Core::Driver, :count)
   end
@@ -30,6 +31,7 @@ describe "uc61_event_outside_of_handler" do
     driver.save!
     expect{
       @kernel.bind
-    }.to raise_error(Tengine::Core::DslError, "event is not available outside of event handler block.")
+    # }.to raise_error(Tengine::Core::DslError, "event is not available outside of event handler block.")
+    }.to_not raise_error # bindはほとんど何もしなくなりました
   end
 end

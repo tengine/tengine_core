@@ -51,7 +51,8 @@ class Tengine::Core::Kernel
 
   def dsl_context
     unless @dsl_context
-      @dsl_context = Tengine::Core::DslBindingContext.new(self)
+      # @dsl_context = Tengine::Core::DslBindingContext.new(self)
+      @dsl_context = Tengine::Core::DslLoadingContext.new(self)
       @dsl_context.config = config
     end
     @dsl_context

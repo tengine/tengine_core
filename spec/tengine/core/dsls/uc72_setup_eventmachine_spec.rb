@@ -17,24 +17,23 @@ describe "uc72_setup_eventmachine_spec" do
   end
 
   it "EM.run実行時にsetup_eventmachineに渡されたブロックが実行されます" do
+    @kernel.em_setup_blocks.length.should == 0
     expect{
       @bootstrap.load_dsl
     }.to change(@kernel.em_setup_blocks, :length).by(1)
+    @kernel.em_setup_blocks.length.should == 1
     expect{
       @kernel.bind
     }.to_not change(@kernel.em_setup_blocks, :length)
+    @kernel.em_setup_blocks.length.should == 1
     EM.should_receive(:run).and_yield
-    EM.stub(:defer)
+    EM.stub(:defer) # #enable_heartbeat
     mq = mock(:mq, :queue => nil)
     mq.stub(:wait_for_connection).and_yield
     @kernel.should_receive(:mq).at_least(1).times.and_return(mq)
     @kernel.should_receive(:setup_mq_connection)
     @kernel.should_receive(:subscribe_queue)
-    driver = Tengine::Core::Driver.first
-    klass = driver.target_class_name.constantize
-    obj = klass.new
-    klass.should_receive(:new).and_return(obj)
-    obj.should_receive(:puts).with("setup_eventmachine")
+    @kernel.context.should_receive(:puts).with("setup_eventmachine")
     EM.should_receive(:add_periodic_timer).with(3)
     @kernel.activate
   end

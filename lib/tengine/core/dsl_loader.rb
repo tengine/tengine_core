@@ -78,7 +78,13 @@ module Tengine::Core::DslLoader
       self.singleton_class.options = options
       include Tengine::Core::Driveable
     end
-    klass.module_eval(&block)
+    begin
+      klass.module_eval(&block)
+    rescue Exception => e
+      driver = klass.driver
+      driver.destroy if driver && !driver.new_record?
+      raise e
+    end
   end
 
   # イベントドライバにイベントハンドラを登録します。
