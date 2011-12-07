@@ -93,6 +93,9 @@ module Tengine::Core::DslLoader
   end
 
   def fire(*args, &blcok)
+    options = args.extract_options!
+    options[:keep_connection] = true
+    args = args + [options]
     Tengine::Event.fire(*args, &blcok)
   end
 
