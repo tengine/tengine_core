@@ -18,11 +18,7 @@ describe "load_dsl" do
             }
           })
         kernel = Tengine::Core::Kernel.new(config)
-        loader = Tengine::Core::DslLoadingContext.new(kernel)
-        loader.extend(Tengine::Core::DslLoader)
-        loader.config = config
-
-        loader.__evaluate__
+        kernel.evaluate
         Tengine::Core::Driver.count.should == 1
         driver = Tengine::Core::Driver.first
         driver.should_not be_nil
@@ -46,11 +42,7 @@ describe "load_dsl" do
             }
           })
         kernel = Tengine::Core::Kernel.new(config)
-        loader = Tengine::Core::DslLoadingContext.new(kernel)
-        loader.extend(Tengine::Core::DslLoader)
-        loader.config = config
-
-        loader.__evaluate__
+        kernel.evaluate
         Tengine::Core::Driver.count.should == 1
         driver = Tengine::Core::Driver.first
         driver.should_not be_nil
@@ -74,11 +66,7 @@ describe "load_dsl" do
             }
           })
         kernel = Tengine::Core::Kernel.new(config)
-        loader = Tengine::Core::DslLoadingContext.new(kernel)
-        loader.extend(Tengine::Core::DslLoader)
-        loader.config = config
-
-        loader.__evaluate__
+        kernel.evaluate
         Tengine::Core::Driver.count.should == 1
         driver = Tengine::Core::Driver.first
         driver.should_not be_nil
@@ -102,11 +90,7 @@ describe "load_dsl" do
             }
           }) 
         kernel = Tengine::Core::Kernel.new(config)
-        loader = Tengine::Core::DslLoadingContext.new(kernel)
-        loader.extend(Tengine::Core::DslLoader)
-        loader.config = config
-
-        loader.__evaluate__
+        kernel.evaluate
         Tengine::Core::Driver.count.should == 1
         driver = Tengine::Core::Driver.first
         driver.should_not be_nil

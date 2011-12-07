@@ -46,12 +46,9 @@ class Tengine::Core::Bootstrap
     end
   end
 
-  private
   def kernel
     @kernel ||= Tengine::Core::Kernel.new(config)
   end
-
-  public
 
   def start_kernel(&block)
     Tengine.plugins.notify(self, :start_kernel) do

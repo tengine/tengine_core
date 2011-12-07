@@ -4,9 +4,8 @@ require 'pathname'
 module Tengine::Core::DslLoader
   include Tengine::Core::DslEvaluator
 
-  def initialize(kernel)
-    @__kernel__ = kernel
-  end
+  attr_accessor :__kernel__
+
 
   # どのようなポリシーでackを返すのかをイベント種別名毎に指定できます。
   #

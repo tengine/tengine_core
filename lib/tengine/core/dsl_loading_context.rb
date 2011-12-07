@@ -5,4 +5,8 @@ require 'tengine/core'
 # プラグインが拡張を行うプレースホルダです。
 class Tengine::Core::DslLoadingContext
   include Tengine::Core::DslLoader
+
+  def initialize(kernel)
+    @__kernel__ = kernel
+  end
 end

@@ -52,15 +52,28 @@ class Tengine::Core::Kernel
     update_status(:terminated)
   end
 
+  def self.top
+    @top ||= eval("self", TOPLEVEL_BINDING)
+  end
+
   def dsl_context
     unless @dsl_context
-      # @dsl_context = Tengine::Core::DslBindingContext.new(self)
-      @dsl_context = Tengine::Core::DslLoadingContext.new(self)
-      @dsl_context.config = config
+      top = self.class.top
+      top.singleton_class.module_eval do
+        include Tengine::Core::DslLoader
+      end
+      top.__kernel__ = self
+      top.config = config
+      @dsl_context = top
     end
     @dsl_context
   end
   alias_method :context, :dsl_context
+
+  def evaluate
+    dsl_context.__evaluate__
+  end
+
 
   def bind
     # dsl_context.__evaluate__
