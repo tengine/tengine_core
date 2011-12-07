@@ -92,5 +92,8 @@ module Tengine::Core::DslLoader
     @__session_wrapper__ ||= Tengine::Core::SessionWrapper.new(@__session__)
   end
 
+  def fire(*args, &blcok)
+    Tengine::Event.fire(*args, &blcok)
+  end
 
 end

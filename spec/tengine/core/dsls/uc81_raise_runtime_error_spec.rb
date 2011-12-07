@@ -31,7 +31,7 @@ describe "uc81_raise_runtime_error" do
     mock_headers = mock(:headers)
     mock_headers.should_receive(:ack)
     raw_event = Tengine::Event.new(:event_type_name => "event81")
-    @kernel.context.should_receive(:fire).with("event81.error.tengined",
+    @kernel.should_receive(:fire).with("event81.error.tengined",
       :properties => {
         :original_event => instance_of(String),
         :error_class_name => "RuntimeError",

@@ -33,7 +33,7 @@ describe "uc80_raise_io_error" do
     @buffer = StringIO.new
     Tengine.logger = Logger.new(@buffer)
     Tengine.logger.level = Logger::ERROR
-    @kernel.context.should_receive(:fire).with("event80.error.tengined",
+    @kernel.should_receive(:fire).with("event80.error.tengined",
       :properties => {
         :original_event => instance_of(String),
         :error_class_name => "IOError",
