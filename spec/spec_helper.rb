@@ -22,8 +22,10 @@ require 'logger'
 log_path = File.expand_path("../tmp/log/test.log", File.dirname(__FILE__))
 Tengine.logger = Logger.new(log_path)
 Tengine.logger.level = Logger::DEBUG
-Tengine::Core.stdout_logger = Tengine.logger
-Tengine::Core.stderr_logger = Tengine.logger
+Tengine::Core.stdout_logger = Logger.new(log_path)
+Tengine::Core.stdout_logger.level = Logger::DEBUG
+Tengine::Core.stderr_logger = Logger.new(log_path)
+Tengine::Core.stderr_logger.level = Logger::DEBUG
 
 Tengine::Core::Kernel.event_exception_reporter = :raise_all
 
