@@ -183,6 +183,14 @@ module Tengine::Core::Driveable
       @__event__
     end
 
+    def kernel
+      ev = event 
+      ev ? ev.kernel : nil
+    end
+
+    def ack?; kernel.ack?; end
+    def submit; kernel.submit; end
+
   end
 
 end
