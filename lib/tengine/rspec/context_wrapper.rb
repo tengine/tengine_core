@@ -26,17 +26,13 @@ class Tengine::RSpec::ContextWrapper
   end
 
   def should_fire(*args)
-    # receiver = @context
-    receiver = __driver_object__
-    receiver.should_receive(:fire).with(*args)
+    @kernel.should_receive(:fire).with(*args)
   end
   def should_not_fire(*args)
-    # receiver = @context
-    receiver = __driver_object__
     if args.empty?
-      receiver.should_not_receive(:fire)
+      @kernel.should_not_receive(:fire)
     else
-      receiver.should_not_receive(:fire).with(*args)
+      @kernel.should_not_receive(:fire).with(*args)
     end
   end
 

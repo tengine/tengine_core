@@ -4,7 +4,7 @@ module Tengine::Core::EventExceptionReportable
   extend ActiveSupport::Concern
 
   FIRE_ALL = lambda do |kernel, dsl_context, event, exception|
-    dsl_context.fire("#{event.event_type_name}.error.tengined",
+    kernel.fire("#{event.event_type_name}.error.tengined",
       :properties => {
         :original_event => event.to_json,
         :error_class_name => exception.class.name,

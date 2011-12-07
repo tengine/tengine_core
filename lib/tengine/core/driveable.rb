@@ -139,7 +139,7 @@ module Tengine::Core::Driveable
           impl_method_name = "__#{method_name}_impl__"
           self.instance_eval do
             define_method(method_name) do |event|
-              @__event__ = Tengine::Core::EventWrapper.new(event)
+              @__event__ = event
               begin
                 send(impl_method_name)
               ensure
@@ -180,17 +180,20 @@ module Tengine::Core::Driveable
     end
 
     def event
-      @__event__
+      @__event_wrapper__ ||= (@__event__ ? Tengine::Core::EventWrapper.new(@__event__) : nil)
     end
 
     def kernel
-      ev = event 
+      ev = @__event__
       ev ? ev.kernel : nil
     end
 
     def ack?; kernel.ack?; end
     def submit; kernel.submit; end
 
+    def fire(*args, &block)
+      kernel.fire(*args, &block)
+    end
   end
 
 end

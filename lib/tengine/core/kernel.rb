@@ -195,6 +195,10 @@ class Tengine::Core::Kernel
     end
   end
 
+  def fire(*args, &block)
+    sender.fire(*args, &block)
+  end
+
   def sender
     unless @sender
       @sender = Tengine::Event::Sender.new(mq)
