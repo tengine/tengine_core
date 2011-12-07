@@ -16,9 +16,13 @@ module Tengine::Core::Driveable
 
       def __on_args__; @__on_args__; end
       def __on_args__=(val); @__on_args__ = val; end
+
+      def __creating_driver__; @__creating_driver__; end
+      def __creating_driver__=(val); @__creating_driver__ = val; end
     end
 
-    if self.driver.nil?
+    driver = nil
+    if @__context__.__creating_driver__ = self.driver.nil? # ==比較じゃなくて、代入した結果で条件分岐してます
       config = @__context__.respond_to?(:config) ? @__context__.config : nil
       options = @__context__.respond_to?(:options) ? @__context__.options : {}
       driver = Tengine::Core::Driver.new({
@@ -30,17 +34,15 @@ module Tengine::Core::Driveable
         })
       driver.create_session
       driver.save!
-      @__context__.driver = driver
-    else
-      @__context__.driver = self.driver
     end
+    @__context__.driver = driver || self.driver
 
     def self.method_added(method_name)
       return unless @__context__.__on_args__
       args = @__context__.__on_args__
       @__context__.__on_args__ = nil
+      return unless @__context__.__creating_driver__
       driver = @__context__.driver
-      return unless driver
       driver.reload
       options = args.extract_options!
       handler = driver.handlers.create!({
@@ -64,8 +66,8 @@ module Tengine::Core::Driveable
       return unless context.__on_args__
       args = context.__on_args__
       context.__on_args__ = nil
+      return unless @__context__.__creating_driver__
       driver = context.driver
-      return unless driver
       driver.reload
       options = args.extract_options!
       handler = driver.handlers.create!({
