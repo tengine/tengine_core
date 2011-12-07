@@ -31,6 +31,8 @@ module Tengine::Core::Driveable
       driver.create_session
       driver.save!
       @__context__.driver = driver
+    else
+      @__context__.driver = self.driver
     end
 
     def self.method_added(method_name)
