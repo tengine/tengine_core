@@ -139,7 +139,7 @@ module Tengine::Core::Driveable
           impl_method_name = "__#{method_name}_impl__"
           self.instance_eval do
             define_method(method_name) do |event|
-              @__event__ = event
+              @__event__ = Tengine::Core::EventWrapper.new(event)
               begin
                 send(impl_method_name)
               ensure
