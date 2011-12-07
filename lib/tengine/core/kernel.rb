@@ -62,6 +62,7 @@ class Tengine::Core::Kernel
     # dsl_context.__evaluate__
     # Tengine::Core::stdout_logger.debug("Hanlder bindings:\n" << dsl_context.to_a.inspect)
     # Tengine::Core::HandlerPath.default_driver_version = config.dsl_version
+    Tengine::Core::HandlerPath.default_driver_version = config.dsl_version
   end
 
   def wait_for_activation(&block)
@@ -354,7 +355,7 @@ class Tengine::Core::Kernel
   # イベントハンドラの取得
   def find_handlers(event)
     handlers = Tengine::Core::HandlerPath.find_handlers(event.event_type_name)
-    Tengine.logger.debug("handlers found: " << handlers.map{|h| "#{h.driver.name} #{h.id.to_s}"}.join(", "))
+    Tengine.logger.debug("handlers found for #{event.event_type_name.inspect}: " << handlers.map{|h| "#{h.driver.name} #{h.id.to_s}"}.join(", "))
     handlers
   end
 
@@ -400,7 +401,7 @@ class Tengine::Core::Kernel
     @status = status
     File.open(@status_filepath, "w"){|f| f.write(status.to_s)}
   rescue Exception => e
-    Tengine::Core.stderr_logger.error("#{self.class.name}#update_status failure. [\#{e.class.name}] \#{e.message}\n  " << e.backtrace.join("\n  "))
+    Tengine::Core.stderr_logger.error("#{self.class.name}#update_status failure. [#{e.class.name}] #{e.message}\n  " << e.backtrace.join("\n  "))
     raise e
   end
 

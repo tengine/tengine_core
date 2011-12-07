@@ -2,7 +2,8 @@
 require 'spec_helper'
 
 describe "uc81_raise_runtime_error" do
-  before do
+  before do 
+    Tengine::Core::HandlerPath.delete_all
     Tengine::Core::Driver.delete_all
     Tengine::Core::Session.delete_all
     @dsl_path = File.expand_path('../../../../examples/uc81_raise_runtime_error.rb', File.dirname(__FILE__))
@@ -18,6 +19,15 @@ describe "uc81_raise_runtime_error" do
   it "例外がraiseされると、イベント処理エラーイベントをfireする" do
     @bootstrap.load_dsl
     @kernel.bind
+
+    driver = Tengine::Core::Driver.first
+    driver.enabled.should == true
+    driver.version.should == @config.dsl_version
+    path = Tengine::Core::HandlerPath.first
+    path.event_type_name.should == "event81"
+    path.driver_id.should == driver.id
+    Tengine::Core::HandlerPath.default_driver_version.should == @config.dsl_version
+
     mock_headers = mock(:headers)
     mock_headers.should_receive(:ack)
     raw_event = Tengine::Event.new(:event_type_name => "event81")
