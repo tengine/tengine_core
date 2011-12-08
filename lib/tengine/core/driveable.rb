@@ -109,7 +109,7 @@ module Tengine::Core::Driveable
       event_type_names = args
       if block
         filepath, lineno = *block.source_location
-        filepath = context.config.relative_path_from_dsl_dir(filepath)
+        filepath = context.config.relative_path_from_dsl_dir(filepath.dup.force_encoding(Encoding.default_external).freeze)
         options.update(:filepath => filepath, :lineno => lineno)
         filter_def = nil
         handler = nil
