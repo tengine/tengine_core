@@ -591,12 +591,20 @@ describe Tengine::Core::Kernel do
             "RABBITMQ_LOG_BASE"        => @dir.to_s,
           }
           @pid = Process.spawn(envp, rabbitmq, :chdir => @dir, :in => :close)
-          256.times do |i| # まあこんくらい待てばいいでしょ
+          x = Time.now
+          while Time.now < x + 16 do # まあこんくらい待てばいいでしょ
             sleep 0.1
             Process.waitpid2(@pid, Process::WNOHANG)
             Process.kill 0, @pid
+            # netstat -an は Linux / BSD ともに有効
+            # どちらかに限ればもう少し効率的な探し方はある。たとえば Linux 限定でよければ netstat -lnt ...
+            y = `netstat -an | fgrep LISTEN | fgrep #{port}`
+            if y.lines.to_a.size > 1
+              @port = port
+              return
+            end
           end
-          @port = port
+          pending "failed to invoke rabbitmq in 16 secs."
         rescue Errno::ECHILD, Errno::ESRCH
           pending "10 attempts to invoke rabbitmq failed." if (n += 1) > 10
           port = rand(32768)
@@ -637,7 +645,7 @@ describe Tengine::Core::Kernel do
                 Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
                 Tengine::Core.stderr_logger.should_receive(:info).with('mq.channel.qos OK')
                 EM.defer(
-                  lambda { trigger @port; true },
+                  lambda { trigger @port; sleep 2; true },
                   lambda do |a|
                     Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
                     mq.channel.exec_callback_once_yielding_self(:error, "channel close reason object")
