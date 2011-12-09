@@ -228,13 +228,13 @@ describe Tengine::Core::Kernel do
       context "イベントストアへの登録有無" do
         it "不正なフォーマットのメッセージの場合、イベントストアへ登録を行わずACKを返却" do
           @header.should_receive(:ack)
-          @kernel.process_message(@header, "invalid format message").should == nil
+          @kernel.process_message(@header, "invalid format message").should_not be_true
         end
 
         it "keyがnilのイベント場合、イベントストアへ登録を行わずACKを返却" do
           raw_event = Tengine::Event.new(:key => "", :sender_name => "another_host", :event_type_name => "event1")
           @header.should_receive(:ack)
-          @kernel.process_message(@header, raw_event.to_json).should == nil
+          @kernel.process_message(@header, raw_event.to_json).should_not be_true
         end
 
         it "keyが同じ、sender_nameが異なる場合は、イベントストアへ登録を行わずACKを返却" do
@@ -243,14 +243,14 @@ describe Tengine::Core::Kernel do
           lambda {
             Tengine::Core::Event.create!(raw_event.attributes.update(:confirmed => (raw_event.level <= @kernel.config.confirmation_threshold)))
           }.should raise_error(Mongo::OperationFailure)
-          @kernel.process_message(@header, raw_event.to_json)
+          @kernel.process_message(@header, raw_event.to_json).should_not be_true
         end
 
         it "keyが異なる場合は、イベントストアへ登録を行い、ACKを返却" do
           @header.should_receive(:ack)
           raw_event = Tengine::Event.new(:key => "uuid99", :sender_name => "another_host", :event_type_name => "event1")
           Tengine::Core::Event.should_receive(:create!).and_return(Tengine::Core::Event.new(raw_event.attributes))
-          @kernel.process_message(@header, raw_event.to_json)
+          @kernel.process_message(@header, raw_event.to_json).should be_true
         end
       end
 

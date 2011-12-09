@@ -124,6 +124,8 @@ class Tengine::Core::Kernel
     end
   end
 
+  # @return [true]    メッセージはイベントストアに保存された
+  # @return [それ以外] メッセージは保存されなかった。
   def process_message(headers, msg)
     safety_processing_event(headers) do
       raw_event = parse_event(msg)
