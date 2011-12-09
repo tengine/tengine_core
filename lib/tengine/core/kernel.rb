@@ -129,13 +129,16 @@ class Tengine::Core::Kernel
       raw_event = parse_event(msg)
       if raw_event.nil?
         headers.ack
-        return
+        return false
       end
       if raw_event.key.blank?
         Tengine.logger.warn("invalid event which has blank key: #{raw_event.inspect}")
         headers.ack
         return
       end
+
+      delay = ((ENV['TENGINED_EVENT_DEBUG_DELAY'] || '0').to_f || 0.0)
+      sleep delay
 
       # ハートビートは *保存より前に* 特別扱いが必要
       event = case raw_event.event_type_name
@@ -154,7 +157,7 @@ class Tengine::Core::Kernel
               end
       unless event
         headers.ack
-        return
+        return false
       end
       event.kernel = self
 
@@ -168,6 +171,7 @@ class Tengine::Core::Kernel
         end
       end
       close_if_shutting_down
+      true
     end
   end
 
@@ -316,16 +320,17 @@ class Tengine::Core::Kernel
     raise e
   end
 
-  def upsert(ev, idx)
-    ev.collection.driver.update(idx, { "$set" => ev.to_hash }, upsert: true, safe: true, multiple: true)
-  end
-
   def save_scheduling_event(raw_event)
-    event = Tengine::Core::Event.new(
-      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    hash = upsert(event, source_name: event.source_name, event_type_name: event.event_type_name)
+    event = Tengine::Core::Event.find_or_create_by_key_then_update_with_block raw_event.key do |event|
+      if event.new_record?
+        event.write_attributes raw_event.attributes
+        event.confirmed = (raw_event.level.to_i <= config.confirmation_threshold)
+      else
+        nil
+      end
+    end
     Tengine.logger.debug("saved an event #{event.inspect}")
-    event unless hash["updatedExisting"]
+    return event
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
     fire_failed_event(raw_event)
@@ -336,11 +341,21 @@ class Tengine::Core::Kernel
   end
 
   def save_heartbeat_beat(raw_event)
-    event = Tengine::Core::Event.new(
-      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    hash = upsert(event, key: event.key, event_type_name: event.event_type_name)
+    event = Tengine::Core::Event.find_or_create_by_key_then_update_with_block raw_event.key do |event|
+      # beatを保存していいのは、
+      # * 以前にひとつも登録がないとき
+      # * もうbeatが保存されているとき
+      # beatを保存してはいけないのは、
+      # * もうokが保存されているとき
+      # * もうngが保存されているとき
+      if event.new_record? or event.event_type_name == raw_event.event_type_name
+        event.write_attributes raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold))
+      else
+        nil
+      end
+    end
     Tengine.logger.debug("saved an event #{event.inspect}")
-    event unless hash["updatedExisting"]
+    return event
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
     fire_failed_event(raw_event)
@@ -351,16 +366,21 @@ class Tengine::Core::Kernel
   end
 
   def save_heartbeat_ng(raw_event)
-    k = case raw_event.event_type_name when /^expired\.(.+?)\.heartbeat\.tengine$/ then
-          ["#$1.heartbeat.tengine", "finished.process.#$1.tengine"]
-        else
-          raise "unknown event #{raw_event.inspect}"
-        end
-    event = Tengine::Core::Event.new(
-      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    hash = upsert(event, key: event.key, event_type_name: { :"$in" => k })
+    event = Tengine::Core::Event.find_or_create_by_key_then_update_with_block raw_event.key do |event|
+      # ngを保存していいのは、
+      # * 以前にひとつも登録がないとき
+      # * もうbeatが保存されているとき
+      # * もうokが保存されているとき
+      # ngを保存してはいけないのは、
+      # * もうngが保存されているとき
+      if event.new_record? or event.event_type_name != raw_event.event_type_name
+        event.write_attributes raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold))
+      else
+        nil
+      end
+    end
     Tengine.logger.debug("saved an event #{event.inspect}")
-    event if hash["updatedExisting"]
+    return event
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
     fire_failed_event(raw_event)
@@ -371,16 +391,22 @@ class Tengine::Core::Kernel
   end
 
   def save_heartbeat_ok(raw_event)
-    k = case raw_event.event_type_name when /^finished\.process\.(.+?)\.tengine$/ then
-          "#$1.heartbeat.tengine"
-        else
-          raise "unknown event #{raw_event.inspect}"
-        end
-    event = Tengine::Core::Event.new(
-      raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
-    hash = upsert(event, key: event.key, event_type_name: k)
+    event = Tengine::Core::Event.find_or_create_by_key_then_update_with_block raw_event.key do |event|
+      # okを保存していいのは、
+      # * 以前にひとつも登録がないとき
+      # * もうbeatが保存されているとき
+      # okを保存してはいけないのは、
+      # * もうokが保存されているとき
+      # * もうngが保存されているとき
+      beat_type_name = raw_event.event_type_name.sub(/^finished\.process\.(.+?)\.tengine$/, "\\1.heartbeat.tengine")
+      if event.new_record? or event.event_type_name == beat_type_name
+        event.write_attributes raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold))
+      else
+        nil
+      end
+    end
     Tengine.logger.debug("saved an event #{event.inspect}")
-    event if hash["updatedExisting"]
+    return event
   rescue Mongo::OperationFailure => e
     Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
     fire_failed_event(raw_event)
