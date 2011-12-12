@@ -139,5 +139,9 @@ module Tengine::Core::DslBinder
     @__kernel__.submit
   end
 
+  # 現時点ではMM1との互換性のためのダミーのメソッドです
+  # 必要があれば将来ちゃんと役割を見直して復活するかもしれません
+  def dsl_version(*args)
+  end
 
 end
