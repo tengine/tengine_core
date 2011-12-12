@@ -20,7 +20,14 @@ class Tengine::Core::Kernel
     @processing_event = false
   end
 
-  def start(&block)
+  def start
+    if block_given?
+      block = Proc.new
+    else
+      block = Proc.new do
+        self.stop
+      end
+    end
     update_status(:starting)
     bind
     if config[:tengined][:wait_activation]
