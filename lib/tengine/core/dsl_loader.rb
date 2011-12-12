@@ -98,5 +98,9 @@ module Tengine::Core::DslLoader
     raise Tengine::Core::DslError, "submit is not available outside of event handler block."
   end
 
+  # 現時点ではMM1との互換性のためのダミーのメソッドです
+  # 必要があれば将来ちゃんと役割を見直して復活するかもしれません
+  def dsl_version(*args)
+  end
 
 end
