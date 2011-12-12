@@ -11,17 +11,23 @@ describe "uc72_setup_eventmachine_spec" do
           :load_path => @dsl_path,
         },
       })
-    @bootstrap = Tengine::Core::Bootstrap.new(config)
     @kernel = Tengine::Core::Kernel.new(config)
+    @bootstrap = Tengine::Core::Bootstrap.new(config)
+    @bootstrap.kernel = @kernel
   end
 
   it "EM.run実行時にsetup_eventmachineに渡されたブロックが実行されます" do
-    @bootstrap.load_dsl
+    @kernel.em_setup_blocks.length.should == 0
+    expect{
+      @bootstrap.load_dsl
+    }.to change(@kernel.em_setup_blocks, :length).by(1)
+    @kernel.em_setup_blocks.length.should == 1
     expect{
       @kernel.bind
-    }.to change(@kernel.em_setup_blocks, :length).by(1)
+    }.to_not change(@kernel.em_setup_blocks, :length)
+    @kernel.em_setup_blocks.length.should == 1
     EM.should_receive(:run).and_yield
-    EM.stub(:defer)
+    EM.stub(:defer) # #enable_heartbeat
     mq = mock(:mq, :queue => nil)
     mq.stub(:wait_for_connection).and_yield
     @kernel.should_receive(:mq).at_least(1).times.and_return(mq)
@@ -31,5 +37,4 @@ describe "uc72_setup_eventmachine_spec" do
     EM.should_receive(:add_periodic_timer).with(3)
     @kernel.activate
   end
-
 end

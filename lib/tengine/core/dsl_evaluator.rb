@@ -9,8 +9,10 @@ module Tengine::Core::DslEvaluator
     begin
       Tengine.plugins.notify(self, :__evaluate__) do
         config.dsl_file_paths.each do |f|
-          Tengine::Core.stdout_logger.debug("#{self.class.name} now evaluating #{f}")
-          self.instance_eval(File.read(f), f)
+          Tengine::Core.stdout_logger.debug("now loading #{f}")
+          # self.instance_eval(File.read(f), f)
+          # require(f)
+          load(f)
         end
       end
     ensure

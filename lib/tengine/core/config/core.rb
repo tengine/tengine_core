@@ -211,6 +211,10 @@ EOS
     field :level,
       :default => proc{ log_common.level },
       :default_description => proc{"value of #{log_common.long_opt}-level"}
+
+    def new_logger *;
+      super.tap {|i| i.formatter = self.formatter }
+    end
   end
 
   class Heartbeat

@@ -111,10 +111,9 @@ describe "Tengine::Core::Bootstrap" do
       mock_config = mock(:config)
       mock_config.should_receive(:dsl_version).and_return("test2011102623595999")
       bootstrap.should_receive(:config).twice.and_return(mock_config)
-      mock_dsl_dummy_env = mock(:dsl_dummy_env)
-      Tengine::Core::DslLoadingContext.should_receive(:new).and_return(mock_dsl_dummy_env)
-      mock_dsl_dummy_env.should_receive(:config=).with(mock_config)
-      mock_dsl_dummy_env.should_receive(:__evaluate__)
+      bootstrap.kernel.context.tap do |context|
+        context.should_receive(:__evaluate__)
+      end
       bootstrap.load_dsl
     end
 
@@ -133,11 +132,10 @@ describe "Tengine::Core::Bootstrap" do
         mock_config = mock(:config)
         mock_config.should_receive(:dsl_version).and_return("test2011102623595999")
         bootstrap.should_receive(:config).twice.and_return(mock_config)
-        mock_dsl_dummy_env = mock(:dsl_dummy_env)
-        Tengine::Core::DslLoadingContext.include?(@ext_mod1).should be_true
-        Tengine::Core::DslLoadingContext.should_receive(:new).and_return(mock_dsl_dummy_env)
-        mock_dsl_dummy_env.should_receive(:config=).with(mock_config)
-        mock_dsl_dummy_env.should_receive(:__evaluate__)
+        bootstrap.kernel.context.tap do |context|
+          context.is_a?(@ext_mod1).should be_true
+          context.should_receive(:__evaluate__)
+        end
         bootstrap.load_dsl
       end
 

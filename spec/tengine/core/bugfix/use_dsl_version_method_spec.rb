@@ -18,9 +18,9 @@ describe "receive_event" do
     expect{
       @config.dsl_version.should_not be_blank
       @bootstrap = Tengine::Core::Bootstrap.new(@config)
-      @bootstrap.load_dsl
-      @kernel = Tengine::Core::Kernel.new(@config)
+      @kernel = @bootstrap.kernel
       @kernel.bind
+      @bootstrap.load_dsl
     }.to change(Tengine::Core::Driver, :count).by(1)
   end
 

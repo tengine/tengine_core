@@ -11,42 +11,42 @@ describe Tengine::Core::Kernel do
   end
 
   describe :start do
-    describe :bind, "handlerのblockをメモリ上で保持" do
-      before do
-        config = Tengine::Core::Config::Core.new({
-            :tengined => {
-              :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
-            },
-          })
-        @kernel = Tengine::Core::Kernel.new(config)
-        @driver = Tengine::Core::Driver.new(:name => "driver01", :version => config.dsl_version, :enabled => true)
-        @handler1 = @driver.handlers.new(:filepath => "uc01_execute_processing_for_event.rb", :lineno => 7, :event_type_names => ["event01"])
-        @driver.save!
-      end
+#     describe :bind, "handlerのblockをメモリ上で保持" do
+#       before do
+#         config = Tengine::Core::Config::Core.new({
+#             :tengined => {
+#               :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
+#             },
+#           })
+#         @kernel = Tengine::Core::Kernel.new(config)
+#         @driver = Tengine::Core::Driver.new(:name => "driver01", :version => config.dsl_version, :enabled => true)
+#         @handler1 = @driver.handlers.new(:filepath => "uc01_execute_processing_for_event.rb", :lineno => 7, :event_type_names => ["event01"])
+#         @driver.save!
+#       end
 
-      it "event_type_nameからblockを検索することができる" do
-        @kernel.bind
-        @kernel.context.__block_for__(@handler1).should_not be_nil
-      end
+#       it "event_type_nameからblockを検索することができる" do
+#         @kernel.bind
+#         @kernel.context.__block_for__(@handler1).should_not be_nil
+#       end
 
-      context "拡張モジュールあり" do
-        before(:all) do
-          @ext_mod1 = Module.new{}
-          @ext_mod1.instance_eval do
-            def dsl_binder; self; end
-          end
-          Tengine.plugins.add(@ext_mod1)
-        end
+#       context "拡張モジュールあり" do
+#         before(:all) do
+#           @ext_mod1 = Module.new{}
+#           @ext_mod1.instance_eval do
+#             def dsl_binder; self; end
+#           end
+#           Tengine.plugins.add(@ext_mod1)
+#         end
 
-        it "Kernel#contextに拡張モジュールがextendされる" do
-          @kernel.bind
-          @kernel.context.__block_for__(@handler1).should_not be_nil
-          @kernel.context.should be_a(Tengine::Core::DslBinder)
-          @kernel.context.should be_a(@ext_mod1)
-        end
-      end
+#         it "Kernel#contextに拡張モジュールがextendされる" do
+#           @kernel.bind
+#           @kernel.context.__block_for__(@handler1).should_not be_nil
+#           @kernel.context.should be_a(Tengine::Core::DslBinder)
+#           @kernel.context.should be_a(@ext_mod1)
+#         end
+#       end
 
-    end
+#     end
 
     describe :wait_for_activation, "activate待ち" do
       before do
@@ -121,8 +121,10 @@ describe Tengine::Core::Kernel do
             },
           })
         @kernel = Tengine::Core::Kernel.new(config)
-        @driver = Tengine::Core::Driver.new(:name => "driver01", :version => config.dsl_version, :enabled => true)
-        @handler1 = @driver.handlers.new(:filepath => "uc01_execute_processing_for_event.rb", :lineno => 7, :event_type_names => ["event01"])
+        @driver = Tengine::Core::Driver.new(
+          :name => "driver01", :version => config.dsl_version, :enabled => true)
+        @handler1 = @driver.handlers.new(
+          :filepath => "uc01_execute_processing_for_event.rb", :lineno => 7, :event_type_names => ["event01"])
         @driver.save!
         @event1 = Tengine::Core::Event.new(:event_type_name => :event01, :key => "uuid1", :sender_name => "localhost")
         @event1.save!
@@ -226,13 +228,13 @@ describe Tengine::Core::Kernel do
       context "イベントストアへの登録有無" do
         it "不正なフォーマットのメッセージの場合、イベントストアへ登録を行わずACKを返却" do
           @header.should_receive(:ack)
-          @kernel.process_message(@header, "invalid format message").should == nil
+          @kernel.process_message(@header, "invalid format message").should_not be_true
         end
 
         it "keyがnilのイベント場合、イベントストアへ登録を行わずACKを返却" do
           raw_event = Tengine::Event.new(:key => "", :sender_name => "another_host", :event_type_name => "event1")
           @header.should_receive(:ack)
-          @kernel.process_message(@header, raw_event.to_json).should == nil
+          @kernel.process_message(@header, raw_event.to_json).should_not be_true
         end
 
         it "keyが同じ、sender_nameが異なる場合は、イベントストアへ登録を行わずACKを返却" do
@@ -241,14 +243,14 @@ describe Tengine::Core::Kernel do
           lambda {
             Tengine::Core::Event.create!(raw_event.attributes.update(:confirmed => (raw_event.level <= @kernel.config.confirmation_threshold)))
           }.should raise_error(Mongo::OperationFailure)
-          @kernel.process_message(@header, raw_event.to_json)
+          @kernel.process_message(@header, raw_event.to_json).should_not be_true
         end
 
         it "keyが異なる場合は、イベントストアへ登録を行い、ACKを返却" do
           @header.should_receive(:ack)
           raw_event = Tengine::Event.new(:key => "uuid99", :sender_name => "another_host", :event_type_name => "event1")
           Tengine::Core::Event.should_receive(:create!).and_return(Tengine::Core::Event.new(raw_event.attributes))
-          @kernel.process_message(@header, raw_event.to_json)
+          @kernel.process_message(@header, raw_event.to_json).should be_true
         end
       end
 
@@ -329,7 +331,8 @@ describe Tengine::Core::Kernel do
         Tengine::Core::HandlerPath.should_receive(:find_handlers).with("event01").and_return([@handler1])
         @handler1.should_receive(:match?).with(@event1).and_return(true)
 
-        @kernel.context.should_receive(:puts).with("handler01")
+        # 仕様変更のためイベントハンドラの処理を確認するのは一旦コメントアウトしました
+        # @kernel.context.should_receive(:puts).with("handler01")
 
         @header.should_receive(:ack)
 
@@ -379,6 +382,30 @@ describe Tengine::Core::Kernel do
 
         shared_examples "generic heartbeats" do
           context "正常系" do
+            context "初回" do
+              before do
+                @u = @uuid.generate
+                Tengine::Core::Event.where(key: @u).delete_all
+              end
+              it "beatは保存される" do
+                @kernel.process_message(@header, Tengine::Event.new(key: @u, event_type_name: "#{kind}.heartbeat.tengine").to_json).should be_true
+                Tengine::Core::Event.where(key: @u).count.should == 1
+                Tengine::Core::Event.where(key: @u).first.event_type_name.should =~ /^#{kind}/
+              end
+
+              it "finishedは保存される" do
+                @kernel.process_message(@header, Tengine::Event.new(key: @u, event_type_name: "finished.process.#{kind}.tengine").to_json).should be_true
+                Tengine::Core::Event.where(key: @u).count.should == 1
+                Tengine::Core::Event.where(key: @u).first.event_type_name.should =~ /^finished/
+              end
+
+              it "expiredは保存される" do
+                @kernel.process_message(@header, Tengine::Event.new(key: @u, event_type_name: "expired.#{kind}.heartbeat.tengine").to_json).should be_true
+                Tengine::Core::Event.where(key: @u).count.should == 1
+                Tengine::Core::Event.where(key: @u).first.event_type_name.should =~ /^expired/
+              end
+            end
+
             it "beat -> beat -> beat" do
               e = Tengine::Event.new key: @uuid.generate, event_type_name: "#{kind}.heartbeat.tengine"
 
@@ -490,7 +517,7 @@ describe Tengine::Core::Kernel do
                 end
 
                 it "その他の場合、例外を外に伝播" do
-                  @kernel.stub(:upsert).and_raise StandardError
+                  Tengine::Core::Event.stub(:find_or_create_by_key_then_update_with_block).and_raise StandardError
 
                   expect do
                     @kernel.process_message @header, Tengine::Event.new(key: @uuid.generate, event_type_name: eval(name)).to_json
@@ -588,12 +615,20 @@ describe Tengine::Core::Kernel do
             "RABBITMQ_LOG_BASE"        => @dir.to_s,
           }
           @pid = Process.spawn(envp, rabbitmq, :chdir => @dir, :in => :close)
-          256.times do |i| # まあこんくらい待てばいいでしょ
+          x = Time.now
+          while Time.now < x + 16 do # まあこんくらい待てばいいでしょ
             sleep 0.1
             Process.waitpid2(@pid, Process::WNOHANG)
             Process.kill 0, @pid
+            # netstat -an は Linux / BSD ともに有効
+            # どちらかに限ればもう少し効率的な探し方はある。たとえば Linux 限定でよければ netstat -lnt ...
+            y = `netstat -an | fgrep LISTEN | fgrep #{port}`
+            if y.lines.to_a.size > 1
+              @port = port
+              return
+            end
           end
-          @port = port
+          pending "failed to invoke rabbitmq in 16 secs."
         rescue Errno::ECHILD, Errno::ESRCH
           pending "10 attempts to invoke rabbitmq failed." if (n += 1) > 10
           port = rand(32768)
@@ -632,8 +667,9 @@ describe Tengine::Core::Kernel do
               finish
               EM.add_timer(1) do
                 Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
+                Tengine::Core.stderr_logger.should_receive(:info).with('mq.channel.qos OK')
                 EM.defer(
-                  lambda { trigger @port; true },
+                  lambda { trigger @port; sleep 2; true },
                   lambda do |a|
                     Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
                     mq.channel.exec_callback_once_yielding_self(:error, "channel close reason object")
