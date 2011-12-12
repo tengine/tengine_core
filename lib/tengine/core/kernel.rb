@@ -32,24 +32,24 @@ class Tengine::Core::Kernel
   end
 
   def stop(force = false)
-    cb = proc do |*|
-      EM.cancel_timer(@heartbeat_timer) if @heartbeat_timer
-      send_last_event do
-        close_if_shutting_down
-      end
-    end
     if self.status == :running
       update_status(:shutting_down)
-      if mq.queue.default_consumer
-        mq.queue.unsubscribe :nowait => false, &cb
-      else
-        cb.call
+      mq.initiate_termination do
+        mq.unsubscribe do
+          EM.cancel_timer(@heartbeat_timer) if @heartbeat_timer
+          send_last_event do
+            close_if_shutting_down do
+              update_status(:terminated)
+              EM.stop
+              yield if block_given?
+            end
+          end
+        end
       end
     else
       update_status(:shutting_down)
       # wait_for_actiontion中の処理を停止させる必要がある
     end
-    update_status(:terminated)
   end
 
   def dsl_context
@@ -92,19 +92,23 @@ class Tengine::Core::Kernel
   def activate
     EM.run do
       setup_mq_connection
-      # queueへの接続までできたら稼働中
-      # self.status_key = :running if mq.queue
-      update_status(:running) if mq.queue
-      subscribe_queue
-      enable_heartbeat
-      yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
-      em_setup_blocks.each{|block| block.call }
+      subscribe_queue do
+        enable_heartbeat
+        yield(mq) if block_given? # このyieldは接続テストのための処理をTengine::Core:Bootstrapが定義するのに使われます。
+        em_setup_blocks.each{|block| block.call }
+      end
     end
   end
 
   # subscribe to messages in the queue
   def subscribe_queue
-    mq.queue.subscribe(:ack => true, :nowait => false, :confirm => proc {|*| @initial_connection = true }) do |headers, msg|
+    confirm = proc do |*|
+      # queueへの接続までできたら稼働中
+      # self.status_key = :running if mq.queue
+      update_status(:running)
+      yield if block_given?
+    end
+    mq.subscribe(:ack => true, :nowait => false, :confirm => confirm) do |headers, msg|
       process_message(headers, msg)
     end
   end
@@ -171,9 +175,7 @@ class Tengine::Core::Kernel
       EM.defer do
         @heartbeat_timer = EM.add_periodic_timer(n) do
           Tengine::Core.stdout_logger.debug("sending heartbeat") if config[:verbose]
-          sender.fire(HEARTBEAT_EVENT_TYPE_NAME, HEARTBEAT_ATTRIBUTES.dup) do
-            @initial_connection = true
-          end
+          sender.fire(HEARTBEAT_EVENT_TYPE_NAME, HEARTBEAT_ATTRIBUTES.dup)
         end
       end
     end
@@ -194,12 +196,9 @@ class Tengine::Core::Kernel
   private
 
   def setup_mq_connection
-    @initial_connection = false
     mq.add_hook :'connection.on_tcp_connection_failure' do |set|
-      raise "It seems MQ broker is missing (misconfiguration?)." unless @initial_connection
       case @status when :terminated, :shutting_down then
         raise "Could not properly shut down; MQ broker is missing."
-        # EM.stop
       end
     end
     
@@ -209,7 +208,7 @@ class Tengine::Core::Kernel
       Tengine::Core.stderr_logger.error("mq.connection.on_error connection_close: " << connection_close.inspect)
     end
     mq.add_hook :'connection.on_tcp_connection_loss' do |conn, settings|
-      Tengine::Core.stderr_logger.warn("mq.connection.on_tcp_connection_loss: now reconnecting #{mq.auto_reconnect_delay} second(s) later.")
+      Tengine::Core.stderr_logger.warn("mq.connection.on_tcp_connection_loss.")
     end
     mq.add_hook :'connection.after_recovery' do |session, settings|
       Tengine::Core.stderr_logger.info("mq.connection.after_recovery: recovered successfully.")
@@ -223,17 +222,6 @@ class Tengine::Core::Kernel
       Tengine::Core.stderr_logger.error("mq.channel.on_error channel_close: " << channel_close.inspect)
       # raise channel_close.reply_text
       # channel_close.reuse # channel.on_error時にどのように振る舞うべき?
-    end
-
-    mq.add_hook :'channel.after_recovery' do |ch|
-      ch.prefetch(1) do
-        Tengine::Core.stderr_logger.info("mq.channel.qos OK")
-      end
-    end
-
-    # debug
-    mq.add_hook :'everything' do |mid, argv|
-      Tengine::Core.stdout_logger.debug("EventMachine state changed: #{mid}")
     end
   end
 
@@ -395,7 +383,10 @@ class Tengine::Core::Kernel
     # return if mq.queue.default_consumer
     case status when :shutting_down, :terminated then
       Tengine::Core.stdout_logger.warn("connection closing...")
-      mq.stop
+      mq.stop do
+        yield if block_given?
+        EM.stop
+      end
     end
   end
 
