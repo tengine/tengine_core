@@ -24,7 +24,7 @@ class Tengine::Core::Bootstrap
     case config[:action]
     when "load" then load_dsl
     when "start" then
-      load_dsl unless config[:tengined][:skip_load]
+      load_dsl # unless config[:tengined][:skip_load]
       start_kernel
     when "test" then test_connection
     when "enable" then enable_drivers
