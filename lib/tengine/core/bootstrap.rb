@@ -25,7 +25,9 @@ class Tengine::Core::Bootstrap
     when "load" then load_dsl
     when "start" then
       load_dsl unless config[:tengined][:skip_load]
-      start_kernel
+      start_kernel do
+        # ここでイベントを待つ
+      end
     when "test" then test_connection
     when "enable" then enable_drivers
     else
