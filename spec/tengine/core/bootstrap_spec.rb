@@ -29,7 +29,9 @@ describe "Tengine::Core::Bootstrap" do
         }
         bootstrap = Tengine::Core::Bootstrap.new(options)
         bootstrap.should_receive(:start_kernel)
-        bootstrap.should_not_receive(:load_dsl)
+        # skip_loadオプションを指定してもtengine_core-0.5系の再設計により無視するように変更しました。
+        # bootstrap.should_not_receive(:load_dsl)
+        bootstrap.should_receive(:load_dsl)
         bootstrap.boot
       end
     end

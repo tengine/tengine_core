@@ -79,6 +79,8 @@ class Tengine::Core::Scheduler
         Tengine::Core::MethodTraceable.disabled = !@config[:verbose]
         Mongoid.config.from_hash @config[:db]
         Mongoid.config.option :persist_in_safe_mode, :default => true
+        require 'amqp'
+        Mongoid.logger = AMQP::Session.logger = Tengine.logger
         EM.run do
           sender.wait_for_connection do
             @invalidate = EM.add_periodic_timer 1 do # !!! MAGIC NUMBER

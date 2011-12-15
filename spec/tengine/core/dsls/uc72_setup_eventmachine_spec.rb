@@ -29,10 +29,9 @@ describe "uc72_setup_eventmachine_spec" do
     EM.should_receive(:run).and_yield
     EM.stub(:defer) # #enable_heartbeat
     mq = mock(:mq, :queue => nil)
-    mq.stub(:wait_for_connection).and_yield
-    @kernel.should_receive(:mq).at_least(1).times.and_return(mq)
+    @kernel.stub(:mq).at_least(1).times.and_return(mq)
     @kernel.should_receive(:setup_mq_connection)
-    @kernel.should_receive(:subscribe_queue)
+    @kernel.should_receive(:subscribe_queue).and_yield
     @kernel.context.should_receive(:puts).with("setup_eventmachine")
     EM.should_receive(:add_periodic_timer).with(3)
     @kernel.activate
