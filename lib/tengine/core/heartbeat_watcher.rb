@@ -3,6 +3,7 @@ require 'daemons'
 require 'eventmachine'
 require 'mongoid'
 require 'uuid'
+require 'active_support/core_ext/hash/keys'
 
 $LOAD_PATH.push File.expand_path("../../../../lib/", __FILE__)
 
@@ -36,12 +37,13 @@ class Tengine::Core::HeartbeatWatcher
   end
 
   def send_invalidate_event type, e0
-    obj = e0.as_document.to_hash.inject({}) {|r, (k, v)| r.update(k.to_sym => v) }
+    obj = e0.as_document.symbolize_keys
     Tengine.logger.info "Heartbeat expiration detected! for #{e0.event_type_name} of #{e0.source_name}: last seen #{e0.occurred_at} (#{(Time.now - e0.occurred_at).to_f} secs before)"
     obj.delete :_id
     obj.delete :confirmed
     obj.delete :updated_at
     obj.delete :created_at
+    obj.delete :lock_version
     obj[:event_type_name] = type
     obj[:level] = Tengine::Event::LEVELS_INV[:error]
     e1 = Tengine::Event.new obj

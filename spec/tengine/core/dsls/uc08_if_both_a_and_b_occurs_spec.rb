@@ -17,13 +17,18 @@ describe "uc08_if_both_a_and_b_occurs" do
   end
 
   it "aとbが両方起きたらハンドラが実行されます" do
+    driver = Tengine::Core::Driver.first
+    klass = driver.target_class_name.constantize
+    obj = klass.new
+    klass.should_receive(:new).and_return(obj)
+
     mock_headers = mock(:headers)
     mock_headers.should_receive(:ack).exactly(3).times
     raw_event = Tengine::Event.new(:event_type_name => "event08_a")
     @kernel.process_message(mock_headers, raw_event.to_json)
     raw_event = Tengine::Event.new(:event_type_name => "event08_a")
     @kernel.process_message(mock_headers, raw_event.to_json)
-    @kernel.context.should_receive(:puts).with("handler08")
+    obj.should_receive(:puts).with("handler08")
     raw_event = Tengine::Event.new(:event_type_name => "event_08_b")
     @kernel.process_message(mock_headers, raw_event.to_json)
   end

@@ -17,10 +17,15 @@ describe "uc62_session_in_driver" do
   end
 
   it "ロード後にはsessionに値が入っている" do
+    driver = Tengine::Core::Driver.first
+    klass = driver.target_class_name.constantize
+    obj = klass.new
+    klass.should_receive(:new).and_return(obj)
+    obj.should_receive(:puts).with(/^handler60: \[.*\]$/)
+
     mock_headers = mock(:headers)
     mock_headers.should_receive(:ack)
     raw_event = Tengine::Event.new(:event_type_name => "event60")
-    @kernel.context.should_receive(:puts).with(/^handler60: \[.*\]$/)
     @kernel.process_message(mock_headers, raw_event.to_json)
   end
 end

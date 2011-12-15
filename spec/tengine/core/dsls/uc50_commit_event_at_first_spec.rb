@@ -9,13 +9,13 @@ describe "uc50_commit_event_at_first" do
         },
       })
     @bootstrap = Tengine::Core::Bootstrap.new(config)
+    @kernel = @bootstrap.send(:kernel)
     @bootstrap.load_dsl
-    @kernel = Tengine::Core::Kernel.new(config)
     @kernel.bind
   end
 
   it "必ずACKされている" do
-    @kernel.context.should_receive(:puts).with("handler50 acknowledged")
+    STDOUT.should_receive(:puts).with("handler50 acknowledged")
     mock_headers = mock(:headers)
     mock_headers.should_receive(:ack)
     raw_event = Tengine::Event.new(:event_type_name => "event50")

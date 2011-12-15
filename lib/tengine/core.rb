@@ -7,12 +7,10 @@ module Tengine::Core
   autoload :Bootstrap        , 'tengine/core/bootstrap'
   autoload :Config           , 'tengine/core/config'
   autoload :Kernel           , 'tengine/core/kernel'
+  autoload :Driveable        , 'tengine/core/driveable'
   autoload :KernelRuntime    , 'tengine/core/kernel_runtime'
   autoload :DslEvaluator     , 'tengine/core/dsl_evaluator'
   autoload :DslLoader        , 'tengine/core/dsl_loader'
-  autoload :DslLoadingContext, 'tengine/core/dsl_loading_context'
-  autoload :DslBinder        , 'tengine/core/dsl_binder'
-  autoload :DslBindingContext, 'tengine/core/dsl_binding_context'
   autoload :DslFilterDef     , 'tengine/core/dsl_filter_def'
   autoload :Plugins          , 'tengine/core/plugins'
 

@@ -11,6 +11,7 @@ class Tengine::Core::Handler
   include Mongoid::Document
   include Mongoid::Timestamps
   include Tengine::Core::CollectionAccessible
+  include Tengine::Core::SelectableAttr
 
   # @attribute 実行するRubyのブロックが定義されているファイル名
   field :filepath, :type => String
@@ -26,6 +27,19 @@ class Tengine::Core::Handler
   field :filter, :type => Hash, :default => {}
   map_yaml_accessor :filter
 
+  # @attribute 実行対象の取得方法
+  field :target_instantiation_cd, :type => String, :default => '01'
+
+  selectable_attr :target_instantiation_cd do
+    entry '01', :binding        , "binding"
+    entry '02', :static         , "static"
+    entry '03', :instance_method, "instance_method"
+  end
+
+  # @attribute 実行対象となるメソッドの名前
+  field :target_method_name, :type => String
+
+
   validates :filepath, :presence => true
   validates :lineno  , :presence => true
 
@@ -38,20 +52,37 @@ class Tengine::Core::Handler
     end
   end
 
-  def process_event(event, &block)
-    @caller = eval("self", block.binding)
-    matched = match?(event)
-    Tengine.logger.debug("match?(...) => #{matched} #{block.source_location.inspect}")
-    if matched
-      # ハンドラの実行
-      @caller.__safety_driver__(self.driver) do
-        @caller.__safety_event__(event) do
-          @caller.instance_eval(&block)
-        end
-      end
+#   def process_event(event, &block)
+#     @caller = eval("self", block.binding)
+#     matched = match?(event)
+#     if matched
+#       # ハンドラの実行
+#       @caller.__safety_driver__(self.driver) do
+#         @caller.__safety_event__(event) do
+#           @caller.instance_eval(&block)
+#         end
+#       end
+#     end
+#   ensure
+#     @caller = nil
+#   end
+
+  def process_event(event)
+    case self.target_instantiation_key
+    when :instance_method then
+      klass = driver.target_class_name.constantize
+      inst = klass.new
+      m = inst.method(target_method_name)
+      m.arity == 0 ? m.call : m.call(event)
+    when :static then
+      klass = driver.target_class_name.constantize
+      m = klass.method(target_method_name)
+      m.arity == 0 ? m.call : m.call(event)
+    when :binding then
+      # do nothing
+    else
+      raise Tengine::Core::KernelError, "Unsupported target_instantiation_key: #{self.target_instantiation_key.inspect}"
     end
-  ensure
-    @caller = nil
   end
 
   def fire(event_type_name)
@@ -59,7 +90,9 @@ class Tengine::Core::Handler
   end
 
   def match?(event)
-    filter.blank? ? true : Visitor.new(filter, event, driver.session).visit
+    result = filter.blank? ? true : Visitor.new(filter, event, driver.session).visit
+    Tengine.logger.debug("match?(#{event.event_type_name.inspect}) => #{result.inspect}")
+    result
   end
 
   # HashとArrayで入れ子になったfilterのツリーをルートから各Leafの方向に辿っていくVisitorです。

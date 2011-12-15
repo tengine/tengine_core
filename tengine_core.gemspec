@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.4.9"
+  s.version = "0.5.3"
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2011-12-06"
+  s.date = "2011-12-13"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -56,14 +56,12 @@ Gem::Specification.new do |s|
     "lib/tengine/core/config/core.rb",
     "lib/tengine/core/connection_test/.gitignore",
     "lib/tengine/core/connection_test/fire_bar_on_foo.rb",
+    "lib/tengine/core/driveable.rb",
     "lib/tengine/core/driver.rb",
     "lib/tengine/core/driver/finder.rb",
-    "lib/tengine/core/dsl_binder.rb",
-    "lib/tengine/core/dsl_binding_context.rb",
     "lib/tengine/core/dsl_evaluator.rb",
     "lib/tengine/core/dsl_filter_def.rb",
     "lib/tengine/core/dsl_loader.rb",
-    "lib/tengine/core/dsl_loading_context.rb",
     "lib/tengine/core/event.rb",
     "lib/tengine/core/event/finder.rb",
     "lib/tengine/core/event_exception_reportable.rb",
@@ -101,6 +99,8 @@ Gem::Specification.new do |s|
     "spec/tengine/core/bugfix/bind_dsl_file_in_multi_byte_dir_spec.rb",
     "spec/tengine/core/bugfix/enabled_on_activation_spec.rb",
     "spec/tengine/core/bugfix/receive_event_spec.rb",
+    "spec/tengine/core/bugfix/use_dsl_version_method.rb",
+    "spec/tengine/core/bugfix/use_dsl_version_method_spec.rb",
     "spec/tengine/core/bugfix/use_event_in_handler_dsl.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/source_location_encoding.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/非ASCIIのファイル名_dsl.rb",
@@ -117,9 +117,8 @@ Gem::Specification.new do |s|
     "spec/tengine/core/config_spec/config_with_file_absolute_load_path.yml",
     "spec/tengine/core/config_spec/config_with_file_relative_load_path.yml",
     "spec/tengine/core/config_spec/log_config_spec.rb",
+    "spec/tengine/core/driveable_spec.rb",
     "spec/tengine/core/driver_spec.rb",
-    "spec/tengine/core/dsl_binder_spec.rb",
-    "spec/tengine/core/dsl_binding_context_spec.rb",
     "spec/tengine/core/dsl_loader_spec.rb",
     "spec/tengine/core/dsls/uc08_if_both_a_and_b_occurs_spec.rb",
     "spec/tengine/core/dsls/uc10_if_the_event_occurs_at_the_server_spec.rb",

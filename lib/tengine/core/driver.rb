@@ -28,6 +28,9 @@ class Tengine::Core::Driver
   # @attribute 実行時有効／無効
   field :enabled_on_activation, :type => Boolean, :default => true
 
+  # @attribute 対象クラス名
+  field :target_class_name, :type => String
+
   validates(:name, :presence => true,
     :uniqueness => {:scope => :version, :message => "is already taken in same version"},
     :format => BASE_NAME.options
