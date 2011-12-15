@@ -22,7 +22,7 @@ Jeweler::Tasks.new do |gem|
   gem.email = "tengine@nautilus-technologies.com"
   gem.authors = %w[saishu w-irie taigou totty hiroshinakao g-morita guemon aoetk hattori-at-nt t-yamada y-karashima akm]
   gem.bindir = 'bin'
-  gem.executables = ['tengined']
+  gem.executables = ['tengined', 'tengine_heartbeat_watchd', 'tengine_atd']
   # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new
