@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.5.2"
+  s.version = "0.5.3"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2011-12-09"
+  s.date = "2011-12-13"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined"]
@@ -99,6 +99,8 @@ Gem::Specification.new do |s|
     "spec/tengine/core/bugfix/bind_dsl_file_in_multi_byte_dir_spec.rb",
     "spec/tengine/core/bugfix/enabled_on_activation_spec.rb",
     "spec/tengine/core/bugfix/receive_event_spec.rb",
+    "spec/tengine/core/bugfix/use_dsl_version_method.rb",
+    "spec/tengine/core/bugfix/use_dsl_version_method_spec.rb",
     "spec/tengine/core/bugfix/use_event_in_handler_dsl.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/source_location_encoding.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/非ASCIIのファイル名_dsl.rb",
