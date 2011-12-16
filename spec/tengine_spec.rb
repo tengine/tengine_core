@@ -5,8 +5,9 @@ require 'logger'
 
 describe Tengine do
   describe :logger do
-    it do
-      Tengine.logger.should be_a(Logger)
+    it "is either Logger, or NullLogger" do
+      # FIXME: write a custom matcher for "either X or Y".
+      [Logger, Tengine::NullLogger].should include(Tengine.logger.class)
     end
   end
 

@@ -3,6 +3,16 @@ require 'spec_helper'
 require 'amqp'
 require 'eventmachine'
 
+# ログを黙らせたり喋らせたりする
+require 'amq/client'
+require 'mongoid'
+if $DEBUG
+  require 'logger'
+  AMQP::Session.logger = Tengine.logger = Mongoid.logger = Logger.new(STDERR)
+else
+  AMQP::Session.logger = Tengine.logger = Mongoid.logger = Tengine::NullLogger.new
+end
+
 describe Tengine::Core::Kernel do
   before do
     Tengine::Core::Driver.delete_all
@@ -63,7 +73,6 @@ describe Tengine::Core::Kernel do
         @handler1 = @driver.handlers.new(:filepath => "uc01_execute_processing_for_event.rb", :lineno => 7, :event_type_names => ["event01"])
         @driver.save!
         @activation_file_path = "#{@kernel.config[:tengined][:activation_dir]}\/tengined_#{Process.pid}.activation"
-        EM.stub(:defer)
       end
 
       after do
@@ -92,9 +101,6 @@ describe Tengine::Core::Kernel do
 
     describe :activate, "メッセージの受信を開始" do
       before do
-        @mock_channel = mock(:channel)
-        @mock_queue = mock(:queue)
-
         @header = AMQP::Header.new(@mock_channel, nil, {
             :routing_key  => "",
             :content_type => "application/octet-stream",
@@ -133,19 +139,21 @@ describe Tengine::Core::Kernel do
       context "イベントの受信待ち状態になる" do
         before do
           # eventmachine と mq の mock を生成
-          EM.should_receive(:run).and_yield
-          mock_connection = mock(:connection)
-          AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
-          mock_connection.should_receive(:on_tcp_connection_loss)
-          mock_connection.should_receive(:after_recovery)
-          mock_connection.should_receive(:on_closed)
-
-          @mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
-          Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(@mock_mq)
-          @mock_mq.stub(:queue).twice.and_return(@mock_queue)
-          @mock_mq.stub(:wait_for_connection).and_yield
+          mock_mq = mock("mq")
+          mock_sender = mock("sender")
+          @kernel.stub(:mq).and_return(mock_mq)
+          @kernel.stub(:sender).and_return(mock_sender)
+          mock_sender.stub(:fire)
+          mock_mq.stub(:initiate_termination).and_yield
+          mock_mq.stub(:unsubscribe).and_yield
+          mock_mq.stub(:stop).and_yield
+          mock_mq.stub(:add_hook)
+          mock_mq.stub(:subscribe).with(nil).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)) do |h, b|
+            h[:confirm].yield(mock("confirm-ok"))
+            #b.yield(@header, :message)
+          end
           # subscribe されていることを検証
-          @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc))
+          mock_mq.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc))
         end
 
         it "heartbeatは有効にならない" do
@@ -153,26 +161,26 @@ describe Tengine::Core::Kernel do
           @kernel.should_receive(:setup_mq_connection)
           sender = mock(:sender)
           @kernel.stub(:sender).and_return(sender)
+          sender.stub(:fire).with("finished.process.core.tengine", an_instance_of(Hash)).and_yield
           @kernel.start
         end
 
         it "heartbeatは有効になる" do
           @kernel.config[:heartbeat][:core][:interval] = 65535
-          EM.should_receive(:defer).and_yield
           EM.should_receive(:add_periodic_timer).with(65535).and_yield
-          @kernel.should_receive(:setup_mq_connection)
           sender = mock(:sender)
           @kernel.stub(:sender).and_return(sender)
+          sender.stub(:fire).with("finished.process.core.tengine", an_instance_of(Hash)).and_yield
           sender.should_receive(:fire)
           @kernel.start
         end
 
         it "heartbeatが送られる" do
           @kernel.should_receive(:setup_mq_connection)
-          EM.should_receive(:defer).and_yield
           EM.should_receive(:add_periodic_timer).with(1024).and_yield
           mock_sender = mock(:sender)
-          @kernel.should_receive(:sender).and_return(mock_sender)
+          @kernel.stub(:sender).and_return(mock_sender)
+          mock_sender.stub(:fire).with("finished.process.core.tengine", an_instance_of(Hash)).and_yield
           mock_sender.should_receive(:fire).with("core.heartbeat.tengine", an_instance_of(Hash))
           @kernel.start
         end
@@ -181,19 +189,19 @@ describe Tengine::Core::Kernel do
       context "発火されたイベントを登録できる" do
         before do
           # eventmachine と mq の mock を生成
-          EM.should_receive(:run).and_yield
-          EM.stub(:defer)
-          mock_connection = mock(:connection)
-          AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
-          mock_connection.should_receive(:on_tcp_connection_loss)
-          mock_connection.should_receive(:after_recovery)
-          mock_connection.should_receive(:on_closed)
-
-          mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
-          Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
-          mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
-          mock_mq.stub(:wait_for_connection).and_yield
-          @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)).and_yield(@header, :message)
+          mock_mq = mock("mq")
+          mock_sender = mock("sender")
+          @kernel.stub(:mq).and_return(mock_mq)
+          @kernel.stub(:sender).and_return(mock_sender)
+          mock_sender.stub(:fire)
+          mock_mq.stub(:initiate_termination).and_yield
+          mock_mq.stub(:unsubscribe).and_yield
+          mock_mq.stub(:stop).and_yield
+          mock_mq.stub(:add_hook)
+          mock_mq.stub(:subscribe).with(nil).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)) do |h, b|
+            h[:confirm].yield(mock("confirm-ok"))
+            b.yield(@header, :message)
+          end
 
           # subscribe してみる
           @mock_raw_event = mock(:row_event)
@@ -209,8 +217,7 @@ describe Tengine::Core::Kernel do
           @mock_raw_event.stub!(:level).and_return(Tengine::Event::LEVELS_INV[:info])
           @mock_raw_event.stub!(:event_type_name).and_return("foo")
           count = lambda{ Tengine::Core::Event.where(:event_type_name => :foo, :confirmed => true).count }
-          @kernel.should_receive(:setup_mq_connection)
-          expect{ @kernel.start }.should change(count, :call).by(1) # イベントが登録されていることを検証
+          expect{ @kernel.start { @kernel.stop } }.should change(count, :call).by(1) # イベントが登録されていることを検証
         end
 
         it "confirmation_threshold以下なら登録されたイベントはconfirmedがfalse" do
@@ -257,18 +264,16 @@ describe Tengine::Core::Kernel do
       context "イベント処理失敗イベントの発火" do
         before do
           # eventmachine と mq の mock を生成
-          EM.should_receive(:run).and_yield
-          EM.stub(:defer).and_yield
-          mock_connection = mock(:connection)
-          AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
-          mock_connection.should_receive(:on_tcp_connection_loss)
-          mock_connection.should_receive(:after_recovery)
-          mock_connection.should_receive(:on_closed)
-
-          mock_sub_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
-          Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_sub_mq)
-          mock_sub_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
-          @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)).and_yield(@header, :message)
+          mock_mq = mock("mq")
+          @kernel.stub(:mq).and_return(mock_mq)
+          mock_mq.stub(:initiate_termination).and_yield
+          mock_mq.stub(:unsubscribe).and_yield
+          mock_mq.stub(:stop).and_yield
+          mock_mq.stub(:add_hook)
+          mock_mq.stub(:subscribe).with(nil).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)) do |h, b|
+            h[:confirm].yield(mock("confirm-ok"))
+            b.yield(@header, :message)
+          end
 
           # subscribe してみる
           @raw_event = Tengine::Event.new(:key => "uuid1", :sender_name => "localhost", :event_type_name => "event1")
@@ -277,24 +282,16 @@ describe Tengine::Core::Kernel do
         end
 
         it "既に登録されているイベントとkey, sender_nameが一致するイベントを受信した場合、発火" do
-          # @raw_event = Tengine::Event.new(:key => "uuid1", :sender_name => "localhost", :event_type_name => "event1")
-
-          EM.should_receive(:next_tick).and_yield
-          EM.stub(:defer)
-          mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
-          Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
-          mock_mq.stub(:wait_for_connection).and_yield
           mock_sender = mock(:sender)
-          Tengine::Event::Sender.should_receive(:new).with(mock_mq).and_return(mock_sender)
+          Tengine::Event::Sender.should_receive(:new).with(@kernel.mq).and_return(mock_sender)
           mock_sender.should_receive(:default_keep_connection=).with(true)
           mock_sender.should_receive(:fire).with("#{@raw_event.event_type_name}.failed.tengined",
                                             {
                                               :level => Tengine::Event::LEVELS_INV[:error],
                                               :properties => { :original_event => @raw_event }
                                             })
-          # @kernel.__send__(:do_save?, @raw_event)
-          @kernel.should_receive(:setup_mq_connection)
-          @kernel.start
+          mock_sender.stub(:fire).with("finished.process.core.tengine", an_instance_of(Hash)).and_yield
+          @kernel.start { @kernel.stop }
           events = Tengine::Core::Event.where(:key => @raw_event.key, :sender_name => @raw_event.sender_name)
           events.count.should == 1
         end
@@ -302,19 +299,19 @@ describe Tengine::Core::Kernel do
 
       it "イベント種別に対応したハンドラの処理を実行することができる" do
         # eventmachine と mq の mock を生成
-        EM.should_receive(:run).and_yield
-        EM.stub(:defer)
-        mock_connection = mock(:connection)
-        AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
-        mock_connection.should_receive(:on_tcp_connection_loss)
-        mock_connection.should_receive(:after_recovery)
-        mock_connection.should_receive(:on_closed)
-
-        mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
-        Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
-        mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
-        mock_mq.stub(:wait_for_connection).and_yield
-        @mock_queue.stub(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)).and_yield(@header, :message)
+        mock_mq = mock("mq")
+        mock_sender = mock("sender")
+        @kernel.stub(:mq).and_return(mock_mq)
+        @kernel.stub(:sender).and_return(mock_sender)
+        mock_sender.stub(:fire)
+        mock_mq.stub(:initiate_termination).and_yield
+        mock_mq.stub(:unsubscribe).and_yield
+        mock_mq.stub(:stop).and_yield
+        mock_mq.stub(:add_hook)
+        mock_mq.stub(:subscribe).with(nil).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)) do |h, b|
+          h[:confirm].yield(mock("confirm-ok"))
+          b.yield(@header, :message)
+        end
 
         # subscribe してみる
         mock_raw_event = mock(:row_event)
@@ -337,8 +334,11 @@ describe Tengine::Core::Kernel do
         @header.should_receive(:ack)
 
         # 実行
-        @kernel.should_receive(:setup_mq_connection)
+begin
         @kernel.start
+rescue
+puts $!.backtrace
+end
       end
 
       context "*.failed.tengine" do
@@ -570,7 +570,7 @@ describe Tengine::Core::Kernel do
     if RUBY_VERSION >= "1.9.2"
       before do
         EM.instance_eval do
-          @timers.each {|i| EM.stop_timer i } if @timers
+          @timers.each {|i| EM.cancel_timer i } if @timers
           @next_tick_queue = nil
         end
         trigger
@@ -581,8 +581,6 @@ describe Tengine::Core::Kernel do
           :event_queue => { :connection => { :port => @port } } 
         })
         @kernel = Tengine::Core::Kernel.new(config)
-        @mock_connection = mock(:connection)
-        @mock_channel = mock(:channel)
       end
 
       let(:rabbitmq) do
@@ -660,31 +658,27 @@ describe Tengine::Core::Kernel do
           @kernel.setup_mq_connection
 
           # ここではイベント発生時の振る舞いもチェックします
-          EM.defer(
-            lambda { @kernel.subscribe_queue; sleep 0.1 until @kernel.instance_eval { @initial_connection } },
-            lambda do |a|
-              Tengine::Core.stderr_logger.should_receive(:warn).with('mq.connection.on_tcp_connection_loss: now reconnecting 1 second(s) later.').at_least(1).times
-              finish
-              EM.add_timer(1) do
-                Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
-                Tengine::Core.stderr_logger.should_receive(:info).with('mq.channel.qos OK')
-                EM.defer(
-                  lambda { trigger @port; sleep 2; true },
-                  lambda do |a|
-                    Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
-                    mq.channel.exec_callback_once_yielding_self(:error, "channel close reason object")
+          @kernel.subscribe_queue do
+            Tengine::Core.stderr_logger.should_receive(:warn).with('mq.connection.on_tcp_connection_loss.').at_least(1).times
+            finish
+            EM.add_timer(1) do
+              Tengine::Core.stderr_logger.should_receive(:info).with('mq.connection.after_recovery: recovered successfully.')
+              EM.defer(
+                lambda { trigger @port; sleep 2; true },
+                lambda do |a|
+                  Tengine::Core.stderr_logger.should_receive(:error).with('mq.channel.on_error channel_close: "channel close reason object"')
+                  mq.channel.exec_callback_once_yielding_self(:error, "channel close reason object")
 
-                    Tengine::Core.stderr_logger.should_receive(:error).with('mq.connection.on_error connection_close: "connection close reason object"')
-                    mq.connection.exec_callback_yielding_self(:error, "connection close reason object")
+                  Tengine::Core.stderr_logger.should_receive(:error).with('mq.connection.on_error connection_close: "connection close reason object"')
+                  mq.connection.exec_callback_yielding_self(:error, "connection close reason object")
 
-                    EM.next_tick do
-                      mq.stop
-                    end
+                  EM.next_tick do
+                    mq.stop
                   end
-                 )
-              end
+                end
+              )
             end
-          )
+          end
         end
       end
     end
@@ -699,7 +693,6 @@ describe Tengine::Core::Kernel do
             },
           })
         @kernel = Tengine::Core::Kernel.new(config)
-        EM.stub(:defer).and_yield
       end
 
       it "カーネルのインスタンス生成直後は「初期化済み」の状態を返す" do
@@ -732,7 +725,6 @@ describe Tengine::Core::Kernel do
             },
           })
         @kernel = Tengine::Core::Kernel.new(config)
-        EM.stub(:defer).and_yield
       end
 
       it "起動処理が終了した直後に「稼働要求待ち」の状態を返す" do
@@ -756,33 +748,28 @@ describe Tengine::Core::Kernel do
       end
 
       it "稼働要求を受け取った直後では「稼働中」の状態を返す" do
-        EM.should_receive(:run).and_yield
-        EM.stub(:defer)
-        mock_connection = mock(:connection)
-        AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
-        mock_connection.should_receive(:on_tcp_connection_loss)
-        mock_connection.should_receive(:after_recovery)
-        mock_connection.should_receive(:on_closed)
-
-        mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
-        Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mq)
-        mock_queue = mock(:queue)
-        mq.should_receive(:queue).twice.and_return(mock_queue)
-        mq.stub(:wait_for_connection).and_yield
-        mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc))
+        mock_mq = mock("mq")
+        mock_sender = mock("sender")
+        @kernel.stub(:mq).and_return(mock_mq)
+        @kernel.stub(:sender).and_return(mock_sender)
+        mock_sender.stub(:fire).and_yield
+        mock_mq.stub(:initiate_termination).and_yield
+        mock_mq.stub(:unsubscribe).and_yield
+        mock_mq.stub(:stop).and_yield
+        mock_mq.stub(:add_hook)
+        mock_mq.stub(:subscribe).with(nil).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)) do |h, b|
+          h[:confirm].yield(mock("confirm-ok"))
+        end
 
         @kernel.should_receive(:setup_mq_connection)
-        @kernel.start
-        @kernel.status.should == :running
+        @kernel.start do
+          @kernel.status.should == :running
+          @kernel.stop
+        end
       end
     end
 
     describe :stop do
-      before do
-        @mock_channel = mock(:channel)
-        @mock_queue = mock(:queue)
-      end
-
       it "停止要求を受け取った直後では「停止中」および「停止済」の状態を返す(稼働中)" do
         config = Tengine::Core::Config::Core.new({
             :tengined => {
@@ -792,28 +779,26 @@ describe Tengine::Core::Kernel do
         kernel = Tengine::Core::Kernel.new(config)
         kernel.should_receive(:bind)
 
-        EM.should_receive(:run).and_yield
-        EM.stub(:defer)
-        mock_connection = mock(:connection)
-        AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
-        mock_connection.should_receive(:on_tcp_connection_loss)
-        mock_connection.should_receive(:after_recovery)
-        mock_connection.should_receive(:on_closed)
+        mock_mq = mock("mq")
+        mock_sender = mock("sender")
+        kernel.stub(:mq).and_return(mock_mq)
+        kernel.stub(:sender).and_return(mock_sender)
+        mock_sender.stub(:fire).and_yield
+        mock_mq.stub(:initiate_termination).and_yield
+        mock_mq.stub(:unsubscribe).and_yield
+        mock_mq.stub(:stop).and_yield
+        mock_mq.stub(:add_hook)
+        mock_mq.stub(:subscribe).with(nil).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)) do |h, b|
+          h[:confirm].yield(mock("confirm-ok"))
+        end
 
-        mq = Tengine::Mq::Suite.new(kernel.config[:event_queue])
-        Tengine::Mq::Suite.should_receive(:new).with(kernel.config[:event_queue]).and_return(mq)
-        mq.should_receive(:queue).exactly(3).times.and_return(@mock_queue)
-        mq.stub(:wait_for_connection).and_yield
-        @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc))
+        kernel.start do
+          kernel.status.should == :running
 
-        kernel.should_receive(:setup_mq_connection)
-        kernel.start
-        kernel.status.should == :running
-
-        @mock_queue.should_receive(:default_consumer).and_return(nil)
-
-        kernel.stop
-        kernel.status.should == :terminated
+          kernel.stop do
+            kernel.status.should == :terminated
+          end
+        end
       end
 
       it "停止要求を受け取った直後では「停止中」および「停止済」の状態を返す(稼働要求待ち)" do
@@ -848,10 +833,15 @@ describe Tengine::Core::Kernel do
           @status = :running
           @heartbeat_timer = true
         end
-        mq = mock(:mq)
-        mq.stub(:queue).and_return(@mock_queue)
-        Tengine::Mq::Suite.stub(:new).with(anything).and_return(mq)
-        @mock_queue.stub(:default_consumer).and_return(nil)
+        mock_mq = mock("mq")
+        kernel.stub(:mq).and_return(mock_mq)
+        mock_mq.stub(:initiate_termination).and_yield
+        mock_mq.stub(:unsubscribe).and_yield
+        mock_mq.stub(:stop).and_yield
+        mock_mq.stub(:add_hook)
+        mock_mq.stub(:subscribe).with(nil).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)) do |h, b|
+          h[:confirm].yield(mock("confirm-ok"))
+        end
         sender = mock(:sender)
         kernel.stub(:sender).and_return(sender)
         
