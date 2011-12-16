@@ -70,6 +70,9 @@ describe "receive_event" do
 
   it "発火されたイベントを受信して登録できる" do
     # eventmachine と mq の mock を生成
+    mock_sender = mock("sender")
+    mock_sender.stub(:fire)
+    @kernel.stub(:sender).and_return(mock_sender)
     @kernel.stub(:mq).and_return(@mock_mq)
 
     # subscribe 実施
@@ -85,6 +88,7 @@ describe "receive_event" do
     @mock_mq.stub(:initiate_termination).and_yield
     @mock_mq.stub(:unsubscribe).and_yield
     @mock_mq.stub(:stop).and_yield
+    @mock_mq.stub(:add_hook)
     @mock_mq.stub(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)) do |h, b|
       h[:confirm].yield(mock("confirm-ok"))
       b.yield(@header, @raw_event.to_json)
