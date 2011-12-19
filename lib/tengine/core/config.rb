@@ -5,5 +5,6 @@ require 'tengine/core'
 
 module Tengine::Core::Config
   autoload :Core, 'tengine/core/config/core'
+  autoload :Atd,  'tengine/core/config/atd'
 
 end
