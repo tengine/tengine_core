@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.5.5"
+  s.version = "0.5.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2011-12-16"
+  s.date = "2011-12-19"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined", "tengine_heartbeat_watchd", "tengine_atd"]
@@ -53,7 +53,9 @@ Gem::Specification.new do |s|
     "lib/tengine/core/bootstrap.rb",
     "lib/tengine/core/collection_accessible.rb",
     "lib/tengine/core/config.rb",
+    "lib/tengine/core/config/atd.rb",
     "lib/tengine/core/config/core.rb",
+    "lib/tengine/core/config/heartbeat_watcher.rb",
     "lib/tengine/core/connection_test/.gitignore",
     "lib/tengine/core/connection_test/fire_bar_on_foo.rb",
     "lib/tengine/core/driveable.rb",
@@ -106,7 +108,9 @@ Gem::Specification.new do |s|
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/非ASCIIのファイル名_dsl.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/source_location_encoding.rb",
     "spec/tengine/core/bugfix/非ACSIIのディレクトリ名/非ASCIIのファイル名_dsl.rb",
+    "spec/tengine/core/config/atd_spec.rb",
     "spec/tengine/core/config/core_spec.rb",
+    "spec/tengine/core/config/heartbeat_watcher_spec.rb",
     "spec/tengine/core/config/syntax_error_in_erb.yml.erb",
     "spec/tengine/core/config/wrong_category_name.yml.erb",
     "spec/tengine/core/config/wrong_field_name.yml.erb",
@@ -158,7 +162,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/tengine/tengine_core"
   s.licenses = ["MPL/LGPL"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.10"
+  s.rubygems_version = "1.8.12"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
