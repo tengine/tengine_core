@@ -18,6 +18,19 @@ class Tengine::Core::Config::Atd < Tengine::Support::Config::Definition::Suite
   extend ActiveSupport::Memoizable
 
   class << self
+    # この辺は以前のTengine::Core::Configとの互換のために用意してあります
+    def [](hash_or_suite)
+      case hash_or_suite
+      when Tengine::Core::Config::Atd then hash_or_suite
+      when Hash then
+        result = Tengine::Core::Config::Atd.new
+        result.load(hash_or_suite)
+        result
+      else
+        raise "unsupported class: #{hash_or_suite.class.inspect}"
+      end
+    end
+
     def default_hash
       new.to_hash
     end
