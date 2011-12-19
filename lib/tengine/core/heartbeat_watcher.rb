@@ -12,15 +12,27 @@ require 'tengine/event'
 require 'tengine/mq'
 
 # explicit loading
-require_relative 'config'
+require_relative 'config/heartbeat_watcher'
 require_relative 'method_traceable'
 
 class Tengine::Core::HeartbeatWatcher
 
   def initialize argv
     @uuid = UUID.new.generate
-    @config = Tengine::Core::Config::Core.parse argv
+    @config = Tengine::Core::Config::HeartbeatWatcher.parse argv
     @pid = sprintf "process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid
+    @daemonize_options = {
+      :app_name => 'tengine_heartbeat_watcher',
+      :ARGV => [@config[:action]],
+      :ontop => !@config[:process][:daemon],
+      :multiple => true,
+      :dir_mode => :normal,
+      :dir => File.expand_path(@config[:process][:pid_dir]),
+    }
+    Tengine::Core::MethodTraceable.disabled = !@config[:verbose]
+  rescue Exception
+    puts "[#{$!.class.name}] #{$!.message}\n  " << $!.backtrace.join("\n  ")
+    raise
   end
 
   def sender
@@ -54,13 +66,39 @@ class Tengine::Core::HeartbeatWatcher
     t = Time.now
     a = @config[:heartbeat].to_hash.each_pair.map do |e, h|
       Tengine::Core::Event.where(
-                                 :event_type_name => "#{e}.heartbeat.tengine",
-                                 :occurred_at.lte => t - h[:expire]
-                                 )
+        :event_type_name => "#{e}.heartbeat.tengine",
+        :occurred_at.lte => t - h[:expire]
+        )
     end
     a.flatten.each_next_tick do |i|
       yield i if i
     end
+  end
+
+  def run(__file__)
+    case @config[:action].to_sym
+    when :start
+      start_daemon(__file__)
+    when :stop
+      stop_daemon(__file__)
+    when :restart
+      stop_daemon(__file__)
+      start_daemon(__file__)
+    end
+  end
+
+  def start_daemon(__file__)
+    pdir = File.expand_path @config[:process][:pid_dir]
+    fname = File.basename __file__
+    cwd = Dir.getwd
+    Daemons.run_proc(fname, @daemonize_options) do
+      Dir.chdir(cwd) { self.start }
+    end
+  end
+
+  def stop_daemon(__file__)
+    fname = File.basename __file__
+    Daemons.run_proc(fname, @daemonize_options)
   end
 
   def shutdown
@@ -71,36 +109,32 @@ class Tengine::Core::HeartbeatWatcher
     end
   end
 
-  def run __file__
-    pdir = File.expand_path @config[:process][:pid_dir]
-    fname = File.basename __file__
-    cwd = Dir.getwd
-    Daemons.run_proc fname, :ARGV => ['run'], :multiple => true, :ontop => !@config[:process][:daemon], :dir_mode => :normal, :dir => pdir do
-      Dir.chdir cwd do
-        @config.setup_loggers
-        Tengine::Core::MethodTraceable.disabled = !@config[:verbose]
-        Mongoid.config.from_hash @config[:db]
-        Mongoid.config.option :persist_in_safe_mode, :default => true
-        require 'amqp'
-        Mongoid.logger = AMQP::Session.logger = Tengine.logger
-        EM.run do
-          sender.wait_for_connection do
-            @invalidate = EM.add_periodic_timer 1 do # !!! MAGIC NUMBER
-              search_for_invalid_heartbeat do |obj|
-                type = case obj.event_type_name when /job|core|hbw/ then
-                         "expired.#$&.heartbeat.tengine"
-                       end
-                EM.next_tick do
-                  send_invalidate_event type, obj
-                end
-              end
+  def start
+    @config.setup_loggers
+
+    Mongoid.config.from_hash @config[:db]
+    Mongoid.config.option :persist_in_safe_mode, :default => true
+
+    require 'amqp'
+    Mongoid.logger = AMQP::Session.logger = Tengine.logger
+
+    EM.run do
+      sender.wait_for_connection do
+        @invalidate = EM.add_periodic_timer 1 do # !!! MAGIC NUMBER
+          search_for_invalid_heartbeat do |obj|
+            type = case obj.event_type_name
+                   when /job|core|hbw|resourcew|atd/ then
+                     "expired.#$&.heartbeat.tengine"
+                   end
+            EM.next_tick do
+              send_invalidate_event type, obj
             end
-            int = @config[:heartbeat][:hbw][:interval].to_i
-            if int and int > 0
-              @periodic = EM.add_periodic_timer int do
-                send_periodic_event
-              end
-            end
+          end
+        end
+        int = @config[:heartbeat][:hbw][:interval].to_i
+        if int and int > 0
+          @periodic = EM.add_periodic_timer int do
+            send_periodic_event
           end
         end
       end
