@@ -70,6 +70,7 @@ module Tengine::Core::DslLoader
 #     if Object.constants.include?(const_name) || defined?(const_name)
 #       puts "#{const_name} is already defined\n  " << caller.join("\n  ")
 #     end
+    Object.send :remove_const, const_name if Object.const_defined? const_name
     Object.const_set(const_name, klass)
     klass.module_eval do
       include Tengine::Core::Driveable::ByDsl
