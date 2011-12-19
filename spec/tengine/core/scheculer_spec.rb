@@ -60,11 +60,12 @@ describe Tengine::Core::Scheduler do
 
   describe "#send_scheduled_event" do
     it "スケジュールされたイベントの発火" do
-      s0 = Tengine::Core::Schedule.new(event_type_name: "test.event.not.tengine", source_name: "test://localhost/dev/null")
+      s0 = Tengine::Core::Schedule.new(event_type_name: "test.event.not.tengine", source_name: "test://localhost/dev/null", properties: {foo: 'bar'})
       sender = mock(:sender)
       subject.stub(:sender).and_return(sender)
       sender.should_receive(:fire).with(s0.event_type_name, an_instance_of(Hash)) do |e1, h|
         h[:source_name].should == s0.source_name
+        h[:properties].should == {:foo => 'bar'}
       end
 
       subject.send_scheduled_event s0

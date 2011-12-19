@@ -51,7 +51,7 @@ class Tengine::Core::Scheduler
 
   def send_scheduled_event sched
     Tengine.logger.info "Scheduled time (#{sched.scheduled_at}) has come.  Now firing #{sched.event_type_name} for #{sched.source_name}"
-    sender.fire sched.event_type_name, :source_name => sched.source_name, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
+    sender.fire sched.event_type_name, :source_name => sched.source_name, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true, :properties => sched.properties
   end
 
   def mark_schedule_done sched
