@@ -210,10 +210,6 @@ describe Tengine::Core::Config::Core do
             $stderr = @stderr_bak
           end
           it do
-            mock_file2 = StringIO.new
-            mock_file3 = StringIO.new
-            File.should_receive(:open).with("/var/log/tengined/process_stdout.log", "w").and_return(mock_file2)
-            File.should_receive(:open).with("/var/log/tengined/process_stderr.log", "w").and_return(mock_file3)
             mock_logger1 = mock(:logger1)
             mock_logger2 = mock(:logger2)
             mock_logger3 = mock(:logger3)
@@ -222,11 +218,9 @@ describe Tengine::Core::Config::Core do
             mock_logger2.should_receive(:info).with("Tengine::Core::Config::Core#setup_loggers complete")
             # mock_logger3.should_receive(:info).with("Tengine::Core::Config::Core#setup_loggers failure")
             Logger.should_receive(:new).with("/var/log/tengined/application.log", "daily", 1024 * 1024).and_return(mock_logger1)
-            Logger.should_receive(:new).with(mock_file2, "daily", 1024 * 1024).and_return(mock_logger2)
-            Logger.should_receive(:new).with(mock_file3, "monthly", 1024 * 1024).and_return(mock_logger3)
+            Logger.should_receive(:new).with("/var/log/tengined/process_stdout.log", "daily", 1024 * 1024).and_return(mock_logger2)
+            Logger.should_receive(:new).with("/var/log/tengined/process_stderr.log", "monthly", 1024 * 1024).and_return(mock_logger3)
             @config.setup_loggers
-            $stdout.should_not == @stdout_bak
-            $stderr.should_not == @stderr_bak
             Tengine.logger.should == mock_logger1
             Tengine::Core.stdout_logger.should == mock_logger2
             Tengine::Core.stderr_logger.should == mock_logger3

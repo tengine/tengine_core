@@ -213,18 +213,12 @@ EOS
 
   def setup_loggers
     Tengine.logger = application_log.new_logger
+    Tengine::Core.stdout_logger = process_stdout_log.new_logger
+    Tengine::Core.stderr_logger = process_stderr_log.new_logger
 
-    stdout_path = process_stdout_log.output
-    $stdout = File.open(stdout_path, "w") unless stdout_path =~ /^STDOUT$|^STDERR$|^NULL$/
-    Tengine::Core::stdout_logger = process_stdout_log.new_logger(:output => $stdout)
-
-    stderr_path = process_stderr_log.output
-    $stderr = File.open(stderr_path, "w") unless stderr_path =~ /^STDOUT$|^STDERR$|^NULL$/
-    Tengine::Core::stderr_logger = process_stderr_log.new_logger(:output => $stderr)
-
-    Tengine::Core::stdout_logger.info("#{self.class.name}#setup_loggers complete")
+    Tengine::Core.stdout_logger.info("#{self.class.name}#setup_loggers complete")
   rescue Exception
-    Tengine::Core::stderr_logger.info("#{self.class.name}#setup_loggers failure")
+    Tengine::Core.stderr_logger.info("#{self.class.name}#setup_loggers failure")
     raise
   end
 
