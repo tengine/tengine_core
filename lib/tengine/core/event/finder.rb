@@ -65,7 +65,7 @@ class Tengine::Core::Event::Finder
     result = result.where(:sender_name => str_or_regexp(sender_name)) if sender_name
     result = result.where(:properties => properties) if properties
     # ソート
-    result = result.desc(:_id)
+    result = result.desc(:occurred_at)
     result
   end
 
