@@ -12,7 +12,7 @@ class Tengine::Core::Kernel
   include Tengine::Core::EventExceptionReportable
 
   attr_reader :config, :status
-  attr_accessor :before_delegate, :after_delegate
+  attr_accessor :before_delegate, :after_delegate, :before_save, :after_save
 
   def initialize(config)
     @status = :initialized
@@ -61,6 +61,16 @@ class Tengine::Core::Kernel
 
   def self.top
     @top ||= eval("self", TOPLEVEL_BINDING)
+  end
+
+  def setup_sleep
+    %w[before_delegate after_delegate before_save after_save].each do |i|
+      if j = config[:tengined][:"sleep_#{i}"] || ENV["TENGINED_SLEEP_#{i.upcase}"]
+        send "#{i}=", lambda {
+          sleep j.to_i rescue nil
+        }
+      end
+    end
   end
 
   def dsl_context
@@ -150,8 +160,7 @@ class Tengine::Core::Kernel
         return
       end
 
-      delay = ((ENV['TENGINED_EVENT_DEBUG_DELAY'] || '0').to_f || 0.0)
-      sleep delay
+      before_save.call if before_save.respond_to?(:call)
 
       # ハートビートは *保存より前に* 特別扱いが必要
       event = case raw_event.event_type_name
@@ -173,6 +182,8 @@ class Tengine::Core::Kernel
         return false
       end
       event.kernel = self
+
+      after_save.call if after_save.respond_to?(:call)
 
       ack_policy = ack_policy_for(event)
       safety_processing_headers(headers, event, ack_policy) do

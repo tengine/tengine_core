@@ -21,6 +21,7 @@ class Tengine::Core::Bootstrap
 
   def boot
     Tengine::Core.stdout_logger.debug(DEBUG_CONFIG_ATTRS.map{|attr| "#{attr}: " << config.send(attr).inspect}.join(", "))
+    kernel.setup_sleep
     case config[:action]
     when "load" then load_dsl
     when "start" then

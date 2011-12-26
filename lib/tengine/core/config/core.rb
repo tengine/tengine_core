@@ -182,6 +182,11 @@ EOS
     field :activation_dir        , "path/to/dir.", :type => :directory, :default => "./tmp/tengined_activations"
     # field :heartbeat_period      , "the second of period which heartbeat event be fired. disable heartbeat if 0.", :type => :integer, :default => 0
     field :confirmation_threshold, "the event which is this level or less will be made confirmed automatically. debug/info/warn/error/fatal. ", :type => :string, :default => 'info'
+
+    field :sleep_before_save, :type => :integer
+    field :sleep_after_save, :type => :integer
+    field :sleep_before_delegate, :type => :integer
+    field :sleep_after_delegate, :type => :integer
   end
 
   class AmqpConnection < Tengine::Support::Config::Amqp::Connection
