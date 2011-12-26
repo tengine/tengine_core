@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.5.9"
+  s.version = "0.5.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
@@ -149,6 +149,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/heartbeat_watcher_spec.rb",
     "spec/tengine/core/io_to_logger_spec.rb",
     "spec/tengine/core/kernel_spec.rb",
+    "spec/tengine/core/optimistic_lock_spec.rb",
     "spec/tengine/core/scheculer_spec.rb",
     "spec/tengine/core/selectable_attr_spec.rb",
     "spec/tengine/core/session_spec.rb",
