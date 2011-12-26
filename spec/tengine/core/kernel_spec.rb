@@ -238,6 +238,12 @@ describe Tengine::Core::Kernel do
           @kernel.process_message(@header, "invalid format message").should_not be_true
         end
 
+        it "https://www.pivotaltracker.com/story/show/22698533" do
+          ev = Tengine::Event.new  :key => "2498e870-11cd-012f-f8c0-48bcc89f84e1", :source_name => "localhost/8110", :sender_name => "localhost/8110", :level => 2, :occurred_at => Time.now, :properties => {}, :event_type_name => ""
+          @header.should_receive(:ack)
+          @kernel.process_message(@header, ev.to_json).should_not be_true
+        end
+
         it "keyがnilのイベント場合、イベントストアへ登録を行わずACKを返却" do
           raw_event = Tengine::Event.new(:key => "", :sender_name => "another_host", :event_type_name => "event1")
           @header.should_receive(:ack)
@@ -516,12 +522,22 @@ end
                   @kernel.process_message @header, Tengine::Event.new(key: @uuid.generate, event_type_name: eval(name)).to_json
                 end
 
-                it "その他の場合、例外を外に伝播" do
-                  Tengine::Core::Event.stub(:find_or_create_by_key_then_update_with_block).and_raise StandardError
+                it "Mongoid::Errors::Validationの場合、failed eventを連鎖" do
+                  x = Tengine::Core::Event.new
+                  x.valid? # false
+                  @sender.stub(:fire).with("#{kind}.heartbeat.tengine.failed.tengine", an_instance_of(Hash))
+                  Tengine::Core::Event.stub(:create!).and_raise(Mongoid::Errors::Validations.new(x))
+                  @kernel.stub(:upsert).and_raise Mongoid::Errors::Validations.new(x)
 
+                  @kernel.process_message @header, Tengine::Event.new(key: @uuid.generate, event_type_name: eval(name)).to_json
+                end
+
+                it "その他の場合、例外を外に伝播しない" do
+                  Tengine::Core::Event.stub(:find_or_create_by_key_then_update_with_block).and_raise StandardError
                   expect do
                     @kernel.process_message @header, Tengine::Event.new(key: @uuid.generate, event_type_name: eval(name)).to_json
-                  end.to raise_exception(StandardError)
+                  end.to_not raise_exception(StandardError)
+                  @kernel.process_message @header, Tengine::Event.new(key: @uuid.generate, event_type_name: eval(name)).to_json
                 end
               end
             end

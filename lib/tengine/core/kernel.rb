@@ -153,21 +153,37 @@ class Tengine::Core::Kernel
       delay = ((ENV['TENGINED_EVENT_DEBUG_DELAY'] || '0').to_f || 0.0)
       sleep delay
 
-      # ハートビートは *保存より前に* 特別扱いが必要
-      event = case raw_event.event_type_name
-              when /finished\.process\.([^.]+)\.tengine$/
-                save_heartbeat_ok(raw_event)
-              when /expired\.([^.]+)\.heartbeat\.tengine$/
-                save_heartbeat_ng(raw_event)
-              when /heartbeat\.tengine$/ # when の順番に注意
-                save_heartbeat_beat(raw_event)
-              when /(alert|stop)\.execution\.job\.tengine$/
-                save_scheduling_event(raw_event)
-              when /\.failed\.tengined$/
-                save_failed_event(raw_event)
-              else
-                save_event(raw_event)
-              end
+      begin
+        # ハートビートは *保存より前に* 特別扱いが必要
+        event = case raw_event.event_type_name
+                when /finished\.process\.([^.]+)\.tengine$/
+                  save_heartbeat_ok(raw_event)
+                when /expired\.([^.]+)\.heartbeat\.tengine$/
+                  save_heartbeat_ng(raw_event)
+                when /heartbeat\.tengine$/ # when の順番に注意
+                  save_heartbeat_beat(raw_event)
+                when /(alert|stop)\.execution\.job\.tengine$/
+                  save_scheduling_event(raw_event)
+                when /\.failed\.tengined$/
+                  save_failed_event(raw_event)
+                else
+                  save_event(raw_event)
+                end
+
+      rescue Mongo::OperationFailure, Mongoid::Errors::Validations => e
+        Tengine.logger.warn("failed to store an event.\n[#{e.class.name}] #{e.message}")
+        # Model.exists?だと上手くいかない時があるのでModel.whereを使っています
+        # fire_failed_event(raw_event) if Tengine::Core::Event.exists?(confitions: { key: raw_event.key, sender_name: raw_event.sender_name })
+        fire_failed_event(raw_event) if Tengine::Core::Event.where(:key => raw_event.key, :sender_name => raw_event.sender_name).count > 0
+        headers.ack
+        return false
+
+      rescue Exception => e
+        Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
+        headers.ack
+        return false
+      end
+
       unless event
         headers.ack
         return false
@@ -259,24 +275,29 @@ class Tengine::Core::Kernel
   end
 
   def parse_event(msg)
-    begin
-      raw_event = Tengine::Event.parse(msg)
-      Tengine.logger.debug("received an event #{raw_event.inspect}")
-      return raw_event
-    rescue Exception => e
-      Tengine.logger.error("failed to parse a message because of [#{e.class.name}] #{e.message}.\n#{msg}")
-      return nil
-    end
+    raw_event = Tengine::Event.parse(msg)
+    Tengine.logger.debug("received an event #{raw_event.inspect}")
+    return raw_event
+  rescue Exception => e
+    Tengine.logger.error("failed to parse a message because of [#{e.class.name}] #{e.message}.\n#{msg}")
+    return nil
   end
 
   def fire_failed_event(raw_event)
     EM.next_tick do
-      Tengine.logger.debug("sending #{raw_event.event_type_name}failed.tengined event.") if config[:verbose]
+      # failedということはraw_eventはぶっこわれている。あらゆる仮定は無意味だ。
       event_attributes = {
         :level => Tengine::Event::LEVELS_INV[:error],
         :properties => { :original_event => raw_event }
       }
-      sender.fire("#{raw_event.event_type_name}.failed.tengined", event_attributes)
+      case etn = raw_event.event_type_name
+      when Tengine::Core::Event::EVENT_TYPE_NAME.format
+        Tengine.logger.debug("sending #{raw_event.event_type_name}.failed.tengined event.") if config[:verbose]
+        sender.fire("#{raw_event.event_type_name}.failed.tengined", event_attributes)
+      else
+        Tengine.logger.debug("sending failed.tengined event.") if config[:verbose]
+        sender.fire("failed.tengined", event_attributes)
+      end
     end
   end
 
@@ -295,9 +316,6 @@ class Tengine::Core::Kernel
     # 案2 : プロセスが死ぬ
     # 案3 : ...
     return nil
-  rescue Exception => e
-    Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
-    raise e
   end
 
   # 受信したイベントを登録
@@ -306,15 +324,6 @@ class Tengine::Core::Kernel
       raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold)))
     Tengine.logger.debug("saved an event #{event.inspect}")
     event
-  rescue Mongo::OperationFailure => e
-    Tengine.logger.warn("same key's event has already stored. \n[#{e.class.name}] #{e.message}")
-    # Model.exists?だと上手くいかない時があるのでModel.whereを使っています
-    # fire_failed_event(raw_event) if Tengine::Core::Event.exists?(confitions: { key: raw_event.key, sender_name: raw_event.sender_name })
-    fire_failed_event(raw_event) if Tengine::Core::Event.where(:key => raw_event.key, :sender_name => raw_event.sender_name).count > 0
-    return nil
-  rescue Exception => e
-    Tengine.logger.error("failed to save an event #{event.inspect}\n[#{e.class.name}] #{e.message}")
-    raise e
   end
 
   def save_scheduling_event(raw_event)
@@ -328,13 +337,6 @@ class Tengine::Core::Kernel
     end
     Tengine.logger.debug("saved an event #{event.inspect}")
     return event
-  rescue Mongo::OperationFailure => e
-    Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
-    fire_failed_event(raw_event)
-    return nil
-  rescue Exception => e
-    Tengine.logger.error("failed to save an event #{event.inspect}\n[#{e.class.name}] #{e.message}")
-    raise e
   end
 
   def save_heartbeat_beat(raw_event)
@@ -353,13 +355,6 @@ class Tengine::Core::Kernel
     end
     Tengine.logger.debug("saved an event #{event.inspect}")
     return event
-  rescue Mongo::OperationFailure => e
-    Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
-    fire_failed_event(raw_event)
-    return nil
-  rescue Exception => e
-    Tengine.logger.error("failed to save an event #{event.inspect}\n[#{e.class.name}] #{e.message}")
-    raise e
   end
 
   def save_heartbeat_ng(raw_event)
@@ -378,13 +373,6 @@ class Tengine::Core::Kernel
     end
     Tengine.logger.debug("saved an event #{event.inspect}")
     return event
-  rescue Mongo::OperationFailure => e
-    Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
-    fire_failed_event(raw_event)
-    return nil
-  rescue Exception => e
-    Tengine.logger.error("failed to save an event #{event.inspect}\n[#{e.class.name}] #{e.message}")
-    raise e
   end
 
   def save_heartbeat_ok(raw_event)
@@ -404,13 +392,6 @@ class Tengine::Core::Kernel
     end
     Tengine.logger.debug("saved an event #{event.inspect}")
     return event
-  rescue Mongo::OperationFailure => e
-    Tengine.logger.warn("something went wrong. \n[#{e.class.name}] #{e.message}")
-    fire_failed_event(raw_event)
-    return nil
-  rescue Exception => e
-    Tengine.logger.error("failed to save an event #{event.inspect}\n[#{e.class.name}] #{e.message}")
-    raise e
   end
 
   # イベントハンドラの取得

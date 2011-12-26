@@ -23,7 +23,7 @@ class Tengine::Core::Event
   field :properties     , :type => Hash
   map_yaml_accessor :properties
 
-  validates :event_type_name, :presence => true #, :format => EVENT_TYPE_NAME.options
+  validates :event_type_name, :presence => true, :format => EVENT_TYPE_NAME.options
 
   # 以下の２つはバリデーションを設定したいところですが、外部からの入力は極力保存できる
   # ようにしたいのでバリデーションを外します。
