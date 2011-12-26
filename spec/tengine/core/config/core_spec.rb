@@ -120,6 +120,10 @@ describe Tengine::Core::Config::Core do
           :skip_load=>nil,
           :skip_enablement=>nil,
           :wait_activation=>nil,
+          :sleep_before_save => nil,
+          :sleep_after_save => nil,
+          :sleep_before_delegate => nil,
+          :sleep_after_delegate => nil,
         }
         subject[:tengined].to_hash.should == expected
         subject['tengined'].to_hash.should == expected
@@ -184,6 +188,10 @@ describe Tengine::Core::Config::Core do
           :skip_load=>nil,
           :skip_enablement=>nil,
           :wait_activation=>nil,
+          :sleep_before_save => nil,
+          :sleep_after_save => nil,
+          :sleep_before_delegate => nil,
+          :sleep_after_delegate => nil,
         }
         subject[:tengined].to_hash.should == expected
         subject['tengined'].to_hash.should == expected
@@ -263,6 +271,10 @@ describe Tengine::Core::Config::Core do
           :skip_load=>nil,
           :skip_enablement=>nil,
           :wait_activation=>nil,
+          :sleep_before_save => nil,
+          :sleep_after_save => nil,
+          :sleep_before_delegate => nil,
+          :sleep_after_delegate => nil,
         }
         subject[:tengined].to_hash.should == expected
         subject['tengined'].to_hash.should == expected
@@ -336,6 +348,10 @@ describe Tengine::Core::Config::Core do
           :skip_load=>nil,
           :skip_enablement=>nil,
           :wait_activation=>nil,
+          :sleep_before_save => nil,
+          :sleep_after_save => nil,
+          :sleep_before_delegate => nil,
+          :sleep_after_delegate => nil,
         }
         subject[:tengined].to_hash.should == expected
         subject['tengined'].to_hash.should == expected
