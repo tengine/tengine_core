@@ -57,6 +57,47 @@ describe Tengine::Core::Event do
     end
   end
 
+  context "event_type_name" do
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "foo").should be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "Foo").should be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "F00").should be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "foo.bar.baz").should be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "foo."*1024+"bar").should be_valid }
+
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "\0").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => " ").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "　").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "\t").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "\n").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => ";").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => ",").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "#").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "-->").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "&quot;").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "javascript:alert('hello')").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "javascript:alert(String.fromCharCode(88,83,83))").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "<script>alert('hello')</script>").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => '<img src="javascript:alert(\'hello\')">').should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => " foo").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "foo ").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => " foo ").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "'foo'").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => '"foo"').should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "foo bar baz").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "(foo(bar(baz)))").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "ふぅ").should_not be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "נד בייקר").should_not be_valid } # hebrew
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => ".error.tengined").should_not be_valid }
+
+    # 実在のイベント種別名
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "start.job.job.tengine").should be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "job.heartbeat.tengine").should be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "alert.execution.job.tengine").should be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "finished.process.job.tengine.failed.tengined").should be_valid }
+    it { Tengine::Core::Event.new(:key => "k", :event_type_name => "Tengine::Resource::VirtualServer.created.tengine_resource_watchd").should be_valid }
+  end
+
 
   describe :level do
 
