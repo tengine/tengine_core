@@ -20,7 +20,6 @@ class Tengine::Core::Scheduler
   def initialize argv
     @uuid = UUID.new.generate
     @config = Tengine::Core::Config::Atd.parse argv
-    @pid = sprintf "process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid
     @daemonize_options = {
       :app_name => 'tengine_atd',
       :ARGV => [@config[:action]],
@@ -40,18 +39,22 @@ class Tengine::Core::Scheduler
     @sender ||= Tengine::Event::Sender.new Tengine::Mq::Suite.new(@config[:event_queue])
   end
 
+  def pid
+    @pid ||= sprintf "process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid
+  end
+
   def send_last_event
-    sender.fire "finished.process.atd.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
+    sender.fire "finished.process.atd.tengine", :key => @uuid, :source_name => pid, :sender_name => pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
     sender.stop
   end
 
   def send_periodic_event
-    sender.fire "atd.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true, :retry_count => 0
+    sender.fire "atd.heartbeat.tengine", :key => @uuid, :source_name => pid, :sender_name => pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true, :retry_count => 0
   end
 
   def send_scheduled_event sched
     Tengine.logger.info "Scheduled time (#{sched.scheduled_at}) has come.  Now firing #{sched.event_type_name} for #{sched.source_name}"
-    sender.fire sched.event_type_name, :source_name => sched.source_name, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true, :properties => sched.properties
+    sender.fire sched.event_type_name, :source_name => sched.source_name, :sender_name => pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true, :properties => sched.properties
   end
 
   def mark_schedule_done sched
