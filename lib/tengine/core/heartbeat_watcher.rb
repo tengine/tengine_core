@@ -20,7 +20,6 @@ class Tengine::Core::HeartbeatWatcher
   def initialize argv
     @uuid = UUID.new.generate
     @config = Tengine::Core::Config::HeartbeatWatcher.parse argv
-    @pid = sprintf "process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid
     @daemonize_options = {
       :app_name => 'tengine_heartbeat_watcher',
       :ARGV => [@config[:action]],
@@ -35,17 +34,21 @@ class Tengine::Core::HeartbeatWatcher
     raise
   end
 
+  def pid
+    @pid ||= sprintf "process:%s/%d", ENV["MM_SERVER_NAME"], Process.pid
+  end
+
   def sender
     @sender ||= Tengine::Event::Sender.new Tengine::Mq::Suite.new(@config[:event_queue])
   end
 
   def send_last_event
-    sender.fire "finished.process.hbw.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
+    sender.fire "finished.process.hbw.tengine", :key => @uuid, :source_name => pid, :sender_name => pid, :occurred_at => Time.now, :level_key => :info, :keep_connection => true
     sender.stop
   end
 
   def send_periodic_event
-    sender.fire "hbw.heartbeat.tengine", :key => @uuid, :source_name => @pid, :sender_name => @pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true, :retry_count => 0
+    sender.fire "hbw.heartbeat.tengine", :key => @uuid, :source_name => pid, :sender_name => pid, :occurred_at => Time.now, :level_key => :debug, :keep_connection => true, :retry_count => 0
   end
 
   def send_invalidate_event type, e0
