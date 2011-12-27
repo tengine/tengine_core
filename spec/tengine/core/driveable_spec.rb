@@ -19,7 +19,7 @@ describe Tengine::Core::Driveable do
       $dtcindex ||= 0
       $dtcindex += 1
       @klass = Class.new
-      Object.const_set(:"DriveableTestClass#{$dctindex}", @klass)
+      Object.const_set(:"DriveableTestClass#{$dtcindex}", @klass)
       @klass.module_eval do
         include Tengine::Core::Driveable
 
