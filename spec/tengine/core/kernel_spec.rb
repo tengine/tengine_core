@@ -171,8 +171,10 @@ describe Tengine::Core::Kernel do
           sender = mock(:sender)
           @kernel.stub(:sender).and_return(sender)
           sender.stub(:fire).with("finished.process.core.tengine", an_instance_of(Hash)).and_yield
-          sender.should_receive(:fire)
-          @kernel.start
+          sender.stub(:fire).with("core.heartbeat.tengine", an_instance_of(Hash))
+          @kernel.start do
+            @kernel.stop
+          end
         end
 
         it "heartbeatが送られる" do
@@ -181,7 +183,7 @@ describe Tengine::Core::Kernel do
           mock_sender = mock(:sender)
           @kernel.stub(:sender).and_return(mock_sender)
           mock_sender.stub(:fire).with("finished.process.core.tengine", an_instance_of(Hash)).and_yield
-          mock_sender.should_receive(:fire).with("core.heartbeat.tengine", an_instance_of(Hash))
+          mock_sender.stub(:fire).with("core.heartbeat.tengine", an_instance_of(Hash))
           @kernel.start
         end
       end
@@ -628,9 +630,9 @@ end
             "RABBITMQ_MNESIA_BASE"     => @dir.to_s,
             "RABBITMQ_LOG_BASE"        => @dir.to_s,
           }
-          @pid = Process.spawn(envp, rabbitmq, :chdir => @dir, :in => :close)
+          @pid = Process.spawn(envp, rabbitmq, :chdir => @dir, :in => :close, :out => '/dev/null', :err => '/dev/null')
           x = Time.now
-          while Time.now < x + 16 do # まあこんくらい待てばいいでしょ
+          while Time.now < x + 64 do # まあこんくらい待てばいいでしょ
             sleep 0.1
             Process.waitpid2(@pid, Process::WNOHANG)
             Process.kill 0, @pid
