@@ -12,7 +12,7 @@ describe Tengine::Core::Driveable do
     end
 
     def driveable_test_class_index
-      @@index ||= 0
+      $dtcindex ||= 0
     end
 
     def define_driveable_test_class
