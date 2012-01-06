@@ -36,6 +36,14 @@ class Tengine::Core::Event
   # :unique => trueのindexを設定しているので、uniquenessのバリデーションは設定しません
   validates :key, :presence => true #, :uniqueness => true
 
+  index([ [:event_type_name, Mongo::ASCENDING], [:confirmed, Mongo::ASCENDING], ])
+  index([ [:event_type_name, Mongo::ASCENDING], [:level, Mongo::ASCENDING], [:occurred_at, Mongo::DESCENDING], ])
+  index([ [:event_type_name, Mongo::ASCENDING], [:occurred_at, Mongo::ASCENDING], ])
+  index([ [:event_type_name, Mongo::ASCENDING], [:source_name, Mongo::ASCENDING], ])
+  index([ [:level, Mongo::ASCENDING], [:sender_name, Mongo::ASCENDING], [:occurred_at, Mongo::DESCENDING], ])
+  index([ [:level, Mongo::ASCENDING], [:occurred_at, Mongo::DESCENDING], ])
+  index([ [:source_name, Mongo::ASCENDING], [:level, Mongo::ASCENDING], [:occurred_at, Mongo::DESCENDING], ])
+
   # selectable_attrを使ってます
   # see http://github.com/akm/selectable_attr
   #     http://github.com/akm/selectable_attr_rails
