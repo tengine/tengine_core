@@ -12,9 +12,9 @@ gem "activemodel"  , "~> 3.1.0"
 
 gem "selectable_attr", "~> 0.3.15"
 
-gem "bson"    , "~> 1.4.0"
-gem "bson_ext", "~> 1.4.0"
-gem "mongo"   , "~> 1.4.0"
+gem "bson"    , "~> 1.5.2"
+gem "bson_ext", "~> 1.5.2"
+gem "mongo"   , "~> 1.5.2"
 
 gem "mongoid", "~> 2.3.3"
 

@@ -23,7 +23,7 @@ class Tengine::Core::Event
   field :properties     , :type => Hash
   map_yaml_accessor :properties
 
-  validates :event_type_name, :presence => true #, :format => EVENT_TYPE_NAME.options
+  validates :event_type_name, :presence => true, :format => EVENT_TYPE_NAME.options
 
   # 以下の２つはバリデーションを設定したいところですが、外部からの入力は極力保存できる
   # ようにしたいのでバリデーションを外します。
@@ -35,6 +35,14 @@ class Tengine::Core::Event
   index :key, unique: true
   # :unique => trueのindexを設定しているので、uniquenessのバリデーションは設定しません
   validates :key, :presence => true #, :uniqueness => true
+
+  index([ [:event_type_name, Mongo::ASCENDING], [:confirmed, Mongo::ASCENDING], ])
+  index([ [:event_type_name, Mongo::ASCENDING], [:level, Mongo::ASCENDING], [:occurred_at, Mongo::DESCENDING], ])
+  index([ [:event_type_name, Mongo::ASCENDING], [:occurred_at, Mongo::ASCENDING], ])
+  index([ [:event_type_name, Mongo::ASCENDING], [:source_name, Mongo::ASCENDING], ])
+  index([ [:level, Mongo::ASCENDING], [:sender_name, Mongo::ASCENDING], [:occurred_at, Mongo::DESCENDING], ])
+  index([ [:level, Mongo::ASCENDING], [:occurred_at, Mongo::DESCENDING], ])
+  index([ [:source_name, Mongo::ASCENDING], [:level, Mongo::ASCENDING], [:occurred_at, Mongo::DESCENDING], ])
 
   # selectable_attrを使ってます
   # see http://github.com/akm/selectable_attr

@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.5.8"
+  s.version = "0.5.14"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2011-12-19"
+  s.date = "2012-01-06"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined", "tengine_heartbeat_watchd", "tengine_atd"]
@@ -97,6 +97,7 @@ Gem::Specification.new do |s|
     "spec/factories/tengine_core_sessions.rb",
     "spec/mongoid.yml",
     "spec/spec_helper.rb",
+    "spec/support/mongo_index_key_log.rb",
     "spec/tengine/core/bootstrap_spec.rb",
     "spec/tengine/core/bugfix/bind_dsl_file_in_multi_byte_dir_spec.rb",
     "spec/tengine/core/bugfix/enabled_on_activation_spec.rb",
@@ -149,6 +150,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/heartbeat_watcher_spec.rb",
     "spec/tengine/core/io_to_logger_spec.rb",
     "spec/tengine/core/kernel_spec.rb",
+    "spec/tengine/core/optimistic_lock_spec.rb",
     "spec/tengine/core/scheculer_spec.rb",
     "spec/tengine/core/selectable_attr_spec.rb",
     "spec/tengine/core/session_spec.rb",
@@ -162,7 +164,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/tengine/tengine_core"
   s.licenses = ["MPL/LGPL"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.12"
+  s.rubygems_version = "1.8.10"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
@@ -172,9 +174,9 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<activesupport>, ["~> 3.1.0"])
       s.add_runtime_dependency(%q<activemodel>, ["~> 3.1.0"])
       s.add_runtime_dependency(%q<selectable_attr>, ["~> 0.3.15"])
-      s.add_runtime_dependency(%q<bson>, ["~> 1.4.0"])
-      s.add_runtime_dependency(%q<bson_ext>, ["~> 1.4.0"])
-      s.add_runtime_dependency(%q<mongo>, ["~> 1.4.0"])
+      s.add_runtime_dependency(%q<bson>, ["~> 1.5.2"])
+      s.add_runtime_dependency(%q<bson_ext>, ["~> 1.5.2"])
+      s.add_runtime_dependency(%q<mongo>, ["~> 1.5.2"])
       s.add_runtime_dependency(%q<mongoid>, ["~> 2.3.3"])
       s.add_runtime_dependency(%q<tengine_support>, ["~> 0.3.12"])
       s.add_runtime_dependency(%q<tengine_event>, ["~> 0.4.0"])
@@ -192,9 +194,9 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<activesupport>, ["~> 3.1.0"])
       s.add_dependency(%q<activemodel>, ["~> 3.1.0"])
       s.add_dependency(%q<selectable_attr>, ["~> 0.3.15"])
-      s.add_dependency(%q<bson>, ["~> 1.4.0"])
-      s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
-      s.add_dependency(%q<mongo>, ["~> 1.4.0"])
+      s.add_dependency(%q<bson>, ["~> 1.5.2"])
+      s.add_dependency(%q<bson_ext>, ["~> 1.5.2"])
+      s.add_dependency(%q<mongo>, ["~> 1.5.2"])
       s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
       s.add_dependency(%q<tengine_support>, ["~> 0.3.12"])
       s.add_dependency(%q<tengine_event>, ["~> 0.4.0"])
@@ -213,9 +215,9 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<activesupport>, ["~> 3.1.0"])
     s.add_dependency(%q<activemodel>, ["~> 3.1.0"])
     s.add_dependency(%q<selectable_attr>, ["~> 0.3.15"])
-    s.add_dependency(%q<bson>, ["~> 1.4.0"])
-    s.add_dependency(%q<bson_ext>, ["~> 1.4.0"])
-    s.add_dependency(%q<mongo>, ["~> 1.4.0"])
+    s.add_dependency(%q<bson>, ["~> 1.5.2"])
+    s.add_dependency(%q<bson_ext>, ["~> 1.5.2"])
+    s.add_dependency(%q<mongo>, ["~> 1.5.2"])
     s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
     s.add_dependency(%q<tengine_support>, ["~> 0.3.12"])
     s.add_dependency(%q<tengine_event>, ["~> 0.4.0"])

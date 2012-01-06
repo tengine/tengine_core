@@ -12,14 +12,14 @@ describe Tengine::Core::Driveable do
     end
 
     def driveable_test_class_index
-      @@index ||= 0
+      $dtcindex ||= 0
     end
 
     def define_driveable_test_class
-      @@index ||= 0
-      @@index += 1
+      $dtcindex ||= 0
+      $dtcindex += 1
       @klass = Class.new
-      Object.const_set(:"DriveableTestClass#{@@index}", @klass)
+      Object.const_set(:"DriveableTestClass#{$dtcindex}", @klass)
       @klass.module_eval do
         include Tengine::Core::Driveable
 

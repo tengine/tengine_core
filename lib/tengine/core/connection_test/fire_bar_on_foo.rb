@@ -5,7 +5,7 @@ class << Tengine
   attr_accessor :callback_for_test
 end
 
-driver :__connection_test_driver__ do
+driver :connection_test_driver do
   on :foo do
     Tengine.callback_for_test.call(:foo) if Tengine.callback_for_test
     fire :bar

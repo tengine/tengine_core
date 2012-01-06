@@ -6,6 +6,7 @@ describe Tengine::Core::Event::Finder do
   context "検索" do
     before(:all) do
       Tengine::Core::Event.delete_all
+      occured_at_base = Time.now
       base = {
         :sender_name => "agent:server1/99326/tengine_job_agent",
         :level => 2,
@@ -19,8 +20,8 @@ describe Tengine::Core::Event::Finder do
         {:event_type_name => "success.job.job.tengine", :source_name => "job:localhost/123/2222/4444"}.update(base),
         {:event_type_name => "success.jobnet.job.tengine", :source_name => "job:localhost/123/2222/3333"}.update(base),
         {:event_type_name => "success.execution.job.tengine", :source_name => "execution:localhost/123/1111/1111"}.update(base),
-      ].each do |attrs|
-        Tengine::Core::Event.create!(attrs.update(:key => uuid_gen.generate))
+      ].each_with_index do |attrs, i|
+        Tengine::Core::Event.create!(attrs.update(:key => uuid_gen.generate, :occurred_at => occured_at_base + (i*10)))
       end
     end
 
@@ -98,6 +99,38 @@ describe Tengine::Core::Event::Finder do
       end
     end
 
-  end
+    context "scope" do
+      it "ソート順は発生時刻の降順であること" do
+        f = Tengine::Core::Event::Finder.new
+        result = f.paginate
+        result.map{|h| h[:event_type_name]}.should == [
+          "success.execution.job.tengine",
+          "success.jobnet.job.tengine",
+          "success.job.job.tengine",
+          "finished.process.job.tengine",
+          "start.job.job.tengine",
+          "start.jobnet.job.tengine",
+          "start.execution.job.tengine",
+        ]
 
+        occurred_at_base = Time.now
+        result.each_with_index do |event, i|
+          event.occurred_at = occurred_at_base + i
+          event.save!
+        end
+
+        f = Tengine::Core::Event::Finder.new
+        result = f.paginate
+        result.map{|h| h[:event_type_name]}.should == [
+          "start.execution.job.tengine",
+          "start.jobnet.job.tengine",
+          "start.job.job.tengine",
+          "finished.process.job.tengine",
+          "success.job.job.tengine",
+          "success.jobnet.job.tengine",
+          "success.execution.job.tengine",
+        ]
+      end
+    end
+  end
 end
