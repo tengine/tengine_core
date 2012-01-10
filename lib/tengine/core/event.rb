@@ -110,13 +110,19 @@ class Tengine::Core::Event
             results = collection.driver.update(
               { :key => the_event.key, :lock_version => the_event.lock_version },
               { "$set" => hash },
-              { :upsert => true, :safe => true, :multiple => false }
+              { :upsert => true, :safe => { :w => "majority", :wtimeout => 1024, }, :multiple => false } # mongodb 2.0+, 参加しているレプリカセットの多数派に書き込んだ時点でOK扱い
             )
           rescue Mongo::OperationFailure => e
             # upsert = trueだがindexのunique制約があるので重複したkeyは
             # 作成不可、lock_versionの更新失敗はこちらに来る。これは意
             # 図した動作なのでraiseしない。
             Tengine.logger.debug "retrying due to mongodb error #{e}"
+            # lock_versionが存在しない可能性(そのような古いDBを引きずっている等)
+            collection.driver.update(
+              { :key => the_event.key, :lock_version.exists => false },
+              { "$set" => { :lock_version => -(2**63) } },
+              { :upsert => false, :safe => { :w => "majority", :wtimeout => 1024, }, :multiple => false }
+            )
           else
             if results["error"]
               raise Mongo::OperationFailure, results["error"]
