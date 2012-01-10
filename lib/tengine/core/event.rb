@@ -73,7 +73,7 @@ class Tengine::Core::Event
   # @param                    [Numeric] retry_max (0)  Maximum number of retry attempts to save the event.
   # @return      [Tengine::Core::Event]                The event in question if update succeeded, false if retry_max reached, or nil if the block exited with false.
   # @raise    [Mongo::OperationFailure]                Any exceptions that happened inside will be propagated outside.
-  def self.find_or_create_by_key_then_update_with_block the_key, retry_max = 0
+  def self.find_or_create_by_key_then_update_with_block the_key, retry_max = 3
     # * とある条件を満たすイベントがあれば、それを上書きしたい。
     # * なければ、新規作成したい。
     # * でもアトミックにやりたい。
@@ -81,55 +81,62 @@ class Tengine::Core::Event
     # * あるとおもって上書きしようとしたら裏でイベントが消えていたら、新規作成モードでやり直したい。
     # * という要求をできるだけ高速に処理したい。
 
-    # あればとってくる
-    the_event = where(:key => the_key).first || new(:key => the_key)
-
+    the_event = nil
     retries = -1
     results = nil
+    $safemode ||= { :w => "majority", :wtimeout => 1024, } # mongodb 2.0+, 参加しているレプリカセットの多数派に書き込んだ時点でOK扱い
     while true do
-      if retries >= retry_max # retryしすぎ
-        return false
+      return false if retries >= retry_max # retryしすぎ
+
+      retries += 1
+      # あればとってくる
+      if the_event and not the_event.new_record?
+        the_event.reload
       else
+        the_event = where(:key => the_key).first || new(:key => the_key)
+      end
 
-        retries += 1
-        unless the_event.new_record?
-          the_event.reload
-        end
+      return nil if not yield(the_event) # ユザーによる意図的な中断
 
-        if not yield(the_event) # ユザーによる意図的な中断
-          return nil
+      hash = the_event.as_document.dup # <- dup ?
+      hash.delete "_id"
+      hash['lock_version'] = the_event.lock_version + 1
+      hash['created_at'] ||= Time.now
+      hash['updated_at'] = Time.now
+
+      begin
+        results = collection.driver.update(
+          { :key => the_event.key, :lock_version => the_event.lock_version },
+          { "$set" => hash },
+          { :upsert => true, :safe => $safemode, :multiple => false }
+        )
+      rescue Mongo::OperationFailure => e
+        # upsert = trueだがindexのunique制約があるので重複したkeyは
+        # 作成不可、lock_versionの更新失敗はこちらに来る。これは意
+        # 図した動作なのでraiseしない。
+        Tengine.logger.debug "retrying due to mongodb error #{e}"
+        if /norepl/ =~ e.message
+          # not replica set
+          $safemode = true
         else
-
-          hash = the_event.as_document.dup # <- dup ?
-          hash.delete "_id"
-          hash['lock_version'] = the_event.lock_version + 1
-          hash['created_at'] ||= Time.now
-          hash['updated_at'] = Time.now
-
-          begin
-            results = collection.driver.update(
-              { :key => the_event.key, :lock_version => the_event.lock_version },
-              { "$set" => hash },
-              { :upsert => true, :safe => true, :multiple => false }
-            )
-          rescue Mongo::OperationFailure => e
-            # upsert = trueだがindexのunique制約があるので重複したkeyは
-            # 作成不可、lock_versionの更新失敗はこちらに来る。これは意
-            # 図した動作なのでraiseしない。
-            Tengine.logger.debug "retrying due to mongodb error #{e}"
-          else
-            if results["error"]
-              raise Mongo::OperationFailure, results["error"]
-            elsif results["upserted"]
-              # *hack* _idを消してupsertしたので、このとき_idは新しくなっている
-              the_event.write_attributes "_id" => results["upserted"]
-              the_event.reload
-              return the_event
-            else
-              the_event.reload
-              return the_event
-            end
-          end
+          # lock_versionが存在しない可能性(そのような古いDBを引きずっている等)
+          collection.driver.update(
+            { :key => the_event.key, :lock_version => { "$exists" => false } },
+            { "$set" => { :lock_version => -(2**63) } },
+            { :upsert => false, :safe => $safemode, :multiple => false }
+          )
+        end
+      else
+        if results["error"]
+          raise Mongo::OperationFailure, results["error"]
+        elsif results["upserted"]
+          # *hack* _idを消してupsertしたので、このとき_idは新しくなっている
+          the_event.write_attributes "_id" => results["upserted"]
+          the_event.reload
+          return the_event
+        else
+          the_event.reload
+          return the_event
         end
       end
     end
