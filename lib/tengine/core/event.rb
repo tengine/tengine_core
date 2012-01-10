@@ -81,9 +81,7 @@ class Tengine::Core::Event
     # * あるとおもって上書きしようとしたら裏でイベントが消えていたら、新規作成モードでやり直したい。
     # * という要求をできるだけ高速に処理したい。
 
-    # あればとってくる
-    the_event = where(:key => the_key).first || new(:key => the_key)
-
+    the_event = nil
     retries = -1
     results = nil
     $safemode ||= { :w => "majority", :wtimeout => 1024, } # mongodb 2.0+, 参加しているレプリカセットの多数派に書き込んだ時点でOK扱い
@@ -93,8 +91,11 @@ class Tengine::Core::Event
       else
 
         retries += 1
-        unless the_event.new_record?
+        # あればとってくる
+        if the_event and not the_event.new_record?
           the_event.reload
+        else
+          the_event = where(:key => the_key).first || new(:key => the_key)
         end
 
         if not yield(the_event) # ユザーによる意図的な中断
