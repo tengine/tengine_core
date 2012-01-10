@@ -73,7 +73,7 @@ class Tengine::Core::Event
   # @param                    [Numeric] retry_max (0)  Maximum number of retry attempts to save the event.
   # @return      [Tengine::Core::Event]                The event in question if update succeeded, false if retry_max reached, or nil if the block exited with false.
   # @raise    [Mongo::OperationFailure]                Any exceptions that happened inside will be propagated outside.
-  def self.find_or_create_by_key_then_update_with_block the_key, retry_max = 0
+  def self.find_or_create_by_key_then_update_with_block the_key, retry_max = 3
     # * とある条件を満たすイベントがあれば、それを上書きしたい。
     # * なければ、新規作成したい。
     # * でもアトミックにやりたい。
@@ -86,6 +86,7 @@ class Tengine::Core::Event
 
     retries = -1
     results = nil
+    $safemode ||= { :w => "majority", :wtimeout => 1024, } # mongodb 2.0+, 参加しているレプリカセットの多数派に書き込んだ時点でOK扱い
     while true do
       if retries >= retry_max # retryしすぎ
         return false
@@ -110,19 +111,24 @@ class Tengine::Core::Event
             results = collection.driver.update(
               { :key => the_event.key, :lock_version => the_event.lock_version },
               { "$set" => hash },
-              { :upsert => true, :safe => { :w => "majority", :wtimeout => 1024, }, :multiple => false } # mongodb 2.0+, 参加しているレプリカセットの多数派に書き込んだ時点でOK扱い
+              { :upsert => true, :safe => $safemode, :multiple => false }
             )
           rescue Mongo::OperationFailure => e
             # upsert = trueだがindexのunique制約があるので重複したkeyは
             # 作成不可、lock_versionの更新失敗はこちらに来る。これは意
             # 図した動作なのでraiseしない。
             Tengine.logger.debug "retrying due to mongodb error #{e}"
-            # lock_versionが存在しない可能性(そのような古いDBを引きずっている等)
-            collection.driver.update(
-              { :key => the_event.key, :lock_version.exists => false },
-              { "$set" => { :lock_version => -(2**63) } },
-              { :upsert => false, :safe => { :w => "majority", :wtimeout => 1024, }, :multiple => false }
-            )
+            if /norepl/ =~ e.message
+              # not replica set
+              $safemode = true
+            else
+              # lock_versionが存在しない可能性(そのような古いDBを引きずっている等)
+              collection.driver.update(
+                { :key => the_event.key, :lock_version => { "$exists" => false } },
+                { "$set" => { :lock_version => -(2**63) } },
+                { :upsert => false, :safe => $safemode, :multiple => false }
+              )
+            end
           else
             if results["error"]
               raise Mongo::OperationFailure, results["error"]
