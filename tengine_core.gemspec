@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2012-01-10"
+  s.date = "2012-01-13"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined", "tengine_heartbeat_watchd", "tengine_atd"]
@@ -76,6 +76,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/kernel.rb",
     "lib/tengine/core/kernel_runtime.rb",
     "lib/tengine/core/method_traceable.rb",
+    "lib/tengine/core/mutex.rb",
     "lib/tengine/core/optimistic_lock.rb",
     "lib/tengine/core/plugins.rb",
     "lib/tengine/core/schedule.rb",
@@ -150,6 +151,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/heartbeat_watcher_spec.rb",
     "spec/tengine/core/io_to_logger_spec.rb",
     "spec/tengine/core/kernel_spec.rb",
+    "spec/tengine/core/mutex_spec.rb",
     "spec/tengine/core/optimistic_lock_spec.rb",
     "spec/tengine/core/scheculer_spec.rb",
     "spec/tengine/core/selectable_attr_spec.rb",
