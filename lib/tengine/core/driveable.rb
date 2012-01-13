@@ -168,21 +168,6 @@ module Tengine::Core::Driveable
     self.class.session
   end
 
-
-  module ByDsl
-    extend ActiveSupport::Concern
-
-    included do
-      @__context__ = self.singleton_class
-      @__context__.instance_eval do
-        def config; @config; end
-        def config=(val); @config = val; end
-
-        def options; @options; end
-        def options=(val); @options = val; end
-      end
-    end
-
     def event
       @__event_wrapper__ ||= (@__event__ ? Tengine::Core::EventWrapper.new(@__event__) : nil)
     end
@@ -197,6 +182,21 @@ module Tengine::Core::Driveable
 
     def fire(*args, &block)
       kernel.fire(*args, &block)
+    end
+
+
+  module ByDsl
+    extend ActiveSupport::Concern
+
+    included do
+      @__context__ = self.singleton_class
+      @__context__.instance_eval do
+        def config; @config; end
+        def config=(val); @config = val; end
+
+        def options; @options; end
+        def options=(val); @options = val; end
+      end
     end
   end
 
