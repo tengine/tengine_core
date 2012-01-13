@@ -36,6 +36,7 @@ module Tengine::Core
   autoload :Validation          , 'tengine/core/validation'
   autoload :EventExceptionReportable, 'tengine/core/event_exception_reportable'
   autoload :FindByName          , 'tengine/core/find_by_name'
+  autoload :Mutex               , 'tengine/core/mutex'
 
   class << self
     # Tengine::Coreの正常時の動きをアプリケーション運用者が確認できる内容を出力するロガー
