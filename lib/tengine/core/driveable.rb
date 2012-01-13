@@ -168,21 +168,21 @@ module Tengine::Core::Driveable
     self.class.session
   end
 
-    def event
-      @__event_wrapper__ ||= (@__event__ ? Tengine::Core::EventWrapper.new(@__event__) : nil)
-    end
+  def event
+    @__event_wrapper__ ||= (@__event__ ? Tengine::Core::EventWrapper.new(@__event__) : nil)
+  end
 
-    def kernel
-      ev = @__event__
-      ev ? ev.kernel : nil
-    end
+  def kernel
+    ev = @__event__
+    ev ? ev.kernel : nil
+  end
 
-    def ack?; kernel.ack?; end
-    def submit; kernel.submit; end
+  def ack?; kernel.ack?; end
+  def submit; kernel.submit; end
 
-    def fire(*args, &block)
-      kernel.fire(*args, &block)
-    end
+  def fire(*args, &block)
+    kernel.fire(*args, &block)
+  end
 
 
   module ByDsl
