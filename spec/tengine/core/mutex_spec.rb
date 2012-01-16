@@ -13,6 +13,14 @@ describe Tengine::Core::Mutex do
     it { should be_kind_of(Tengine::Core::Mutex) }
     its(:mutex) { should be_kind_of(Tengine::Core::Mutex::Mutex) }
     its(:recursive) { should be_zero }
+
+    context "negative ttl" do
+      it { expect { Tengine::Core::Mutex.new "test negative ttl", -1 }.to raise_exception(ArgumentError) }
+    end
+
+    context "infinite ttl" do
+      it { expect { Tengine::Core::Mutex.new "test negative ttl", (1.0 / 0.0) }.to raise_exception(TypeError) }
+    end
   end
 
   context "#synchronize" do
@@ -96,6 +104,74 @@ describe Tengine::Core::Mutex do
       block_called.should be_true
       m.reload.waiters.should be_empty
       (t1 - t0).should be_within(0.5).of(5 + m.ttl)
+    end
+
+    it "synchronizes #4: multi-threaded situation" do
+      x = y = z = nil
+
+      EM.run do
+        EM.defer do
+          m = Tengine::Core::Mutex.new "test mutex 02"
+          m.synchronize do
+            x = Time.now.to_f
+          end
+          y = Time.now.to_f
+        end
+
+        EM.defer do
+          m = Tengine::Core::Mutex.new "test mutex 02"
+          m.synchronize do
+            z = Time.now.to_f
+            EM.stop
+          end
+        end
+      end
+
+      x.should_not be_nil
+      y.should_not be_nil
+      z.should_not be_nil
+      x.should < z
+      y.should <= z
+    end
+  end
+
+  context "#heartbeat" do
+    subject { Tengine::Core::Mutex.new "test mutex 01", Math::PI / 10 }
+
+    it "prevents automatic unlocking" do
+      m = subject.mutex
+      t1 = nil
+      t0 = Time.now.to_f
+      EM.run do
+        EM.defer do
+          subject.synchronize do
+            20.times do
+              subject.heartbeat
+              sleep(m.ttl / 2)
+            end
+          end
+        end
+        EM.defer do
+          sleep m.ttl
+          loop do
+            # hacky...
+            if h = m.reload.waiters.first
+              if h["timeout"] < Time.now
+                t1 = Time.now.to_f
+                EM.stop
+                break
+              end
+            else
+              t1 = Time.now.to_f
+              EM.stop
+              break
+            end
+          end
+        end
+      end
+
+      t1.should_not be_nil
+      (t1 - t0).should be_within(0.5).of(10 * subject.mutex.ttl)
     end
   end
 end
