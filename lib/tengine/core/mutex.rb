@@ -53,8 +53,8 @@ class Tengine::Core::Mutex::Mutex
   
   def self.find_or_create name, ttl
     collection.driver.update(
-      { :_id => name, :ttl => ttl, },
-      { "$set" => { :ttl => ttl, :waiters => [], }, },
+      { :_id => name },
+      { "$set" => { :ttl => ttl, }, },
       { :upsert => true, :safe => true, :multiple => false, }
     )
     return find(name)

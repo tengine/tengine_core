@@ -45,6 +45,7 @@ describe Tengine::Core::Mutex do
     it "synchronizes #1: with another locker, which is expired" do
       # "stub" waiters
       m = subject.mutex
+      m.waiters ||= []
       m.waiters << { :_id => 1, :timeout => Time.at(0) }
       m.save
 
@@ -64,6 +65,7 @@ describe Tengine::Core::Mutex do
     it "synchronizes #2: with another locker, which is expiring" do
       # "stub" waiters
       m = subject.mutex
+      m.waiters ||= []
       m.waiters << { :_id => 1, :timeout => Time.now + m.ttl / 2 }
       m.save
 
@@ -86,6 +88,7 @@ describe Tengine::Core::Mutex do
       m = subject.mutex
       s = mock("mutex")
       s.stub("_id").and_return(1)
+      m.waiters ||= []
       m.waiters << { :_id => s._id, :timeout => Time.now + 10 }
       m.save
 
