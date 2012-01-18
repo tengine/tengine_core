@@ -29,7 +29,9 @@ describe "Tengine::Core::Bootstrap" do
         }
         bootstrap = Tengine::Core::Bootstrap.new(options)
         bootstrap.should_receive(:start_kernel)
-        bootstrap.should_not_receive(:load_dsl)
+        # skip_loadオプションを指定してもtengine_core-0.5系の再設計により無視するように変更しました。
+        # bootstrap.should_not_receive(:load_dsl)
+        bootstrap.should_receive(:load_dsl)
         bootstrap.boot
       end
     end
@@ -111,10 +113,9 @@ describe "Tengine::Core::Bootstrap" do
       mock_config = mock(:config)
       mock_config.should_receive(:dsl_version).and_return("test2011102623595999")
       bootstrap.should_receive(:config).twice.and_return(mock_config)
-      mock_dsl_dummy_env = mock(:dsl_dummy_env)
-      Tengine::Core::DslLoadingContext.should_receive(:new).and_return(mock_dsl_dummy_env)
-      mock_dsl_dummy_env.should_receive(:config=).with(mock_config)
-      mock_dsl_dummy_env.should_receive(:__evaluate__)
+      bootstrap.kernel.context.tap do |context|
+        context.should_receive(:__evaluate__)
+      end
       bootstrap.load_dsl
     end
 
@@ -133,11 +134,10 @@ describe "Tengine::Core::Bootstrap" do
         mock_config = mock(:config)
         mock_config.should_receive(:dsl_version).and_return("test2011102623595999")
         bootstrap.should_receive(:config).twice.and_return(mock_config)
-        mock_dsl_dummy_env = mock(:dsl_dummy_env)
-        Tengine::Core::DslLoadingContext.include?(@ext_mod1).should be_true
-        Tengine::Core::DslLoadingContext.should_receive(:new).and_return(mock_dsl_dummy_env)
-        mock_dsl_dummy_env.should_receive(:config=).with(mock_config)
-        mock_dsl_dummy_env.should_receive(:__evaluate__)
+        bootstrap.kernel.context.tap do |context|
+          context.is_a?(@ext_mod1).should be_true
+          context.should_receive(:__evaluate__)
+        end
         bootstrap.load_dsl
       end
 

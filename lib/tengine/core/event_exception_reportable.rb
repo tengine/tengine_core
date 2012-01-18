@@ -3,26 +3,26 @@ require 'tengine/core'
 module Tengine::Core::EventExceptionReportable
   extend ActiveSupport::Concern
 
-  FIRE_ALL = lambda do |kernel, dsl_context, event, exception, block|
-    dsl_context.fire("#{event.event_type_name}.error.tengined",
+  FIRE_ALL = lambda do |kernel, dsl_context, event, exception|
+    kernel.fire("#{event.event_type_name}.error.tengined",
       :properties => {
         :original_event => event.to_json,
         :error_class_name => exception.class.name,
         :error_message => exception.message,
         :error_backtrace => exception.backtrace,
-        :block_source_location => '%s:%d' % block.source_location,
+        # :block_source_location => '%s:%d' % block.source_location,
       })
   end
 
-  FIRE_EXCEPT_TESTING_ERROR = lambda do |kernel, dsl_context, event, exception, block|
+  FIRE_EXCEPT_TESTING_ERROR = lambda do |kernel, dsl_context, event, exception|
     if exception.class.name =~ /^Test::|^MiniTest::|^RSpec::|^Spec::/
       raise exception
     else
-      FIRE_ALL.call(kernel, dsl_context, event, exception, block)
+      FIRE_ALL.call(kernel, dsl_context, event, exception)
     end
   end
 
-  RAISE_ALL = lambda do |kernel, dsl_context, event, exception, block|
+  RAISE_ALL = lambda do |kernel, dsl_context, event, exception|
     raise exception
   end
 
@@ -72,13 +72,13 @@ module Tengine::Core::EventExceptionReportable
   end
 
   module InstanceMethods
-    def report_on_exception(dsl_context, event, block)
+    def report_on_exception(dsl_context, event)
       begin
         yield
       rescue Exception => e
         Tengine.logger.error("[#{e.class.name}] #{e.message}\n  " << e.backtrace.join("\n  "))
         if reporter = Tengine::Core::Kernel.event_exception_reporter
-          reporter.call(self, dsl_context, event, e, block)
+          reporter.call(self, dsl_context, event, e)
         end
       end
     end

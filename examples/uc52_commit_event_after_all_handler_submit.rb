@@ -5,23 +5,25 @@ require 'tengine/core'
 # 対応するハンドラ群をすべて実行してすべてsubmitしたらACKを返す。
 ack_policy(:after_all_handler_submit, :event52)
 
+# このドライバでは自動テストの簡略化のために明示的に標準出力に対してputsを呼び出しています
+
 driver :driver52_1 do
   on:event52 do
-    puts "handler52_1 " << (ack? ? "acknowledged" : "unacknowledged")
+    STDOUT.puts "handler52_1 " << (ack? ? "acknowledged" : "unacknowledged")
     submit
   end
 end
 
 driver :driver52_2 do
   on:event52 do
-    puts "handler52_2 " << (ack? ? "acknowledged" : "unacknowledged")
+    STDOUT.puts "handler52_2 " << (ack? ? "acknowledged" : "unacknowledged")
     submit
   end
 end
 
 driver :driver52_3 do
   on:event52 do
-    puts "handler52_3 " << (ack? ? "acknowledged" : "unacknowledged")
+    STDOUT.puts "handler52_3 " << (ack? ? "acknowledged" : "unacknowledged")
     submit
   end
 end

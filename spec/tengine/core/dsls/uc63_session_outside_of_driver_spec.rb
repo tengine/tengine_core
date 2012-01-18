@@ -29,6 +29,7 @@ describe "uc63_session_outside_of_driver" do
     driver.save!
     expect{
       @kernel.bind
-    }.to raise_error(Tengine::Core::DslError, "session is not available outside of event driver block.")
+    # }.to raise_error(Tengine::Core::DslError, "session is not available outside of event driver block.")
+    }.to_not raise_error # bindはほとんど何もしなくなりました
   end
 end

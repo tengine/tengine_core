@@ -38,6 +38,36 @@ describe Tengine::Core::HeartbeatWatcher do
     end
   end
 
+  describe "#search_for_invalid_heartbeat, kind_of" do
+
+    before do
+      @fixtures = Array.new
+      @fixtures << Tengine::Core::Event.new(key: "job1", event_type_name: "job.heartbeat.tengine", occurred_at: 1.day.ago)
+      @fixtures << Tengine::Core::Event.new(key: "job2", event_type_name: "job.heartbeat.tengine", occurred_at: 1.second.ago)
+      @fixtures << Tengine::Core::Event.new(key: "cor1", event_type_name: "core.heartbeat.tengine", occurred_at: 1.day.ago)
+      @fixtures << Tengine::Core::Event.new(key: "cor2", event_type_name: "core.heartbeat.tengine", occurred_at: 10.second.ago)
+      @fixtures << Tengine::Core::Event.new(key: "hbw1", event_type_name: "hbw.heartbeat.tengine", occurred_at: 1.day.ago)
+      @fixtures << Tengine::Core::Event.new(key: "hbw2", event_type_name: "hbw.heartbeat.tengine", occurred_at: 1.second.ago)
+      @fixtures << Tengine::Core::Event.new(key: "rsw1", event_type_name: "resourcew.heartbeat.tengine", occurred_at: 1.day.ago)
+      @fixtures << Tengine::Core::Event.new(key: "rsw2", event_type_name: "resourcew.heartbeat.tengine", occurred_at: 10.second.ago)
+      @fixtures << Tengine::Core::Event.new(key: "atd1", event_type_name: "atd.heartbeat.tengine", occurred_at: 1.day.ago)
+      @fixtures << Tengine::Core::Event.new(key: "atd2", event_type_name: "atd.heartbeat.tengine", occurred_at: 10.second.ago)
+      @fixtures << Tengine::Core::Event.new(key: "hog1", event_type_name: "hoge.heartbeat.tengine", occurred_at: 1.day.ago)
+      @fixtures << Tengine::Core::Event.new(key: "hog2", event_type_name: "hoge.heartbeat.tengine", occurred_at: 10.second.ago)
+      @fixtures.each {|i| i.save! }
+    end
+
+    it "古い job,core,hbw,resourcew,atd を検索してくる" do
+      EM.run do
+        subject.search_for_invalid_heartbeat do |i|
+          (i.key =~ /job1|cor1|hbw1|rsw1|atd1/).should be_true
+          (i.key =~ /job2|cor2|hbw2|rsw2|atd2|hog1|hog2/).should be_false
+        end
+        EM.add_timer 0.1 do EM.stop end
+      end
+    end
+  end
+
   describe "#send_last_event" do
     it "finished.process.hbw.tengineの発火" do
       sender = mock(:sender)

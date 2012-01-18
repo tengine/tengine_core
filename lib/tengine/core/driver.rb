@@ -28,6 +28,15 @@ class Tengine::Core::Driver
   # @attribute 実行時有効／無効
   field :enabled_on_activation, :type => Boolean, :default => true
 
+  # @attribute 対象クラス名
+  field :target_class_name, :type => String
+
+  index([ [:_id, Mongo::ASCENDING], [:enabled, Mongo::ASCENDING], [:version, Mongo::ASCENDING], ])
+  index([ [:name, Mongo::ASCENDING], [:version, Mongo::ASCENDING], ])
+  index([ [:version, Mongo::ASCENDING], [:enabled_on_activation, Mongo::ASCENDING], ])
+  index([ [:version, Mongo::ASCENDING], ])
+  index([ [:_id, Mongo::ASCENDING], [:name, Mongo::ASCENDING], ])
+
   validates(:name, :presence => true,
     :uniqueness => {:scope => :version, :message => "is already taken in same version"},
     :format => BASE_NAME.options

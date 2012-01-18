@@ -17,13 +17,11 @@ describe Tengine::Core::DslLoader do
                 :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__))
               }
             })
-          @loader = Tengine::Core::DslLoadingContext.new
-          @loader.extend(Tengine::Core::DslLoader)
-          @loader.config = config
+          @kernel = Tengine::Core::Kernel.new(config)
         end
 
         it "イベントハンドラ定義を評価して、ドライバとハンドラを登録する" do
-          @loader.__evaluate__
+          @kernel.evaluate
           # $LOAD_PATH.include?(@config[:dsl_store_path]).should be_true
           # driver01 = Tengine::Core::Driver.find(:conditions => {:name => "driver01"})
           Tengine::Core::Driver.count.should == 1
@@ -31,6 +29,7 @@ describe Tengine::Core::DslLoader do
           driver01.should_not be_nil
           driver01.name.should == "driver01"
           driver01.version.should == "20110902213500"
+          driver01.enabled.should == true
           driver01.handlers.count.should == 1
           handler1 = driver01.handlers.first
           handler1.event_type_names.should == %w[event01]
@@ -40,6 +39,7 @@ describe Tengine::Core::DslLoader do
         end
       end
 
+
       context "Driverを無効化して登録(マルチプロセスモード)" do
         before do
           config = Tengine::Core::Config::Core.new({
@@ -48,13 +48,11 @@ describe Tengine::Core::DslLoader do
                 :skip_enablement => true
               }
             })
-          @loader = Tengine::Core::DslLoadingContext.new
-          @loader.extend(Tengine::Core::DslLoader)
-          @loader.config = config
+          @kernel = Tengine::Core::Kernel.new(config)
         end
 
         it "イベントハンドラ定義を評価して、ドライバとハンドラを登録する" do
-          @loader.__evaluate__
+          @kernel.evaluate
           Tengine::Core::Driver.count.should == 1
           driver01 = Tengine::Core::Driver.first
           driver01.should_not be_nil
@@ -77,9 +75,8 @@ describe Tengine::Core::DslLoader do
               :load_path => File.expand_path('../../../examples', File.dirname(__FILE__))
             }
         })
-        @loader = Tengine::Core::DslLoadingContext.new
-        @loader.extend(Tengine::Core::DslLoader)
-        @loader.config = config
+        @kernel = Tengine::Core::Kernel.new(config)
+        @loader = @kernel.dsl_context
 
         @loader.config.should_receive(:dsl_file_paths).and_return([
             "#{config[:tengined][:load_path]}/uc01_execute_processing_for_event.rb",
@@ -92,7 +89,7 @@ describe Tengine::Core::DslLoader do
         # driver03にevent03が複数定義されているための警告メッセージ
         # Tengine::Core.stdout_logger.should_receive(:warn).with("driver\"driver03\"には、同一のevent_type_name\"event03\"が複数存在します")
 
-        @loader.__evaluate__
+        @kernel.evaluate
 
         Tengine::Core::Driver.count.should == 3
         drivers = Tengine::Core::Driver.all
@@ -141,13 +138,11 @@ describe Tengine::Core::DslLoader do
               :load_path => File.expand_path('../../../examples/uc08_if_both_a_and_b_occurs.rb', File.dirname(__FILE__))
             }
           })
-        @loader = Tengine::Core::DslLoadingContext.new
-        @loader.extend(Tengine::Core::DslLoader)
-        @loader.config = config
+        @kernel = Tengine::Core::Kernel.new(config)
       end
 
       it "イベントハンドラ定義を評価して、ドライバとハンドラを登録する" do
-        @loader.__evaluate__
+        @kernel.evaluate
         Tengine::Core::Driver.count.should == 1
         driver = Tengine::Core::Driver.first
         driver.should_not be_nil

@@ -23,8 +23,7 @@ describe "receive_event" do
     @kernel.bind
 
     # キューの mock を生成
-    @mock_channel = mock(:channel)
-    @mock_queue = mock(:queue)
+    @mock_mq = mock(:mq)
 
     @header = AMQP::Header.new(@mock_channel, nil, {
         :routing_key  => "",
@@ -71,20 +70,10 @@ describe "receive_event" do
 
   it "発火されたイベントを受信して登録できる" do
     # eventmachine と mq の mock を生成
-    EM.should_receive(:run).and_yield
-    EM.stub(:defer) {|x, y| x.call; y.call(nil) if y }
-    EM.stub(:add_periodic_timer)
-    mock_connection = mock(:connection)
-    AMQP.should_receive(:connect).with(an_instance_of(Hash)).and_return(mock_connection)
-    mock_connection.should_receive(:on_tcp_connection_loss)
-    mock_connection.should_receive(:after_recovery)
-    mock_connection.should_receive(:on_closed)
-    mock_connection.stub(:connected?).and_return(true)
-
-    mock_mq = Tengine::Mq::Suite.new(@kernel.config[:event_queue])
-    Tengine::Mq::Suite.should_receive(:new).with(@kernel.config[:event_queue]).and_return(mock_mq)
-    mock_mq.should_receive(:queue).exactly(2).times.and_return(@mock_queue)
-    mock_mq.stub(:wait_for_connection).and_yield
+    mock_sender = mock("sender")
+    mock_sender.stub(:fire)
+    @kernel.stub(:sender).and_return(mock_sender)
+    @kernel.stub(:mq).and_return(@mock_mq)
 
     # subscribe 実施
     @raw_event = Tengine::Event.new(
@@ -96,13 +85,20 @@ describe "receive_event" do
       'sender_name' => "server2",
       :properties => {:bar => "ABC", :baz => 999}
       )
-    @mock_queue.should_receive(:subscribe).with(:ack => true, :nowait => true).and_yield(@header, @raw_event.to_json)
+    @mock_mq.stub(:initiate_termination).and_yield
+    @mock_mq.stub(:unsubscribe).and_yield
+    @mock_mq.stub(:stop).and_yield
+    @mock_mq.stub(:add_hook)
+    @mock_mq.stub(:subscribe).with(:ack => true, :nowait => false, :confirm => an_instance_of(Proc)) do |h, b|
+      h[:confirm].yield(mock("confirm-ok"))
+      b.yield(@header, @raw_event.to_json)
+    end
     @header.should_receive(:ack)
 
     count = lambda{ Tengine::Core::Event.where(:event_type_name => :event01, :confirmed => true).count }
     @kernel.should_receive(:setup_mq_connection)
     STDOUT.should_receive(:puts).with("uuid1:handler01")
-    expect{ @kernel.start }.should change(count, :call).by(1) # イベントが登録されていることを検証
+    expect{ @kernel.start { @kernel.stop } }.should change(count, :call).by(1) # イベントが登録されていることを検証
   end
 
   it "イベントハンドラ内で取得できるイベントは発火されたイベントと同等になる", :bug => true do

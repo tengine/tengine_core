@@ -17,11 +17,8 @@ describe "load_dsl" do
               :load_path => File.expand_path('../../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
             }
           })
-        loader = Tengine::Core::DslLoadingContext.new
-        loader.extend(Tengine::Core::DslLoader)
-        loader.config = config
-
-        loader.__evaluate__
+        kernel = Tengine::Core::Kernel.new(config)
+        kernel.evaluate
         Tengine::Core::Driver.count.should == 1
         driver = Tengine::Core::Driver.first
         driver.should_not be_nil
@@ -44,11 +41,8 @@ describe "load_dsl" do
               :skip_enablement => true
             }
           })
-        loader = Tengine::Core::DslLoadingContext.new
-        loader.extend(Tengine::Core::DslLoader)
-        loader.config = config
-
-        loader.__evaluate__
+        kernel = Tengine::Core::Kernel.new(config)
+        kernel.evaluate
         Tengine::Core::Driver.count.should == 1
         driver = Tengine::Core::Driver.first
         driver.should_not be_nil
@@ -71,11 +65,8 @@ describe "load_dsl" do
               :load_path => File.expand_path('../../../../examples/uc71_driver_disabled_on_activation.rb', File.dirname(__FILE__)),
             }
           })
-        loader = Tengine::Core::DslLoadingContext.new
-        loader.extend(Tengine::Core::DslLoader)
-        loader.config = config
-
-        loader.__evaluate__
+        kernel = Tengine::Core::Kernel.new(config)
+        kernel.evaluate
         Tengine::Core::Driver.count.should == 1
         driver = Tengine::Core::Driver.first
         driver.should_not be_nil
@@ -97,12 +88,9 @@ describe "load_dsl" do
               :load_path => File.expand_path('../../../../examples/uc71_driver_disabled_on_activation.rb', File.dirname(__FILE__)),
               :skip_enablement => true,
             }
-          })
-        loader = Tengine::Core::DslLoadingContext.new
-        loader.extend(Tengine::Core::DslLoader)
-        loader.config = config
-
-        loader.__evaluate__
+          }) 
+        kernel = Tengine::Core::Kernel.new(config)
+        kernel.evaluate
         Tengine::Core::Driver.count.should == 1
         driver = Tengine::Core::Driver.first
         driver.should_not be_nil

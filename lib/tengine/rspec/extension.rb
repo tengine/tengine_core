@@ -16,9 +16,12 @@ module Tengine::RSpec::Extension
             :tengined => { :load_path => @__dsl_path__ },
           })
         @__bootstrap__ = Tengine::Core::Bootstrap.new(@__config__)
-        @__bootstrap__.load_dsl
-        @__kernel__ = Tengine::Core::Kernel.new(@__config__)
+        @__kernel__ = @__bootstrap__.kernel
         @__kernel__.bind
+        @__kernel__.evaluate
+        # @__bootstrap__.load_dsl
+        # @__kernel__ = Tengine::Core::Kernel.new(@__config__)
+        # @__kernel__.bind
         @__tengine__ = Tengine::RSpec::ContextWrapper.new(@__kernel__)
       end
     end
@@ -29,6 +32,7 @@ module Tengine::RSpec::Extension
         if @__driver__
           session = @__driver__.session
           @__session__ = Tengine::Core::SessionWrapper.new(session)
+          @__tengine__.__driver__ = @__driver__
         else
           raise "No driver named ``#{driver_name}'' was found."
         end

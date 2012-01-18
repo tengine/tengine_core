@@ -41,7 +41,16 @@ verbose "define stop_process" do
       pids = Dir.glob(File.expand_path(@__config__[:process][:pid_dir] + "/*")).map do |pid_path|
         File.open(pid_path, "r"){|f| f.gets.chomp.to_i}
       end
-      results = pids.map{|pid| Process.kill(signal, pid)}
+      results = pids.map{|pid|
+        begin
+          Process.kill(signal, pid)
+          STDOUT.puts("Process stop successfully [#{pid}]")
+        rescue
+          # pid_dir には、古いpidファイルが残っていることを考慮して古いpidのkillシグナルの
+          # 失敗は無視して起動しているプロセスに対してkillします
+          verbose("warning: #$! [#{pid}]")
+        end
+      }
     end
   end
 end
@@ -159,6 +168,8 @@ run do
   Mongoid.config.from_hash(config[:db])
   Mongoid.config.option(:persist_in_safe_mode, :default => true)
   Mongoid.config.option(:autocreate_indexes, :default => true)     # http://mongoid.org/docs/indexing.html
+  require 'amqp'
+  Mongoid.logger = AMQP::Session.logger = Tengine.logger
   Tengine::Core::MethodTraceable.disabled = !@__config__[:verbose] # Tengine::Core::Bootstrapが動く前に設定しないと余計なログが出ます
   @__bootstrap__ = Tengine::Core::Bootstrap.new(config)
   @__bootstrap__.boot

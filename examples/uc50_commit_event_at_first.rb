@@ -5,10 +5,12 @@ require 'tengine/core'
 # 特に指定しない場合、カーネルはこの :at_first が指定されているように振る舞う。
 ack_policy(:at_first, :event50)
 
+# このドライバでは自動テストの簡略化のために明示的に標準出力に対してputsを呼び出しています
+
 driver :driver50 do
 
   on:event50 do
-    puts "handler50 " << (ack? ? "acknowledged" : "unacknowledged")
+    STDOUT.puts "handler50 " << (ack? ? "acknowledged" : "unacknowledged")
     submit # submitしても無視されます
   end
 

@@ -8,7 +8,7 @@ require 'eventmachine'
 class Tengine::Core::Bootstrap
 
   attr_accessor :config
-  attr_accessor :kernel
+  attr_writer :kernel
 
   def initialize(hash)
     @config = Tengine::Core::Config::Core[hash]
@@ -24,8 +24,10 @@ class Tengine::Core::Bootstrap
     case config[:action]
     when "load" then load_dsl
     when "start" then
-      load_dsl unless config[:tengined][:skip_load]
-      start_kernel
+      load_dsl # unless config[:tengined][:skip_load]
+      start_kernel do
+        # ここでイベントを待つ
+      end
     when "test" then test_connection
     when "enable" then enable_drivers
     else
@@ -34,22 +36,24 @@ class Tengine::Core::Bootstrap
   end
 
   def load_dsl
-    Tengine.plugins.notify(self, :load_dsl) do
-      obj = Tengine::Core::DslLoadingContext.new
-      obj.config = config
-      obj.__evaluate__
-    end
     if dsl_version_document = Tengine::Core::Setting.first(:conditions => {:name => "dsl_version"})
       dsl_version_document.value = config.dsl_version
       dsl_version_document.save!
     else
       Tengine::Core::Setting.create!(:name => "dsl_version", :value => config.dsl_version)
     end
+    Tengine.plugins.notify(self, :load_dsl) do
+      context = kernel.dsl_context
+      context.__evaluate__
+    end
+  end
+
+  def kernel
+    @kernel ||= Tengine::Core::Kernel.new(config)
   end
 
   def start_kernel(&block)
     Tengine.plugins.notify(self, :start_kernel) do
-      @kernel = Tengine::Core::Kernel.new(config)
       kernel.start(&block)
     end
   end

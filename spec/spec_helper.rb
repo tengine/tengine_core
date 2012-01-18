@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
 ENV["RACK_ENV"] ||= "test" # Mongoid.load!で参照しています
 
+require 'coverage'
+class << Coverage
+  alias original_result result
+  def result
+    original_result.inject({}) {|r, (k, v)|
+      x = k.dup.force_encoding(Encoding.default_external).freeze
+      r.update x => v
+    }
+  end
+end
+
 require 'simplecov'
 SimpleCov.start if ENV["COVERAGE"]
 

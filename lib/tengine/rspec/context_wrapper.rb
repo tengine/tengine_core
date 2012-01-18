@@ -3,6 +3,8 @@ require 'tengine/rspec'
 
 # Kernelのcontextをラップするクラスです
 class Tengine::RSpec::ContextWrapper
+  attr_accessor :__driver__
+
   def initialize(kernel)
     @kernel = kernel
     @context = @kernel.context
@@ -24,13 +26,26 @@ class Tengine::RSpec::ContextWrapper
   end
 
   def should_fire(*args)
-    @context.should_receive(:fire).with(*args)
+    @kernel.should_receive(:fire).with(*args)
   end
   def should_not_fire(*args)
     if args.empty?
-      @context.should_not_receive(:fire)
+      @kernel.should_not_receive(:fire)
     else
-      @context.should_not_receive(:fire).with(*args)
+      @kernel.should_not_receive(:fire).with(*args)
     end
   end
+
+  def __driver_class__
+    @__driver_class__ ||= __driver__.target_class_name.constantize
+  end
+
+  def __driver_object__
+    unless @__driver_object__
+      @__driver_object__ = __driver_class__.new
+      __driver_class__.stub(:new).and_return(@__driver_object__)
+    end
+    @__driver_object__
+  end
+
 end

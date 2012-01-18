@@ -36,10 +36,12 @@ class Tengine::Core::Plugins
   private
   def enable_plugin(plugin_module)
     if loader = find_sub_module(plugin_module, :DslLoader, :dsl_loader)
-      Tengine::Core::DslLoadingContext.send(:include, loader)
+      # Tengine::Core::DslLoadingContext.send(:include, loader)
+      Tengine::Core::Kernel.top.singleton_class.send(:include, loader)
     end
     if binder = find_sub_module(plugin_module, :DslBinder, :dsl_binder)
-      Tengine::Core::DslBindingContext.send(:include, binder)
+      # Tengine::Core::DslBindingContext.send(:include, binder)
+      # Tengine::Core::Kernel.top.singleton_class.send(:include, binder)
     end
   end
 
