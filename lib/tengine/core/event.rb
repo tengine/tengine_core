@@ -69,11 +69,11 @@ class Tengine::Core::Event
   # @yield                      [event]                Yields the (possibly new) event.
   # @yieldparam  [Tengine::Core::Event] event          The event in question.
   # @yieldreturn              [Boolean]                Return false, and it will just break the execution.  Otherwise, it tries to update the event.
-  # @param                     [String] key            The key to identify the event.
-  # @param                    [Numeric] retry_max (0)  Maximum number of retry attempts to save the event.
+  # @param                       [Hash] condition      Criteria to find a document.
+  # @param                    [Numeric] retry_max (3)  Maximum number of retry attempts to save the event.
   # @return      [Tengine::Core::Event]                The event in question if update succeeded, false if retry_max reached, or nil if the block exited with false.
   # @raise    [Mongo::OperationFailure]                Any exceptions that happened inside will be propagated outside.
-  def self.find_or_create_by_key_then_update_with_block the_key, retry_max = 3
+  def self.find_or_create_then_update_with_block condition, retry_max = 3
     # * とある条件を満たすイベントがあれば、それを上書きしたい。
     # * なければ、新規作成したい。
     # * でもアトミックにやりたい。
@@ -95,12 +95,11 @@ class Tengine::Core::Event
       return false if retries >= retry_max # retryしすぎ
 
       retries += 1
-      n = where(:key => the_key).count
       # あればとってくる
       if the_event and not the_event.new_record?
         the_event.reload
       else
-        the_event = where(:key => the_key).first || new(:key => the_key)
+        the_event = where(condition).first || new(condition)
       end
 
       return nil if not yield(the_event) # ユザーによる意図的な中断
