@@ -62,7 +62,8 @@ verbose "define show_status" do
       Dir.glob(File.expand_path(@__config__[:tengined][:status_dir] + "/*.status")).map do |status_filepath|
         pid_to_status[File.basename(status_filepath).scan(/\d+/).first.to_i] = File.read(status_filepath).chomp
       end
-      pid_lines = `ps -opid -p #{pid_to_status.keys.join(',')}`.split(/\n/)
+      pid_lines = []
+      pid_lines = `ps -opid -p #{pid_to_status.keys.join(',')}`.split(/\n/) unless pid_to_status.empty?
       living_pids = pid_lines.select{|line| line =~ /^\s*\d+\s*$/}.map(&:to_i)
       pid_to_status.each do |pid, status|
         puts "%6d %s" % [pid, living_pids.include?(pid) ? status : "terminated"]
