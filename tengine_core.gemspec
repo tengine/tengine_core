@@ -76,6 +76,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/kernel.rb",
     "lib/tengine/core/kernel_runtime.rb",
     "lib/tengine/core/method_traceable.rb",
+    "lib/tengine/core/mongoid_fix.rb",
     "lib/tengine/core/optimistic_lock.rb",
     "lib/tengine/core/plugins.rb",
     "lib/tengine/core/schedule.rb",
