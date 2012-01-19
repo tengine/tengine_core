@@ -33,7 +33,17 @@ module Tengine::Core::Driveable
           :target_class_name => self.name,
         })
       driver.create_session
-      driver.save!
+      begin
+        driver.save!
+      rescue Mongoid::Errors::Validations => e
+        raise e unless e.document.errors[:name].any?{|s| s =~ /taken/}
+        Tengine::Core.stdout_logger.debug("[#{Process.pid}] Occured #{e.inspect}")
+        driver = Tengine::Core::Driver.where(:name => self.driver_name, :version => Tengine::Core::Setting.dsl_version).first
+      rescue Mongo::OperationFailure => e
+        raise e unless e.message =~ /E11000 duplicate key error/
+        Tengine::Core.stdout_logger.debug("[#{Process.pid}] Occured #{e.inspect}")
+        driver = Tengine::Core::Driver.where(:name => self.driver_name, :version => Tengine::Core::Setting.dsl_version).first
+      end
     end
     @__context__.driver = driver || self.driver
 
