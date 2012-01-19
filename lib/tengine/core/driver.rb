@@ -32,7 +32,7 @@ class Tengine::Core::Driver
   field :target_class_name, :type => String
 
   index([ [:_id, Mongo::ASCENDING], [:enabled, Mongo::ASCENDING], [:version, Mongo::ASCENDING], ])
-  index([ [:name, Mongo::ASCENDING], [:version, Mongo::ASCENDING], ])
+  index([ [:name, Mongo::ASCENDING], [:version, Mongo::ASCENDING], ], :unique => true)
   index([ [:version, Mongo::ASCENDING], [:enabled_on_activation, Mongo::ASCENDING], ])
   index([ [:version, Mongo::ASCENDING], ])
   index([ [:_id, Mongo::ASCENDING], [:name, Mongo::ASCENDING], ])
