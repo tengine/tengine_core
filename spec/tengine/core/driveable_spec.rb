@@ -47,6 +47,24 @@ describe Tengine::Core::Driveable do
       end
     end
 
+    context "[Bug]tenginedのデプロイコマンド bundle exec cap deploy:start を実行すると起動しないことがある" do
+      context "nameとversionが同じものを２度書きもうとして" do
+        before do
+          @klass1, @klass2 = Class.new, Class.new
+        end
+
+        it "nameとversionのuniquenessバリデーションにひっかかる場合にはMongoid::Errors::Validationsをraiseしない" do
+          Tengine::Core::Setting.should_receive(:dsl_version).and_return("123")
+
+          [@klass1, @klass2].each do |k|
+            k.should_receive(:driver).and_return(nil)
+            k.should_receive(:driver_name).and_return("foo")
+            k.module_eval { include Tengine::Core::Driveable }
+          end
+        end
+      end
+    end
+
     it "クラスを定義するファイルをloadするとドライバが登録されます" do
       expect{
         expect{
