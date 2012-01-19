@@ -54,12 +54,65 @@ describe Tengine::Core::Driveable do
         end
 
         it "nameとversionのuniquenessバリデーションにひっかかる場合にはMongoid::Errors::Validationsをraiseしない" do
-          Tengine::Core::Setting.should_receive(:dsl_version).and_return("123")
+          Tengine::Core::Setting.should_receive(:dsl_version).exactly(3).times.and_return("123")
+          @klass1.should_receive(:driver).and_return(nil)
+          @klass1.should_receive(:driver_name).and_return("foo")
+          @klass1.module_eval { include Tengine::Core::Driveable }
 
+          @klass2.should_receive(:driver).and_return(nil)
+          @klass2.should_receive(:driver_name).exactly(2).times.and_return("foo")
+          @klass2.module_eval { include Tengine::Core::Driveable }
+        end
+
+        it "versionのformatバリデーションにひっかかる場合にはMongoid::Errors::Validationsをraiseする" do
           [@klass1, @klass2].each do |k|
+            Tengine::Core::Setting.should_receive(:dsl_version).and_return("123")
             k.should_receive(:driver).and_return(nil)
-            k.should_receive(:driver_name).and_return("foo")
-            k.module_eval { include Tengine::Core::Driveable }
+            k.should_receive(:driver_name).and_return("123")
+            expect { k.module_eval { include Tengine::Core::Driveable } }.to raise_error
+          end
+        end
+
+        it "バリデーションで引っかからずにユニークインデックスの一意キー制約違反で落ちる場合にはMongo::OperationFailureをraiseしない" do
+          # バリデーションのチェックをくぐり抜けてインサートを行わせるため
+          Mongoid::Persistence::Operations::Insert.class_eval do
+            def persist
+              prepare do |doc|
+                Fiber.yield
+                collection.insert(doc.as_document, options)
+                Mongoid::IdentityMap.set(doc)
+              end
+            end
+          end
+
+          f1 = Fiber.new {
+            Tengine::Core::Setting.should_receive(:dsl_version).and_return("123")
+            @klass1.should_receive(:driver).and_return(nil)
+            @klass1.should_receive(:driver_name).and_return("bar")
+            @klass1.module_eval { include Tengine::Core::Driveable }
+          }
+          f1.resume
+
+          f2 = Fiber.new {
+            Tengine::Core::Setting.should_receive(:dsl_version).exactly(2).times.and_return("123")
+            @klass2.should_receive(:driver).and_return(nil)
+            @klass2.should_receive(:driver_name).exactly(2).times.and_return("bar")
+            @klass2.module_eval { include Tengine::Core::Driveable }
+          }
+          f2.resume
+          f1.resume
+          f2.resume
+          f1.resume
+          f2.resume
+
+          # 元に戻しておく
+          Mongoid::Persistence::Operations::Insert.class_eval do
+            def persist
+              prepare do |doc|
+                collection.insert(doc.as_document, options)
+                Mongoid::IdentityMap.set(doc)
+              end
+            end
           end
         end
       end
