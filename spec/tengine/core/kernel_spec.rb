@@ -342,11 +342,7 @@ describe Tengine::Core::Kernel do
         @header.should_receive(:ack)
 
         # 実行
-begin
         @kernel.start
-rescue
-puts $!.backtrace
-end
       end
 
       context "*.failed.tengine" do
@@ -577,6 +573,21 @@ end
           @kernel.process_message @header, e.to_json
           @kernel.process_message @header, e.to_json
           @kernel.process_message @header, e.to_json
+
+          Tengine::Core::Event.where(event_type_name: n, source_name: s).count.should == 1
+        end
+
+        it "tenginedが調停する #2" do
+          @header.stub(:ack)
+          n = "alert.execution.job.tengine"
+          s = "test test"
+          e = Tengine::Event.new event_type_name: n, source_name: s, key: "k1"
+          f = Tengine::Event.new event_type_name: n, source_name: s, key: "k2"
+          g = Tengine::Event.new event_type_name: n, source_name: s, key: "k3"
+
+          @kernel.process_message @header, e.to_json
+          @kernel.process_message @header, f.to_json
+          @kernel.process_message @header, g.to_json
 
           Tengine::Core::Event.where(event_type_name: n, source_name: s).count.should == 1
         end

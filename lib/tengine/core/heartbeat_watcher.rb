@@ -14,6 +14,7 @@ require 'tengine/mq'
 # explicit loading
 require_relative 'config/heartbeat_watcher'
 require_relative 'method_traceable'
+require_relative 'mongoid_fix'
 
 class Tengine::Core::HeartbeatWatcher
 

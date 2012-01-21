@@ -327,7 +327,11 @@ class Tengine::Core::Kernel
   end
 
   def save_scheduling_event(raw_event)
-    event = Tengine::Core::Event.find_or_create_by_key_then_update_with_block raw_event.key do |event|
+    cond = {
+      :event_type_name => raw_event.event_type_name,
+      :source_name => raw_event.source_name,
+    }
+    event = Tengine::Core::Event.find_or_create_then_update_with_block cond do |event|
       if event.new_record?
         event.write_attributes raw_event.attributes
         event.confirmed = (raw_event.level.to_i <= config.confirmation_threshold)
@@ -335,12 +339,19 @@ class Tengine::Core::Kernel
         nil
       end
     end
-    Tengine.logger.debug("saved an event #{event.inspect}")
+    case event
+    when FalseClass
+      Tengine.logger.error("failed to save event (after several retries). #{raw_event.inspect}")
+    when NilClass
+      Tengine.logger.debug("this event is duplicated, ignoring now. #{raw_event.inspect}")
+    else
+      Tengine.logger.debug("saved an event #{event.inspect}")
+    end
     return event
   end
 
   def save_heartbeat_beat(raw_event)
-    event = Tengine::Core::Event.find_or_create_by_key_then_update_with_block raw_event.key do |event|
+    event = Tengine::Core::Event.find_or_create_then_update_with_block :key => raw_event.key do |event|
       # beatを保存していいのは、
       # * 以前にひとつも登録がないとき
       # * もうbeatが保存されているとき
@@ -353,12 +364,19 @@ class Tengine::Core::Kernel
         nil
       end
     end
-    Tengine.logger.debug("saved an event #{event.inspect}")
+    case event
+    when FalseClass
+      Tengine.logger.error("failed to save event (after several retries). #{raw_event.inspect}")
+    when NilClass
+      Tengine.logger.debug("this event is duplicated, ignoring now. #{raw_event.inspect}")
+    else
+      Tengine.logger.debug("saved an event #{event.inspect}")
+    end
     return event
   end
 
   def save_heartbeat_ng(raw_event)
-    event = Tengine::Core::Event.find_or_create_by_key_then_update_with_block raw_event.key do |event|
+    event = Tengine::Core::Event.find_or_create_then_update_with_block :key => raw_event.key do |event|
       # ngを保存していいのは、
       # * 以前にひとつも登録がないとき
       # * もうbeatが保存されているとき
@@ -371,12 +389,19 @@ class Tengine::Core::Kernel
         nil
       end
     end
-    Tengine.logger.debug("saved an event #{event.inspect}")
+    case event
+    when FalseClass
+      Tengine.logger.error("failed to save event (after several retries). #{raw_event.inspect}")
+    when NilClass
+      Tengine.logger.debug("this event is duplicated, ignoring now. #{raw_event.inspect}")
+    else
+      Tengine.logger.debug("saved an event #{event.inspect}")
+    end
     return event
   end
 
   def save_heartbeat_ok(raw_event)
-    event = Tengine::Core::Event.find_or_create_by_key_then_update_with_block raw_event.key do |event|
+    event = Tengine::Core::Event.find_or_create_then_update_with_block :key => raw_event.key do |event|
       # okを保存していいのは、
       # * 以前にひとつも登録がないとき
       # * もうbeatが保存されているとき
@@ -390,7 +415,14 @@ class Tengine::Core::Kernel
         nil
       end
     end
-    Tengine.logger.debug("saved an event #{event.inspect}")
+    case event
+    when FalseClass
+      Tengine.logger.error("failed to save event (after several retries). #{raw_event.inspect}")
+    when NilClass
+      Tengine.logger.debug("this event is duplicated, ignoring now. #{raw_event.inspect}")
+    else
+      Tengine.logger.debug("saved an event #{event.inspect}")
+    end
     return event
   end
 

@@ -14,6 +14,7 @@ require 'tengine/mq'
 require_relative 'config/atd'
 require_relative 'method_traceable'
 require_relative 'schedule'
+require_relative 'mongoid_fix'
 
 class Tengine::Core::Scheduler
 
