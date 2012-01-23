@@ -73,7 +73,7 @@ verbose "define show_status" do
 end
 
 verbose "define run_daemons" do
-  def run_daemons(&block)
+  def run_daemons(options={}, &block)
     verbose("run_daemons") do
       daemonize_options = {
         :ARGV => ['start'],
@@ -82,7 +82,7 @@ verbose "define run_daemons" do
         :dir => File.expand_path(@__config__[:process][:pid_dir]),
         # :log_dir => File.expand_path("../#{@__config__[:tengined][:log_dir]}", File.dirname(__FILE__)),
         # :log_output => false
-      }
+      }.update(options)
       daemonize_options.update(:ARGV => ['start'])
       current_dir = Dir.pwd
       begin
@@ -123,12 +123,16 @@ end
 verbose "define run" do
   def run(&block)
     verbose("run") do
+      options = {}
       case @__config__[:action].to_sym
       when :stop       then stop_process("HUP")
       when :force_stop then stop_process("KILL")
       when :status     then show_status
-      when :test, :load, :start, :enable then
-        run_daemons(&block)
+      when :load       then
+        options = {:ontop => true}
+        run_daemons(options, &block)
+      when :test, :start, :enable then
+        run_daemons(options, &block)
       when :activate   then make_activations
       else
         verbose("Unknown action: #{@__config__[:action]}", STDERR)
