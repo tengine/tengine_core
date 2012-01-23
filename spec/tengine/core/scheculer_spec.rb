@@ -66,6 +66,7 @@ describe Tengine::Core::Scheduler do
       sender.should_receive(:fire).with(s0.event_type_name, an_instance_of(Hash)) do |e1, h|
         h[:source_name].should == s0.source_name
         h[:properties].should == {:foo => 'bar'}
+        h[:key].should == s0._id
       end
 
       subject.send_scheduled_event s0
