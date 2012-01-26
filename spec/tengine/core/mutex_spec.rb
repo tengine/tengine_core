@@ -122,6 +122,7 @@ describe Tengine::Core::Mutex do
         end
 
         EM.defer do
+          sleep 0.5
           m = Tengine::Core::Mutex.new "test mutex 02"
           m.synchronize do
             z = Time.now.to_f
