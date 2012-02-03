@@ -39,6 +39,7 @@ Tengine::Core.stderr_logger = Logger.new(log_path)
 Tengine::Core.stderr_logger.level = Logger::DEBUG
 
 Tengine::Core::Kernel.event_exception_reporter = :raise_all
+Tengine::Core::Config::Core::Tengined.default_cache_drivers = true
 
 RSpec.configure do |config|
   config.include Factory::Syntax::Methods

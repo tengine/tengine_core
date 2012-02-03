@@ -72,6 +72,7 @@ class Tengine::Core::Handler
     when :instance_method then
       klass = driver.target_class_name.constantize
       inst = klass.new
+      inst.instance_variable_set(:@__event__, event)
       m = inst.method(target_method_name)
       m.arity == 0 ? m.call : m.call(event)
     when :static then
