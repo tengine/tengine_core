@@ -19,9 +19,21 @@ module Tengine::Core::DslEvaluator
           Tengine::Core.stdout_logger.debug("now loading #{f}")
           # self.instance_eval(File.read(f), f)
           # require(f)
-          config.tengined.cache_drivers ?
-            load(f) :
-            require_dependency( config.relative_path_from_dsl_dir(f) )
+          if config.tengined.cache_drivers
+            load(f)
+          else
+            begin
+              require_dependency( config.relative_path_from_dsl_dir(f) )
+            rescue NameError => e
+              # ロードするパスのディレクトリ名をcamelizeした際に不正なモジュール名(例えば先頭が数字)
+              # だと失敗してしまうのでその場合はloadし直す
+              if e.message =~ /wrong constant name/
+                load(f)
+              else
+                raise
+              end
+            end
+          end
         end
       end
     ensure
