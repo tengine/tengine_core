@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'tengine/core'
 
+require 'active_support/dependencies'
+
 module Tengine::Core::DslEvaluator
   attr_accessor :config
 
@@ -8,11 +10,30 @@ module Tengine::Core::DslEvaluator
     __setup_core_ext__
     begin
       Tengine.plugins.notify(self, :__evaluate__) do
+        ActiveSupport::Dependencies.mechanism = config.tengined.cache_drivers ? :require : :load
+        config.dsl_dir_path.tap do |dsl_dir_path|
+          $LOAD_PATH.unshift(dsl_dir_path) unless $LOAD_PATH.include?(dsl_dir_path)
+          ActiveSupport::Dependencies.autoload_paths = [dsl_dir_path]
+        end
         config.dsl_file_paths.each do |f|
           Tengine::Core.stdout_logger.debug("now loading #{f}")
           # self.instance_eval(File.read(f), f)
           # require(f)
-          load(f)
+          if config.tengined.cache_drivers
+            load(f)
+          else
+            begin
+              require_dependency( config.relative_path_from_dsl_dir(f) )
+            rescue NameError => e
+              # ロードするパスのディレクトリ名をcamelizeした際に不正なモジュール名(例えば先頭が数字)
+              # だと失敗してしまうのでその場合はloadし直す
+              if e.message =~ /wrong constant name/
+                load(f)
+              else
+                raise
+              end
+            end
+          end
         end
       end
     ensure

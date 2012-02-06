@@ -4,6 +4,7 @@ require 'tengine/core/config'
 require 'yaml'
 require 'optparse'
 require 'active_support/memoizable'
+require 'active_support/core_ext/class/attribute_accessors'
 
 require 'tengine/support/yaml_with_erb'
 
@@ -173,7 +174,11 @@ EOS
   class Tengined
     include Tengine::Support::Config::Definition
 
+    cattr_accessor :default_cache_drivers
+
     field :load_path             , "[REQUIRED] path/to/file_or_dir. ignored with \"-k test\".", :type => :string
+    field :cache_drivers         , "if set this, tengine doesn't reload driver.", :type => :boolean,
+      :default => proc{ Tengine::Core::Config::Core::Tengined.default_cache_drivers} # spec/spec_helper.rb でtrueに設定しています。
     field :skip_load             , "doesn't load event handler when start. usually use with --daemon option. [only for command]", :type => :boolean
     field :skip_enablement       , "doesn't enable event handler when start. usually use with --daemon option. [only for command]", :type => :boolean
     field :wait_activation       , "wait activation when start. usually use with --daemon option [only for command]", :type => :boolean

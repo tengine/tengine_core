@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.5.20"
+  s.version = "0.5.25"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2012-01-19"
+  s.date = "2012-02-03"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined", "tengine_heartbeat_watchd", "tengine_atd"]
@@ -45,6 +45,15 @@ Gem::Specification.new do |s|
     "examples/uc72_setup_eventmachine.rb",
     "examples/uc80_raise_io_error.rb",
     "examples/uc81_raise_runtime_error.rb",
+    "examples2/driver01.rb",
+    "examples2/driver02.rb",
+    "examples2/uc08_if_both_a_and_b_occurs.rb",
+    "examples2/uc10_if_the_event_occurs_at_the_server.rb",
+    "examples2/uc51_commit_event_at_first_submit_1.rb",
+    "examples2/uc51_commit_event_at_first_submit_2.rb",
+    "examples2/uc51_commit_event_at_first_submit_3.rb",
+    "examples2/uc62_session_in_driver.rb",
+    "examples2/uc71_driver_disabled_on_activation.rb",
     "failure_examples/VERSION",
     "failure_examples/uc53_submit_outside_of_handler.rb",
     "failure_examples/uc61_event_outside_of_handler.rb",
@@ -77,6 +86,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/kernel_runtime.rb",
     "lib/tengine/core/method_traceable.rb",
     "lib/tengine/core/mongoid_fix.rb",
+    "lib/tengine/core/mutex.rb",
     "lib/tengine/core/optimistic_lock.rb",
     "lib/tengine/core/plugins.rb",
     "lib/tengine/core/schedule.rb",
@@ -151,6 +161,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/heartbeat_watcher_spec.rb",
     "spec/tengine/core/io_to_logger_spec.rb",
     "spec/tengine/core/kernel_spec.rb",
+    "spec/tengine/core/mutex_spec.rb",
     "spec/tengine/core/optimistic_lock_spec.rb",
     "spec/tengine/core/scheculer_spec.rb",
     "spec/tengine/core/selectable_attr_spec.rb",
@@ -165,7 +176,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/tengine/tengine_core"
   s.licenses = ["MPL/LGPL"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.15"
+  s.rubygems_version = "1.8.12"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
