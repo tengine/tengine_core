@@ -50,7 +50,7 @@ class Tengine::Core::Mutex::Mutex
 
   field :ttl, :type => Float
   field :waiters, :type => Array
-  
+
   def self.find_or_create name, ttl
     collection.driver.update(
       { :_id => name },
@@ -62,9 +62,17 @@ class Tengine::Core::Mutex::Mutex
 
   private
 
+  # 暫定対応[Bug]mongodbフェールオーバ中にtengine_resource＿watchdが落ちてしまう
   def _update q = {}, r
-    self.class.collection.driver.update({ :_id => _id, }.update(q), r, {:safe=>true})
-    reload
+    retry_count = 100
+    idx = 1
+    begin
+      self.class.collection.driver.update({ :_id => _id, }.update(q), r, {:safe=>true})
+      reload
+    rescue Mongo::ConnectionFailure => e
+      idx += 1
+      retry if retry_count > idx
+    end
   end
 
   public
