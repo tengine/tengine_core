@@ -71,6 +71,7 @@ class Tengine::Core::Mutex::Mutex
       reload
     rescue Mongo::ConnectionFailure => e
       idx += 1
+      sleep 0.5
       retry if retry_count > idx
     end
   end
