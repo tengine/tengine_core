@@ -47,7 +47,7 @@ DSLを使用するためのAPIについては以下のモジュールのAPIを�
 
 
 ## License
-tengine_event is distributed under the LGPL and MPL
+tengine_event is distributed under the MPL2.0 or LGPLv3 or the dual license of MPL2.0/LGPLv3
 
 ## Copyright
 

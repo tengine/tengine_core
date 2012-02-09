@@ -16,7 +16,7 @@ Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "tengine_core"
   gem.homepage = "http://github.com/tengine/tengine_core"
-  gem.license = "MPL/LGPL"
+  gem.license = "MPL2.0/LGPLv3"
   gem.summary = %Q{tengine_core is a framework/engine to support distributed processing}
   gem.description = %Q{tengine_core is a framework/engine to support distributed processing}
   gem.email = "tengine@nautilus-technologies.com"
