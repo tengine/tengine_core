@@ -20,7 +20,7 @@ Jeweler::Tasks.new do |gem|
   gem.summary = %Q{tengine_core is a framework/engine to support distributed processing}
   gem.description = %Q{tengine_core is a framework/engine to support distributed processing}
   gem.email = "tengine@nautilus-technologies.com"
-  gem.authors = %w[saishu w-irie taigou totty hiroshinakao g-morita guemon aoetk hattori-at-nt t-yamada y-karashima akm]
+  gem.authors = %w[taigou totty g-morita shyouhei akm hiroshinakao]
   gem.bindir = 'bin'
   gem.executables = ['tengined', 'tengine_heartbeat_watchd', 'tengine_atd']
   # dependencies defined in Gemfile
