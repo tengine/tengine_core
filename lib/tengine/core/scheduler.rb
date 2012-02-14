@@ -15,8 +15,10 @@ require_relative 'config/atd'
 require_relative 'method_traceable'
 require_relative 'schedule'
 require_relative 'mongoid_fix'
+require_relative 'safe_updatable'
 
 class Tengine::Core::Scheduler
+  include Tengine::Core::SafeUpdatable
 
   def initialize argv
     @uuid = UUID.new.generate
@@ -65,6 +67,8 @@ class Tengine::Core::Scheduler
     Tengine::Core::Schedule.where(
       :_id => sched.id,
       :status => Tengine::Core::Schedule::SCHEDULED
+    ).safely(
+      safemode(Tengine::Core::Schedule.collection)
     ).update_all(
       :status => Tengine::Core::Schedule::FIRED
     )

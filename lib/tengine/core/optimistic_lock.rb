@@ -42,7 +42,6 @@ module Tengine::Core::OptimisticLock
     result = update_in_safe_mode(self.class.collection, selector, hash)
 
     send("#{lock_field_name}=", new_version)
-    p result
     result["updatedExisting"] && !result["err"]
   end
 
