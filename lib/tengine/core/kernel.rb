@@ -198,7 +198,7 @@ class Tengine::Core::Kernel
           delegate(event, handlers)
           ack if all_submitted?
         end
-        headers.reject(:requeue => true) unless acked?
+        headers.reject(:requeue => true) unless ack?
       end
       close_if_shutting_down
       true
