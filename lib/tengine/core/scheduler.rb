@@ -64,11 +64,11 @@ class Tengine::Core::Scheduler
     # 複数のマシンで複数のatdが複数動いている可能性があり、その場合には複数の
     # atdが同時に同じエントリに更新をかける可能性はとても高い。そのような状況
     # でもエラーになってはいけない。
-    Tengine::Core::Schedule.where(
+    Tengine::Core::Schedule.safely(
+      safemode(Tengine::Core::Schedule.collection)
+    ).where(
       :_id => sched.id,
       :status => Tengine::Core::Schedule::SCHEDULED
-    ).safely(
-      safemode(Tengine::Core::Schedule.collection)
     ).update_all(
       :status => Tengine::Core::Schedule::FIRED
     )
