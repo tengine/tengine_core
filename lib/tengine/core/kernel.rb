@@ -196,8 +196,9 @@ class Tengine::Core::Kernel
         handlers = find_handlers(event)
         safty_handlers(handlers) do
           delegate(event, handlers)
-          headers.ack if all_submitted?
+          ack if all_submitted?
         end
+        headers.reject(:requeue => true) unless ack?
       end
       close_if_shutting_down
       true
