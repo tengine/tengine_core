@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.5.29"
+  s.version = "0.5.30"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["taigou", "totty", "g-morita", "shyouhei", "akm", "hiroshinakao"]
@@ -89,6 +89,7 @@ Gem::Specification.new do |s|
     "lib/tengine/core/mutex.rb",
     "lib/tengine/core/optimistic_lock.rb",
     "lib/tengine/core/plugins.rb",
+    "lib/tengine/core/safe_updatable.rb",
     "lib/tengine/core/schedule.rb",
     "lib/tengine/core/scheduler.rb",
     "lib/tengine/core/selectable_attr.rb",
@@ -176,7 +177,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/tengine/tengine_core"
   s.licenses = ["MPL2.0/LGPLv3"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.15"
+  s.rubygems_version = "1.8.10"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
