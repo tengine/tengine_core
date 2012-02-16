@@ -16,9 +16,13 @@ module Tengine::Core::SafeUpdatable
         # Return a Hash containing the last error object if running safe mode.
         # Otherwise, returns true
         result = collection.driver.update(selector, document, options)
-      rescue Mongo::ConnectionFailure => ex
+      rescue Mongo::ConnectionFailure, Mongo::OperationFailure => ex
+        case ex when Mongo::OperationFailure then
+          raise ex unless ex.message =~ /wtimeout/
+        end
         retries += 1
         raise ex if retries > max_retries
+        Tengine.logger.debug "retrying due to mongodb error #{ex.inspect}"
         sleep 0.5
         retry
       end
