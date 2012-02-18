@@ -5,6 +5,7 @@ require 'active_support/core_ext/array/extract_options'
 
 module Tengine::Core::OptimisticLock
   extend ActiveSupport::Concern
+  include Tengine::Core::SafeUpdatable
 
   included do
     cattr_accessor :lock_optimistically, :instance_writer => false
@@ -23,25 +24,25 @@ module Tengine::Core::OptimisticLock
     idx = 1
     while idx <= retry_count
       yield
-      return if __find_and_modify__
+      return if __update_with_lock__
       reload
       idx += 1
     end
     raise RetryOverError, "retried #{retry_count} times but failed to update"
   end
 
-  def __find_and_modify__
+  def __update_with_lock__
     lock_field_name = self.class.locking_field
     current_version = self.send(lock_field_name)
     hash = as_document.dup
     new_version = current_version + 1
     hash[lock_field_name] = new_version
-    result = self.class.collection.find_and_modify({
-        :query => {:_id => self.id, lock_field_name.to_sym => current_version},
-        :update => hash
-      })
+
+    selector = { :_id => self.id, lock_field_name.to_sym => current_version }
+    result = update_in_safe_mode(self.class.collection, selector, hash)
+
     send("#{lock_field_name}=", new_version)
-    result
+    result["updatedExisting"] && !result["err"]
   end
 
   # ActiveRecord::Locking::Optimistic::ClassMethods を参考に実装しています

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'tengine/core'
 
+require_relative 'safe_updatable'
+
 # Tengine::Core::Mutexは(若干残念な実装の)分散ロック機構です。これを用
 # いることで、とあるMutexをロックしているプロセスを同時にたかだか一つに
 # 制限することが可能になります。
@@ -47,6 +49,7 @@ Tengine::Core::Mutex = Struct.new :mutex, :_id, :recursive
 class Tengine::Core::Mutex::Mutex
 
   include Mongoid::Document
+  include Tengine::Core::SafeUpdatable
 
   field :ttl, :type => Float
   field :waiters, :type => Array
@@ -64,16 +67,12 @@ class Tengine::Core::Mutex::Mutex
 
   # 暫定対応[Bug]mongodbフェールオーバ中にtengine_resource＿watchdが落ちてしまう
   def _update q = {}, r
-    retry_count = 100
-    idx = 1
-    begin
-      self.class.collection.driver.update({ :_id => _id, }.update(q), r, {:safe=>true})
-      reload
-    rescue Mongo::ConnectionFailure => e
-      idx += 1
-      sleep 0.5
-      retry if retry_count > idx
-    end
+    update_in_safe_mode(
+      self.class.collection,
+      { :_id => _id, }.update(q),
+      r
+    )
+    reload
   end
 
   public

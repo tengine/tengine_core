@@ -381,7 +381,6 @@ describe Tengine::Core::Kernel do
           @header.stub(:ack)
           @sender = mock(:sender)
           @kernel.stub(:sender).and_return(@sender)
-          @sender.should_not_receive(:fire)
         end
 
         shared_examples "generic heartbeats" do
@@ -503,6 +502,18 @@ describe Tengine::Core::Kernel do
 
               Tengine::Core::Event.where(key: e.key).count.should == 1
               Tengine::Core::Event.where(key: e.key).first.event_type_name.should =~ /expired/
+            end
+
+            it "finished -> finished (失敗する)" do
+              EM.stub(:next_tick).and_yield
+              e = Tengine::Event.new key: @uuid.generate, event_type_name: "finished.process.#{kind}.tengine"
+              @sender.should_receive(:fire).with("finished.process.#{kind}.tengine.failed.tengined", an_instance_of(Hash))
+
+              @kernel.process_message @header, e.to_json
+              @kernel.process_message @header, e.to_json
+
+              Tengine::Core::Event.where(key: e.key).count.should == 1
+              Tengine::Core::Event.where(key: e.key).first.event_type_name.should =~ /finished/
             end
           end
 

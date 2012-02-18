@@ -16,11 +16,11 @@ Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "tengine_core"
   gem.homepage = "http://github.com/tengine/tengine_core"
-  gem.license = "MPL/LGPL"
+  gem.license = "MPL2.0/LGPLv3"
   gem.summary = %Q{tengine_core is a framework/engine to support distributed processing}
   gem.description = %Q{tengine_core is a framework/engine to support distributed processing}
   gem.email = "tengine@nautilus-technologies.com"
-  gem.authors = %w[saishu w-irie taigou totty hiroshinakao g-morita guemon aoetk hattori-at-nt t-yamada y-karashima akm]
+  gem.authors = %w[taigou totty g-morita shyouhei akm hiroshinakao]
   gem.bindir = 'bin'
   gem.executables = ['tengined', 'tengine_heartbeat_watchd', 'tengine_atd']
   # dependencies defined in Gemfile

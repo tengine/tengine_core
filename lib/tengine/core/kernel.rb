@@ -172,19 +172,16 @@ class Tengine::Core::Kernel
 
       rescue Mongo::OperationFailure, Mongoid::Errors::Validations => e
         Tengine.logger.warn("failed to store an event.\n[#{e.class.name}] #{e.message}")
-        # Model.exists?だと上手くいかない時があるのでModel.whereを使っています
-        # fire_failed_event(raw_event) if Tengine::Core::Event.exists?(confitions: { key: raw_event.key, sender_name: raw_event.sender_name })
-        fire_failed_event(raw_event) if Tengine::Core::Event.where(:key => raw_event.key, :sender_name => raw_event.sender_name).count > 0
-        headers.ack
-        return false
-
+        event = nil
       rescue Exception => e
         Tengine.logger.error("failed to save an event #{raw_event.inspect}\n[#{e.class.name}] #{e.message}")
-        headers.ack
-        return false
+        event = nil
       end
 
       unless event
+        # Model.exists?だと上手くいかない時があるのでModel.whereを使っています
+        # fire_failed_event(raw_event) if Tengine::Core::Event.exists?(confitions: { key: raw_event.key, sender_name: raw_event.sender_name })
+        fire_failed_event(raw_event) if Tengine::Core::Event.where(:key => raw_event.key, :sender_name => raw_event.sender_name).count > 0
         headers.ack
         return false
       end
@@ -196,8 +193,9 @@ class Tengine::Core::Kernel
         handlers = find_handlers(event)
         safty_handlers(handlers) do
           delegate(event, handlers)
-          headers.ack if all_submitted?
+          ack if all_submitted?
         end
+        headers.reject(:requeue => true) unless ack?
       end
       close_if_shutting_down
       true

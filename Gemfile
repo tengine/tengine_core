@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# private gemserver
-source "http://bts.tenginefw.com/gemserver"
 source "http://rubygems.org"
 
 # Add dependencies required to use your gem here.

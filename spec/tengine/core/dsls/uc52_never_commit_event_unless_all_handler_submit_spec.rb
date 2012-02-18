@@ -26,6 +26,7 @@ describe "uc52_commit_event_after_all_handler_submit" do
     STDOUT.should_receive(:puts).with("handler52_alt1_3 unacknowledged")
     mock_headers = mock(:headers)
     mock_headers.should_not_receive(:ack)
+    mock_headers.should_receive(:reject).with(:requeue => true)
     raw_event = Tengine::Event.new(:event_type_name => "event52_alt1")
     @kernel.before_delegate = lambda do
       @kernel.all_submitted?.should == false
