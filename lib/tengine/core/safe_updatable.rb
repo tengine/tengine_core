@@ -8,7 +8,7 @@ module Tengine::Core::SafeUpdatable
       options = { :upsert => false, :multiple => false }
       options.update(opts) if opts
 
-      options = options.merge({ :safe => safemode(collection) })
+      options = options.merge({ :safe => safemode(collection, 1024) })
 
       max_retries = 100
       retries = 0
@@ -28,10 +28,10 @@ module Tengine::Core::SafeUpdatable
       end
     end
 
-    def safemode(collection)
+    def safemode(collection, wtimeout=61440)
       res = true
       case collection.driver.db.connection when Mongo::ReplSetConnection then
-        res = { :w => "majority", :wtimeout => 1024, }
+        res = { :w => "majority", :wtimeout => wtimeout, }
       end
       res
     end
