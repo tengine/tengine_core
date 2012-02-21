@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 require 'tengine_core'
 require 'mongoid'
 require 'mongoid/version'
