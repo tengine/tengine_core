@@ -31,7 +31,7 @@ GEM
       bundler (~> 1.0)
       git (>= 1.2.5)
       rake
-    kramdown (0.13.4)
+    kramdown (0.13.5)
     macaddr (1.5.0)
       systemu (>= 2.4.0)
     mongo (1.5.2)

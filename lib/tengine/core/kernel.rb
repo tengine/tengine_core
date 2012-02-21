@@ -181,8 +181,13 @@ class Tengine::Core::Kernel
       unless event
         # Model.exists?だと上手くいかない時があるのでModel.whereを使っています
         # fire_failed_event(raw_event) if Tengine::Core::Event.exists?(confitions: { key: raw_event.key, sender_name: raw_event.sender_name })
-        fire_failed_event(raw_event) if Tengine::Core::Event.where(:key => raw_event.key, :sender_name => raw_event.sender_name).count > 0
-        headers.ack
+        if Tengine::Core::Event.where(:key => raw_event.key, :sender_name => raw_event.sender_name).count > 0
+          fire_failed_event(raw_event)
+          headers.ack
+        else
+          Tengine.logger.info("requeue an event #{raw_event.inspect}")
+          headers.reject(:requeue => true)
+        end
         return false
       end
       event.kernel = self
@@ -248,7 +253,7 @@ class Tengine::Core::Kernel
         raise "Could not properly shut down; MQ broker is missing."
       end
     end
-    
+
     # see http://rdoc.info/github/ruby-amqp/amqp/master/file/docs/ErrorHandling.textile#Recovering_from_network_connection_failures
     # mq.connection raiases AMQP::TCPConnectionFailed unless connects to MQ.
     mq.add_hook :'connection.on_error' do |conn, connection_close|
