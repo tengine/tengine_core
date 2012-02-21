@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.5.32"
+  s.version = "0.5.34"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["taigou", "totty", "g-morita", "shyouhei", "akm", "hiroshinakao"]
-  s.date = "2012-02-17"
+  s.date = "2012-02-21"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengined", "tengine_heartbeat_watchd", "tengine_atd"]
@@ -177,7 +177,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/tengine/tengine_core"
   s.licenses = ["MPL2.0/LGPLv3"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.15"
+  s.rubygems_version = "1.8.17"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
