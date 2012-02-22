@@ -143,10 +143,23 @@ class Tengine::Core::Mutex
     end
   end
 
+  def synchronize_internal ttl, blk
+    # stop stack consumption
+    EM.add_timer ttl do
+      begin
+        synchronize(&blk)
+      rescue Exception => e
+        msg = sprintf "%p\n%s", e, e.backtrace.join("\n")
+        Tengine.logger.error msg
+        # no raise
+      end
+    end
+  end
+
   public
 
   # delays until you get a lock.
-  def synchronize
+  def synchronize(&block)
     raise ArgumentError, "no block given" unless block_given?
 
     if lock
@@ -161,11 +174,7 @@ class Tengine::Core::Mutex
       end
     else
       # NG, try again later
-      EM.add_timer mutex.ttl do
-        synchronize do
-          yield
-        end
-      end
+      synchronize_internal mutex.ttl, block
     end
   end
 

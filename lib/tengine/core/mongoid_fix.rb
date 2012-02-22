@@ -25,7 +25,7 @@ if Mongoid::VERSION < "3.0.0"
       begin
         yield
       rescue Mongo::ConnectionFailure, Mongo::OperationTimeout, Mongo::OperationFailure => ex
-        raise unless ex.class == Mongo::OperationFailure and ex.message !~ /not master/
+        raise if ex.class == Mongo::OperationFailure and ex.message !~ /not master/
 
         retries += 1
         raise if retries > Mongoid.max_retries_on_connection_failure
