@@ -80,7 +80,7 @@ describe Tengine::Core::Mutex do
       t1 = Time.now
       block_called.should be_true
       m.reload.waiters.should be_empty
-      (t1 - t0).should be_within(0.5).of(0.3 + m.ttl)
+      (t1 - t0).should be_within(1.0).of(0.3 + m.ttl)
     end
 
     it "synchronizes #3: with another locker, which is not expiring" do
@@ -106,7 +106,7 @@ describe Tengine::Core::Mutex do
       t1 = Time.now
       block_called.should be_true
       m.reload.waiters.should be_empty
-      (t1 - t0).should be_within(0.5).of(5 + m.ttl)
+      (t1 - t0).should be_within(1.0).of(5 + m.ttl)
     end
 
     it "synchronizes #4: multi-threaded situation" do
@@ -178,7 +178,7 @@ describe Tengine::Core::Mutex do
       end
 
       t1.should_not be_nil
-      (t1 - t0).should be_within(0.5).of(10 * subject.mutex.ttl)
+      (t1 - t0).should be_within(1.0).of(10 * subject.mutex.ttl)
     end
   end
 end
