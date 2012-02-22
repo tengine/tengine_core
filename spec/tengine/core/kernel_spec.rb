@@ -242,7 +242,7 @@ describe Tengine::Core::Kernel do
 
         it "https://www.pivotaltracker.com/story/show/22698533" do
           ev = Tengine::Event.new  :key => "2498e870-11cd-012f-f8c0-48bcc89f84e1", :source_name => "localhost/8110", :sender_name => "localhost/8110", :level => 2, :occurred_at => Time.now, :properties => {}, :event_type_name => ""
-          @header.should_receive(:ack)
+          @header.should_receive(:reject)
           @kernel.process_message(@header, ev.to_json).should_not be_true
         end
 
@@ -252,8 +252,8 @@ describe Tengine::Core::Kernel do
           @kernel.process_message(@header, raw_event.to_json).should_not be_true
         end
 
-        it "keyが同じ、sender_nameが異なる場合は、イベントストアへ登録を行わずACKを返却" do
-          @header.should_receive(:ack)
+        it "keyが同じ、sender_nameが異なる場合は、イベントストアへ登録を行わずREJECTを返却" do
+          @header.should_receive(:reject)
           raw_event = Tengine::Event.new(:key => "uuid1", :sender_name => "another_host", :event_type_name => "event1")
           lambda {
             Tengine::Core::Event.create!(raw_event.attributes.update(:confirmed => (raw_event.level <= @kernel.config.confirmation_threshold)))
@@ -367,6 +367,7 @@ describe Tengine::Core::Kernel do
 
         context "異常系" do
           it "無限地獄の回避" do
+            @header.stub(:reject)
             Tengine::Core::Event.stub(:create!).and_raise(Mongo::OperationFailure.new)
             e = Tengine::Event.new key: @uuid.generate, event_type_name: "something.failed.tengine"
 
@@ -589,16 +590,21 @@ describe Tengine::Core::Kernel do
         end
 
         it "tenginedが調停する #2" do
-          @header.stub(:ack)
+          mock_header1 = mock("header1")
+          mock_header2 = mock("header2")
+          mock_header3 = mock("header3")
+          mock_header1.stub(:ack)
+          mock_header2.stub(:reject)
+          mock_header3.stub(:reject)
           n = "alert.execution.job.tengine"
           s = "test test"
           e = Tengine::Event.new event_type_name: n, source_name: s, key: "k1"
           f = Tengine::Event.new event_type_name: n, source_name: s, key: "k2"
           g = Tengine::Event.new event_type_name: n, source_name: s, key: "k3"
 
-          @kernel.process_message @header, e.to_json
-          @kernel.process_message @header, f.to_json
-          @kernel.process_message @header, g.to_json
+          @kernel.process_message mock_header1, e.to_json
+          @kernel.process_message mock_header2, f.to_json
+          @kernel.process_message mock_header3, g.to_json
 
           Tengine::Core::Event.where(event_type_name: n, source_name: s).count.should == 1
         end
@@ -618,7 +624,7 @@ describe Tengine::Core::Kernel do
           :tengined => {
             :load_path => File.expand_path('../../../examples/uc01_execute_processing_for_event.rb', File.dirname(__FILE__)),
           },
-          :event_queue => { :connection => { :port => @port } } 
+          :event_queue => { :connection => { :port => @port } }
         })
         @kernel = Tengine::Core::Kernel.new(config)
       end
@@ -884,7 +890,7 @@ describe Tengine::Core::Kernel do
         end
         sender = mock(:sender)
         kernel.stub(:sender).and_return(sender)
-        
+
         EM.should_receive(:cancel_timer)
         sender.should_receive(:fire).with("finished.process.core.tengine", an_instance_of(Hash))
 
