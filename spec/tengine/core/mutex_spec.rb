@@ -140,6 +140,23 @@ describe Tengine::Core::Mutex do
       x.should < z
       y.should <= z
     end
+
+    it "synchronizes #5: no stack overflow" do
+      STDERR.puts "This test takes two minutes to run.  Relax and take a cup of coffee."
+      m = Tengine::Core::Mutex.new "test mutex 03", 0.00000000001
+      n = m.mutex
+      n.waiters ||= []
+      n.waiters << { :_id => 1, :timeout => Time.now + 120 }
+      n.save
+
+      expect do
+        EM.run do
+          m.synchronize do
+            EM.stop
+          end
+        end
+      end.to_not raise_error(SystemStackError)
+    end
   end
 
   context "#heartbeat" do
