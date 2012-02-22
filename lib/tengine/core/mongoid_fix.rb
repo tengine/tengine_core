@@ -25,13 +25,14 @@ if Mongoid::VERSION < "3.0.0"
       begin
         yield
       rescue Mongo::ConnectionFailure, Mongo::OperationTimeout, Mongo::OperationFailure => ex
-        if ex.class != Mongo::OperationFailure or ex.message =~ /not master/
-          retries += 1
-          raise ex if retries > Mongoid.max_retries_on_connection_failure
-          Kernel.sleep(0.5)
-          log_retry retries
-          retry
-        end
+        raise unless ex.class == Mongo::OperationFailure and ex.message !~ /not master/
+
+        retries += 1
+        raise if retries > Mongoid.max_retries_on_connection_failure
+
+        Kernel.sleep(0.5)
+        log_retry retries
+        retry
       end
     end
   end
