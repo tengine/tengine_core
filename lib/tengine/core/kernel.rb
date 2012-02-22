@@ -181,7 +181,15 @@ class Tengine::Core::Kernel
       unless event
         # Model.exists?だと上手くいかない時があるのでModel.whereを使っています
         # fire_failed_event(raw_event) if Tengine::Core::Event.exists?(confitions: { key: raw_event.key, sender_name: raw_event.sender_name })
-        if Tengine::Core::Event.where(:key => raw_event.key, :sender_name => raw_event.sender_name).count > 0
+
+        begin
+          n = Tengine::Core::Event.where(:key => raw_event.key, :sender_name => raw_event.sender_name).count
+        rescue Mongo::ConnectionFailure, Mongo::OperationTimeout, Mongo::OperationFailure => e
+          Tengine.logger.error("giving up processing an event due to #{e} (#{e.class.name})")
+          n = 0
+        end
+
+        if n > 0
           fire_failed_event(raw_event)
           headers.ack
         else
@@ -192,18 +200,24 @@ class Tengine::Core::Kernel
       end
       event.kernel = self
 
-      ack_policy = ack_policy_for(event)
-      safety_processing_headers(headers, event, ack_policy) do
-        ack if ack_policy == :at_first
-        handlers = find_handlers(event)
-        safty_handlers(handlers) do
-          delegate(event, handlers)
-          ack if all_submitted?
+      begin
+        ack_policy = ack_policy_for(event)
+        safety_processing_headers(headers, event, ack_policy) do
+          ack if ack_policy == :at_first
+          handlers = find_handlers(event)
+          safty_handlers(handlers) do
+            delegate(event, handlers)
+            ack if all_submitted?
+          end
+          headers.reject(:requeue => true) unless ack?
         end
-        headers.reject(:requeue => true) unless ack?
+        close_if_shutting_down
+        true
+      rescue Mongo::ConnectionFailure, Mongo::OperationTimeout, Mongo::OperationFailure => e
+        Tengine.logger.error("giving up processing an event due to #{e} (#{e.class.name})")
+        Tengine.logger.info("requeue an event #{raw_event.inspect}")
+        headers.reject(:requeue => true)
       end
-      close_if_shutting_down
-      true
     end
   end
 
