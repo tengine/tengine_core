@@ -8,9 +8,9 @@ module Tengine::Core::SafeUpdatable
       options = { :upsert => false, :multiple => false }
       options.update(opts) if opts
 
-      options = options.merge({ :safe => safemode(collection, 1024) })
+      options = options.merge({ :safe => safemode(collection, 10240) })
 
-      max_retries = 100
+      max_retries = 60
       retries = 0
       begin
         # Return a Hash containing the last error object if running safe mode.
@@ -22,7 +22,7 @@ module Tengine::Core::SafeUpdatable
         end
         retries += 1
         raise ex if retries > max_retries
-        Tengine.logger.debug "retrying due to mongodb error #{ex.inspect}"
+        Tengine.logger.debug "retrying due to mongodb error #{ex.inspect}, #{retries} times."
         sleep 0.5
         retry
       end
