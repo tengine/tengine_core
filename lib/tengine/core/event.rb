@@ -70,10 +70,11 @@ class Tengine::Core::Event
   # @yieldparam  [Tengine::Core::Event] event          The event in question.
   # @yieldreturn              [Boolean]                Return false, and it will just break the execution.  Otherwise, it tries to update the event.
   # @param                       [Hash] condition      Criteria to find a document.
-  # @param                    [Numeric] retry_max (3)  Maximum number of retry attempts to save the event.
+  # @param                    [Numeric] retry_max (60)  Maximum number of retry attempts to save the event.
+  # @param                    [Numeric] wtimeout  (10240)  Write timeout, ignored for earlier mongodb.
   # @return      [Tengine::Core::Event]                The event in question if update succeeded, false if retry_max reached, or nil if the block exited with false.
   # @raise    [Mongo::OperationFailure]                Any exceptions that happened inside will be propagated outside.
-  def self.find_or_create_then_update_with_block condition, retry_max = 3
+  def self.find_or_create_then_update_with_block condition, retry_max = 60, wtimeout = 10240
     # * とある条件を満たすイベントがあれば、それを上書きしたい。
     # * なければ、新規作成したい。
     # * でもアトミックにやりたい。
@@ -86,7 +87,7 @@ class Tengine::Core::Event
     results = nil
 
     case collection.driver.db.connection when Mongo::ReplSetConnection then
-      safemode = { :w => "majority", :wtimeout => 1024, } # mongodb 2.0+, 参加しているレプリカセットの多数派に書き込んだ時点でOK扱い
+      safemode = { :w => "majority", :wtimeout => wtimeout, } # mongodb 2.0+, 参加しているレプリカセットの多数派に書き込んだ時点でOK扱い
     else
       safemode = true
     end

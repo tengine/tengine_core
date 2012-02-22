@@ -15,22 +15,24 @@ if Mongoid::VERSION < "3.0.0"
         end
       end
     end
+  end
 
+  module Mongoid::Collections::Retry
     # https://github.com/mongoid/mongoid/pull/1739
+    # Mongoid 2.3.x needs additional fix
     def retry_on_connection_failure
       retries = 0
       begin
         yield
-      rescue Mongo::ConnectionFailure, Mongo::OperationTimeout => ex
-        retries = increase_retry_attempts(retries, ex)
+      rescue Mongo::ConnectionFailure, Mongo::OperationTimeout, Mongo::OperationFailure => ex
+        raise unless ex.class == Mongo::OperationFailure and ex.message !~ /not master/
+
+        retries += 1
+        raise if retries > Mongoid.max_retries_on_connection_failure
+
+        Kernel.sleep(0.5)
+        log_retry retries
         retry
-      rescue Mongo::OperationFailure => ex
-        if ex.message =~ /not master/
-          retries = increase_retry_attempts(retries, ex)
-          retry
-        else
-          raise ex
-        end
       end
     end
   end
