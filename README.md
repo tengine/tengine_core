@@ -51,4 +51,4 @@ tengine_event is distributed under the MPL2.0 or LGPLv3 or the dual license of M
 
 ## Copyright
 
-Copyright (c) 2011 nautilus-technologies.com. 
+Copyright (c) 2012 Groovenauts, Inc. 

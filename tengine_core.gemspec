@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.authors = ["taigou", "totty", "g-morita", "shyouhei", "akm", "hiroshinakao"]
   s.date = "2012-02-22"
   s.description = "tengine_core is a framework/engine to support distributed processing"
-  s.email = "tengine@nautilus-technologies.com"
+  s.email = "tengine-info@groovenauts.jp"
   s.executables = ["tengined", "tengine_heartbeat_watchd", "tengine_atd"]
   s.extra_rdoc_files = [
     "README.md"
