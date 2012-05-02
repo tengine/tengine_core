@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+require_relative '../lib/tengine/core/scheduler'
+
+sched = Tengine::Core::Scheduler.new(ARGV)
+Signal.trap(:INT) { sched.shutdown }
+
+sched.run __FILE__

@@ -1,0 +1,16 @@
+process:
+  daemon: true
+  pid_dir: "/var/run/tengined_pids"
+
+tengined:
+  load_path: "/var/lib/tengine/init.rb"
+  status_dir: "/var/run/tengined_status"
+  activation_dir: "/var/run/tengined_activations"
+#  heartbeat_period: 600
+  confirmation_threshold: "warn"
+event_queue:
+  queue:
+    name: tengine_event_queue2
+heartbeat:
+  core:
+    interval: 600
