@@ -22,6 +22,7 @@ describe Tengine::Core::Config::Core do
                 with(daemon_process ? "./log/application.log" : STDOUT, 3, 1024 * 1024).
                 and_return(mock_logger)
               mock_logger.should_receive(:level=).with(Logger::INFO)
+              mock_logger.should_receive(:formatter=).with(nil)
               mock_logger.should_receive(:formatter=).with(an_instance_of(Proc))
               @config.application_log.new_logger
             end
@@ -34,6 +35,7 @@ describe Tengine::Core::Config::Core do
                 with(daemon_process ? %r{^\./log/.*_stdout\.log} : STDOUT, 3, 1024 * 1024).
                 and_return(mock_logger)
               mock_logger.should_receive(:level=).with(Logger::INFO)
+              mock_logger.should_receive(:formatter=).with(nil)
               mock_logger.should_receive(:formatter=).with(an_instance_of(Proc))
               @config.process_stdout_log.new_logger
             end
@@ -46,6 +48,7 @@ describe Tengine::Core::Config::Core do
                 with(daemon_process ? %r{^\./log/.*_stderr\.log} : STDERR, 3, 1024 * 1024).
                 and_return(mock_logger)
               mock_logger.should_receive(:level=).with(Logger::INFO)
+              mock_logger.should_receive(:formatter=).with(nil)
               mock_logger.should_receive(:formatter=).with(an_instance_of(Proc))
               @config.process_stderr_log.new_logger
             end
@@ -99,6 +102,7 @@ describe Tengine::Core::Config::Core do
               with("/var/log/tengined/application.log", "daily", 1048576).
               and_return(mock_logger)
             mock_logger.should_receive(:level=).with(Logger::ERROR)
+            mock_logger.should_receive(:formatter=).with(nil)
             mock_logger.should_receive(:formatter=).with(an_instance_of(Proc))
             @config.application_log.new_logger
           end
@@ -111,6 +115,7 @@ describe Tengine::Core::Config::Core do
               with("/var/log/tengined/process_stdout.log", "weekly", 1048576).
               and_return(mock_logger)
             mock_logger.should_receive(:level=).with(Logger::INFO)
+            mock_logger.should_receive(:formatter=).with(nil)
             mock_logger.should_receive(:formatter=).with(an_instance_of(Proc))
             @config.process_stdout_log.new_logger
           end
@@ -123,6 +128,7 @@ describe Tengine::Core::Config::Core do
               with("/var/log/tengined/process_stderr.log", "monthly", 1048576).
               and_return(mock_logger)
             mock_logger.should_receive(:level=).with(Logger::INFO)
+            mock_logger.should_receive(:formatter=).with(nil)
             mock_logger.should_receive(:formatter=).with(an_instance_of(Proc))
             @config.process_stderr_log.new_logger
           end
@@ -165,6 +171,7 @@ describe Tengine::Core::Config::Core do
               with("/var/log/tengined/application.log", "daily", 1048576).
               and_return(mock_logger)
             mock_logger.should_receive(:level=).with(Logger::INFO)
+            mock_logger.should_receive(:formatter=).with(nil)
             mock_logger.should_receive(:formatter=).with(an_instance_of(Proc))
             @config.application_log.new_logger
           end
@@ -177,6 +184,7 @@ describe Tengine::Core::Config::Core do
               with("/var/log/tengined/process_stdout.log", "daily", 1048576).
               and_return(mock_logger)
             mock_logger.should_receive(:level=).with(Logger::INFO)
+            mock_logger.should_receive(:formatter=).with(nil)
             mock_logger.should_receive(:formatter=).with(an_instance_of(Proc))
             @config.process_stdout_log.new_logger
           end
@@ -189,6 +197,7 @@ describe Tengine::Core::Config::Core do
               with("/var/log/tengined/process_stderr.log", "monthly", 1048576).
               and_return(mock_logger)
             mock_logger.should_receive(:level=).with(Logger::INFO)
+            mock_logger.should_receive(:formatter=).with(nil)
             mock_logger.should_receive(:formatter=).with(an_instance_of(Proc))
             @config.process_stderr_log.new_logger
           end
@@ -214,7 +223,8 @@ describe Tengine::Core::Config::Core do
             mock_logger2 = mock(:logger2)
             mock_logger3 = mock(:logger3)
             mock_loggers = [mock_logger1, mock_logger2, mock_logger3]
-            mock_loggers.each{|m| [:level=, :formatter=].each {|n| m.should_receive(n)}}
+            mock_loggers.each{|m| m.should_receive(:level=) }
+            mock_loggers.each{|m| m.should_receive(:formatter=).twice}
             mock_logger2.should_receive(:info).with("Tengine::Core::Config::Core#setup_loggers complete")
             # mock_logger3.should_receive(:info).with("Tengine::Core::Config::Core#setup_loggers failure")
             Logger.should_receive(:new).with("/var/log/tengined/application.log", "daily", 1024 * 1024).and_return(mock_logger1)
