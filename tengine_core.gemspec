@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_core"
-  s.version = "0.5.38"
+  s.version = "0.5.39"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["taigou", "totty", "g-morita", "shyouhei", "akm", "hiroshinakao"]
-  s.date = "2012-02-22"
+  s.date = "2012-05-02"
   s.description = "tengine_core is a framework/engine to support distributed processing"
   s.email = "tengine-info@groovenauts.jp"
   s.executables = ["tengined", "tengine_heartbeat_watchd", "tengine_atd"]
@@ -162,6 +162,7 @@ Gem::Specification.new do |s|
     "spec/tengine/core/heartbeat_watcher_spec.rb",
     "spec/tengine/core/io_to_logger_spec.rb",
     "spec/tengine/core/kernel_spec.rb",
+    "spec/tengine/core/mongodb_spec.rb",
     "spec/tengine/core/mongoid_fix_spec.rb",
     "spec/tengine/core/mutex_spec.rb",
     "spec/tengine/core/optimistic_lock_spec.rb",
@@ -178,7 +179,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/tengine/tengine_core"
   s.licenses = ["MPL2.0/LGPLv3"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.17"
+  s.rubygems_version = "1.8.12"
   s.summary = "tengine_core is a framework/engine to support distributed processing"
 
   if s.respond_to? :specification_version then
@@ -192,13 +193,13 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<bson_ext>, ["~> 1.5.2"])
       s.add_runtime_dependency(%q<mongo>, ["~> 1.5.2"])
       s.add_runtime_dependency(%q<mongoid>, ["~> 2.3.3"])
-      s.add_runtime_dependency(%q<tengine_support>, ["~> 0.3.12"])
+      s.add_runtime_dependency(%q<tengine_support>, ["~> 0.3.27"])
       s.add_runtime_dependency(%q<tengine_event>, ["~> 0.4.0"])
       s.add_runtime_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_development_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_development_dependency(%q<factory_girl>, ["~> 2.1.2"])
       s.add_development_dependency(%q<yard>, ["~> 0.7.2"])
-      s.add_development_dependency(%q<bundler>, ["~> 1.0.18"])
+      s.add_development_dependency(%q<bundler>, ["~> 1.1.3"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.6.4"])
       s.add_development_dependency(%q<simplecov>, ["~> 0.5.3"])
       s.add_development_dependency(%q<ZenTest>, ["~> 4.6.2"])
@@ -212,13 +213,13 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bson_ext>, ["~> 1.5.2"])
       s.add_dependency(%q<mongo>, ["~> 1.5.2"])
       s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
-      s.add_dependency(%q<tengine_support>, ["~> 0.3.12"])
+      s.add_dependency(%q<tengine_support>, ["~> 0.3.27"])
       s.add_dependency(%q<tengine_event>, ["~> 0.4.0"])
       s.add_dependency(%q<daemons>, ["~> 1.1.4"])
       s.add_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_dependency(%q<factory_girl>, ["~> 2.1.2"])
       s.add_dependency(%q<yard>, ["~> 0.7.2"])
-      s.add_dependency(%q<bundler>, ["~> 1.0.18"])
+      s.add_dependency(%q<bundler>, ["~> 1.1.3"])
       s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
       s.add_dependency(%q<simplecov>, ["~> 0.5.3"])
       s.add_dependency(%q<ZenTest>, ["~> 4.6.2"])
@@ -233,13 +234,13 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bson_ext>, ["~> 1.5.2"])
     s.add_dependency(%q<mongo>, ["~> 1.5.2"])
     s.add_dependency(%q<mongoid>, ["~> 2.3.3"])
-    s.add_dependency(%q<tengine_support>, ["~> 0.3.12"])
+    s.add_dependency(%q<tengine_support>, ["~> 0.3.27"])
     s.add_dependency(%q<tengine_event>, ["~> 0.4.0"])
     s.add_dependency(%q<daemons>, ["~> 1.1.4"])
     s.add_dependency(%q<rspec>, ["~> 2.6.0"])
     s.add_dependency(%q<factory_girl>, ["~> 2.1.2"])
     s.add_dependency(%q<yard>, ["~> 0.7.2"])
-    s.add_dependency(%q<bundler>, ["~> 1.0.18"])
+    s.add_dependency(%q<bundler>, ["~> 1.1.3"])
     s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
     s.add_dependency(%q<simplecov>, ["~> 0.5.3"])
     s.add_dependency(%q<ZenTest>, ["~> 4.6.2"])
