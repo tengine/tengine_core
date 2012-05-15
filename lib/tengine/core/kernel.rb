@@ -402,6 +402,7 @@ class Tengine::Core::Kernel
       # * もうngが保存されているとき
       if event.new_record? or event.event_type_name != raw_event.event_type_name
         event.write_attributes raw_event.attributes.update(:confirmed => (raw_event.level.to_i <= config.confirmation_threshold))
+        event.created_at = Time.at(Time.now.to_i)
       else
         nil
       end

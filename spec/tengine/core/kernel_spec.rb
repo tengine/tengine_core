@@ -443,10 +443,15 @@ describe Tengine::Core::Kernel do
               u = @uuid.generate
               @kernel.process_message @header, Tengine::Event.new(key: u, event_type_name: "#{kind}.heartbeat.tengine").to_json
               @kernel.process_message @header, Tengine::Event.new(key: u, event_type_name: "finished.process.#{kind}.tengine").to_json
+
+              t = Time.now
+              sleep 1
+
               @kernel.process_message @header, Tengine::Event.new(key: u, event_type_name: "expired.#{kind}.heartbeat.tengine").to_json
 
               Tengine::Core::Event.where(key: u).count.should == 1
               Tengine::Core::Event.where(key: u).first.event_type_name.should =~ /expired/
+              Tengine::Core::Event.where(key: u).first.created_at >= t
             end
 
             it "finished -> beat (finishedが勝つ)" do
